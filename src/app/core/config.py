@@ -101,6 +101,16 @@ class VerifyCfg(_Strict):
     minicheck: MiniCheckCfg
 
 
+class BertScoreCfg(ModelRef):
+    num_layers: int = Field(gt=0)
+    baseline: str  # rescale_baseline/en/<baseline>.tsv shipped with bert-score
+    batch_size: int = Field(gt=0)
+
+
+class MetricsCfg(_Strict):
+    bertscore: BertScoreCfg
+
+
 class CacheCfg(_Strict):
     enabled: bool
     dir: str
@@ -114,6 +124,7 @@ class AppConfig(_Strict):
     summary: SummaryCfg
     keypoints: KeyPointsCfg
     verify: VerifyCfg
+    metrics: MetricsCfg
     fallback: Literal["fail", "ollama"]
     cache: CacheCfg
 

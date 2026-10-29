@@ -42,6 +42,13 @@ verify:
     revision: "3333333333333333333333333333333333333333"
     batch_size: 16
     chunk_words: 500
+metrics:
+  bertscore:
+    checkpoint: org/rob
+    revision: "4444444444444444444444444444444444444444"
+    num_layers: 17
+    baseline: roberta-large
+    batch_size: 32
 fallback: fail
 cache: {enabled: true, dir: .cache/llm}
 """
@@ -189,3 +196,13 @@ def test_real_configs_pin_the_verified_checkpoints():
     assert v.minicheck.revision == "96eafd01cee2d16cf81aaa2fb226b14f422a37b3"
     assert v.embedder.checkpoint == "sentence-transformers/all-MiniLM-L6-v2"
     assert v.embedder.revision == "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+
+
+def test_real_configs_pin_bertscore():
+    """bert-score's own default (roberta-large, layer 17), pinned to a commit."""
+    b = load_config("configs").metrics.bertscore
+    assert (b.checkpoint, b.revision) == (
+        "FacebookAI/roberta-large",
+        "722cf37b1afa9454edce342e7895e588b6ff1d59",
+    )
+    assert (b.num_layers, b.baseline) == (17, "roberta-large")

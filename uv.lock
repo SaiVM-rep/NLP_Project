@@ -2155,8 +2155,10 @@ dependencies = [
 eval = [
     { name = "bert-score" },
     { name = "datasets" },
+    { name = "huggingface-hub" },
     { name = "matplotlib" },
     { name = "pandas" },
+    { name = "pyarrow" },
     { name = "rouge-score" },
 ]
 ingest = [
@@ -2206,12 +2208,14 @@ requires-dist = [
     { name = "google-genai", marker = "extra == 'llm'", specifier = ">=0.3" },
     { name = "gradio", marker = "extra == 'ui'", specifier = ">=4.38" },
     { name = "httpx", specifier = ">=0.27" },
+    { name = "huggingface-hub", marker = "extra == 'eval'", specifier = ">=1.0" },
     { name = "lxml", marker = "extra == 'ingest'", specifier = ">=5.2" },
     { name = "matplotlib", marker = "extra == 'eval'", specifier = ">=3.9" },
     { name = "networkx", marker = "extra == 'ml'", specifier = ">=3.3" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "pandas", marker = "extra == 'eval'", specifier = ">=2.2" },
     { name = "psycopg", extras = ["binary"], marker = "extra == 'service'", specifier = ">=3.2" },
+    { name = "pyarrow", marker = "extra == 'eval'", specifier = ">=15" },
     { name = "pydantic", specifier = ">=2.7" },
     { name = "pydantic-settings", specifier = ">=2.3" },
     { name = "pysbd", marker = "extra == 'ingest'", specifier = ">=0.3.4" },

@@ -33,6 +33,8 @@ ml = [
 ]
 eval = [
     "datasets>=2.20",
+    "pyarrow>=15",  # eval/data.py reads the pinned parquet files directly
+    "huggingface-hub>=1.0",
     "rouge-score>=0.1.2",
     "bert-score>=0.3.13",
     "pandas>=2.2",
@@ -105,7 +107,7 @@ strict = true
 warn_unreachable = true
 # Third-party libs without stubs; narrow, not blanket.
 [[tool.mypy.overrides]]
-module = ["trafilatura.*", "pysbd.*", "lxml.*", "networkx.*", "sentence_transformers.*", "google.genai.*", "torch.*", "transformers.*"]
+module = ["trafilatura.*", "pysbd.*", "lxml.*", "networkx.*", "sentence_transformers.*", "google.genai.*", "torch.*", "transformers.*", "pyarrow.*", "rouge_score.*", "bert_score.*", "scipy.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
@@ -121,6 +123,9 @@ filterwarnings = [
     "ignore:invalid escape sequence",
     # transformers' modeling_deberta_v2 calls torch.jit.script at import; torch 2.11 deprecates it.
     "ignore:`torch.jit.script` is deprecated:DeprecationWarning",
+    # bert_score/scorer.py: torch.from_numpy on pandas 3's read-only (copy-on-write) baseline
+    # array. Baseline values are only read, never written.
+    "ignore:The given NumPy array is not writable:UserWarning:bert_score",
 ]
 addopts = "-q --strict-markers"
 markers = [
