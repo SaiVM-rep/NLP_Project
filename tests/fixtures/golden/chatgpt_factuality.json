@@ -1,0 +1,20 @@
+{
+  "title": "ChatGPT as a Factual Inconsistency Evaluator for Text Summarization",
+  "structure_ok": true,
+  "headings": [
+    "Abstract",
+    "Introduction",
+    "ChatGPT for Natural Language Processing",
+    "ChatGPT as a Factual Inconsistency Evaluator",
+    "Entailment Inference",
+    "Summary Ranking",
+    "Consistency Rating",
+    "Experiment",
+    "Entailment Inference",
+    "Summary Ranking",
+    "Consistency Rating",
+    "Error Analysis",
+    "Conclusion",
+    "Limitations"
+  ]
+}

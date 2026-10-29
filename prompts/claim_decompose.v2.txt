@@ -1,0 +1,10 @@
+CONTEXT (previous sentence, for pronoun resolution only; do NOT extract claims from it):
+{context}
+
+SENTENCE:
+{sentence}
+
+Split the SENTENCE above into the smallest independent factual claims.
+Every claim must come from the SENTENCE only, never from the CONTEXT.
+Each claim must make sense on its own (replace pronouns with the noun they refer to).
+Do not add information. Return JSON: {"claims": ["...", "..."]}

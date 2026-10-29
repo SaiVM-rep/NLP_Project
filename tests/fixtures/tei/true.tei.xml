@@ -1,0 +1,2349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">TRUE: Re-evaluating Factual Consistency Evaluation</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability  status="unknown">
+					<licence/>
+				</availability>
+				<date type="published" when="2022-05-03">3 May 2022</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName><forename type="first">Or</forename><surname>Honovich</surname></persName>
+							<email>or.honovich@gmail.com</email>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Roee</forename><surname>Aharoni</surname></persName>
+							<email>roeeaharoni@google.com</email>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Jonathan</forename><surname>Herzig</surname></persName>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">G</forename><surname>Hagai Taitelbaum</surname></persName>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">G</forename><surname>Vered Cohen</surname></persName>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">G</forename><surname>Doron Kukliansky</surname></persName>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">G</forename><surname>Thomas Scialom</surname></persName>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Idan</forename><surname>Szpektor</surname></persName>
+							<email>szpektor@google.com</email>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">G</forename><surname>Avinatan</surname></persName>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Hassidim</forename><forename type="middle">G</forename><surname>Yossi Matias</surname></persName>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">G</forename><forename type="middle">T</forename><surname>Tel</surname></persName>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Aviv</forename><surname>University</surname></persName>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">G</forename><surname>Google Research</surname></persName>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Meta</forename><surname>Ai</surname></persName>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Aviv Paris</settlement>
+									<country>Israel France</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">TRUE: Re-evaluating Factual Consistency Evaluation</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2022-05-03">3 May 2022</date>
+						</imprint>
+					</monogr>
+					<idno type="MD5">76D12F868A71ECBA0AC317A504D4C30B</idno>
+					<idno type="arXiv">arXiv:2204.04991v3[cs.CL]</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.1" ident="GROBID" when="2026-10-29T09:30+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Grounded text generation systems often generate text that contains factual inconsistencies, hindering their real-world applicability. Automatic factual consistency evaluation may help alleviate this limitation by accelerating evaluation cycles, filtering inconsistent outputs and augmenting training data. While attracting increasing attention, such evaluation metrics are usually developed and evaluated in silo for a single task or dataset, slowing their adoption. Moreover, previous meta-evaluation protocols focused on system-level correlations with human annotations, which leave the examplelevel accuracy of such metrics unclear. In this work, we introduce TRUE: a comprehensive survey and assessment of factual consistency metrics on a standardized collection of existing texts from diverse tasks, manually annotated for factual consistency. Our standardization enables an example-level metaevaluation protocol that is more actionable and interpretable than previously reported correlations, yielding clearer quality measures. Across diverse state-of-the-art metrics and 11 datasets we find that large-scale NLI and question generation-and-answering-based approaches achieve strong and complementary results. We recommend those methods as a starting point for model and metric developers, and hope TRUE will foster progress towards even better evaluation methods. 1 * Work done during an internship at Google Research.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>A core issue in deploying text generation models for real-world applications is that they often generate factually inconsistent text with respect to the input they are conditioned on, or even completely "hallucinate" <ref type="bibr" target="#b31">(Lee et al., 2018;</ref><ref type="bibr" target="#b52">Rohrbach et al., 2018;</ref><ref type="bibr" target="#b35">Maynez et al., 2020;</ref><ref type="bibr" target="#b69">Zhao et al., 2020)</ref> as exemplified in Table <ref type="table">1</ref>. ally done in silo, introducing new datasets and methods that target a specific task or domain, such as summarization <ref type="bibr" target="#b16">(Falke et al., 2019;</ref><ref type="bibr" target="#b28">Kryscinski et al., 2020;</ref><ref type="bibr" target="#b60">Wang et al., 2020;</ref><ref type="bibr">Scialom et al., 2021;</ref><ref type="bibr" target="#b6">Deutsch et al., 2021;</ref><ref type="bibr" target="#b63">Xie et al., 2021)</ref> or dialogue <ref type="bibr" target="#b11">(Dziri et al., 2021;</ref><ref type="bibr" target="#b25">Honovich et al., 2021;</ref><ref type="bibr">Nie et al., 2021;</ref><ref type="bibr" target="#b47">Qin et al., 2021)</ref>. Comparing the robustness of such methods across tasks and datasets is therefore difficult, impeding progress on this subject.</p><p>In this work, we present TRUE: a comprehensive survey and assessment of factual consistency evaluation methods, covering various metrics, tasks and datasets. We consolidate 11 existing datasets annotated for factual consistency into a unified format, including pairs of a target text and a grounding source text, with a binary annotation of whether the target text is factually consistent w.r.t its source. TRUE<ref type="foot" target="#foot_0">foot_0</ref> covers summarization, knowledge-grounded dialogue, paraphrasing and fact verification. <ref type="foot" target="#foot_1">3</ref> The proposed standardization enables us to properly compare consistency evaluation methods in a robust manner across these various tasks and domains.</p><p>Previous works on automatic factual consistency evaluation have mainly focused on measuring system-level correlations of the proposed metrics with human judgements <ref type="bibr" target="#b41">(Pagnoni et al., 2021</ref>). Yet, these correlations are not useful for estimating the performance of a measured metric when making example-level, binary decisions, decoupled from specific system implementations (see recent discussion by <ref type="bibr" target="#b7">Deutsch et al. (2022)</ref> on the limitations of reporting correlations). Instead, we aim to measure how well a method detects inconsistent texts (recall) and how often it falsely disregards consistent texts (precision), which can be easily computed using the aforementioned binary labeling scheme. Therefore, as a meta-evaluation protocol we report the Area Under the ROC Curve (ROC AUC) with respect to inconsistent example detection for each evaluation metric and dataset.</p><p>Our thorough survey and assessment of 12 metrics draws a clearer picture on the state of evaluating factual consistency. We show that Natural Language Inference (NLI) approaches, as well as Question Generation and Answering (QG-QA) ap-proaches achieve significantly better<ref type="foot" target="#foot_2">foot_2</ref> results on a wide variety of tasks and datasets. We also show that NLI and QG-QA are complementary: combining the two yields even better results and hints at room for further improvement. Finally, we perform both quantitative and qualitative analysis of our results, finding that all approaches struggle with long inputs, labeling issues and personal statementspaving interesting avenues for future work.</p><p>To summarize, our contributions are as follows: (1) We argue that work on factual consistency evaluation should be unified and generalized across tasks, and standardize 11 published datasets into a single labeling scheme to corroborate this. (2) We propose a meta-evaluation protocol that allows more actionable and interpretable quality measures than previously reported correlations. (3) We survey and evaluate 12 diverse metrics in this unified perspective, showing that large-scale NLI and QG-QA-based approaches achieve strong and complementary results across tasks. ( <ref type="formula">4</ref>) We analyze our results both qualitatively and quantitatively, pointing at challenges like long inputs and personal statements to be addressed in future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Standardizing Factual Consistency</head><p>In this section we elaborate on our re-evaluation setup. We first formally define what factual consistency refers to in this work. We then detail the datasets we consider and how we standardize them. Finally, we discuss the meta-evaluation protocol we propose for measuring the performance of evaluation methods on the standardized datasets.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Definitions and Terminology</head><p>We define a text to be factually consistent w.r.t its grounding text if all the factual information it conveys is consistent with the factual information conveyed by the grounding text. <ref type="foot" target="#foot_3">5</ref> While some previous works distinguished between inconsistent erroneous text to inconsistent correct text <ref type="bibr" target="#b35">(Maynez et al., 2020)</ref>, we take a strict approach, requiring the text to be faithful to its grounding text, regardless of the "correctness" w.r.t the "real world". In other words, we consider only the information present in the input text, not external knowledge, to assess faithfulness. This enables a more well-defined task, since determining the truthfulness of a fact w.r.t a Task # Examples Open Test Cons. Summarization -FRANK <ref type="bibr" target="#b41">(Pagnoni et al., 2021)</ref> 671 + 33.2% -SummEval <ref type="bibr">(Fabbri et al., 2021a)</ref> 1,600 -81.6% -MNBM <ref type="bibr" target="#b35">(Maynez et al., 2020)</ref> 2,500 -10.2% -QAGS-CNNDM <ref type="bibr" target="#b60">(Wang et al., 2020)</ref> 235 -48.1% -QAGS-XSum <ref type="bibr" target="#b60">(Wang et al., 2020)</ref> 239 -48.5% Dialogue -BEGIN <ref type="bibr" target="#b11">(Dziri et al., 2021)</ref> 836 + 33.7% -Q 2 <ref type="bibr" target="#b25">(Honovich et al., 2021)</ref> 1,088 -57.7% -DialFact <ref type="bibr" target="#b21">(Gupta et al., 2021)</ref> 8,689 + 38.5% Fact Verification -FEVER <ref type="bibr" target="#b59">(Thorne et al., 2018)</ref> 18,209 -35.1% -VitaminC <ref type="bibr" target="#b53">(Schuster et al., 2021)</ref> 63,054 + 49.9% Paraphrasing -PAWS <ref type="bibr" target="#b68">(Zhang et al., 2019)</ref> 8,000 + 44.2% general "real world" is subjective and depends on the knowledge, values and beliefs of the subject <ref type="bibr" target="#b23">(Heidegger, 2001)</ref>. This definition follows similar strictness in Textual Entailment, Question Answering, Summarization and other tasks where comprehension is based on a given grounding text, irrespective of contradiction with other world knowledge. This is also in line with recent work on evaluating attribution in text generation <ref type="bibr">(Rashkin et al., 2021a)</ref>, where humans are required to judge whether a generated text is attributable to a grounding text. We use the terms consistent, grounded, faithful and factual interchangeably.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Standardization Process</head><p>We include 11 datasets that contain human annotations w.r.t factual consistency in diverse tasks (Table <ref type="table" target="#tab_0">2</ref>). Other than the importance of covering a wide variety of error types, this also alleviates issues of rating quality which may vary across datasets <ref type="bibr">(Denton et al., 2021)</ref>.</p><p>To allow a unified evaluation framework we convert all annotations to binary labels that correspond to whether the entire target text is factually consistent w.r.t the given grounding text or not. We note that a fine-grained annotation scheme, i.e., a typology of errors, was proposed for factual consistency <ref type="bibr" target="#b41">(Pagnoni et al., 2021)</ref>. While useful, most existing datasets do not include such labels. Moreover, while Machine Translation (MT) evaluation also showed value in fine-grained annotations <ref type="bibr" target="#b18">(Freitag et al., 2021)</ref>, it was proposed after years of improving MT to the level where coarse-grained annotation is insufficient. We argue that current grounded generation models are still at early stages w.r.t factual consistency, making binary labeling more beneficial now as it enables easier standardization across tasks and domains, with the goal of bringing researchers to collaborate on a shared methodology. Binary annotation also corresponds to practical applications where filtering out unfaithful predictions is desired, and is in-line with the recommendations for human evaluation of attribution in text generation by <ref type="bibr">Rashkin et al. (2021a)</ref>.</p><p>We next detail the 11 datasets included in TRUE.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.1">Abstractive Summarization</head><p>FRANK <ref type="bibr" target="#b41">Pagnoni et al. (2021)</ref> proposed a typology of factual errors, grounded in frame semantics <ref type="bibr" target="#b17">(Fillmore, 1976;</ref><ref type="bibr" target="#b42">Palmer et al., 2005)</ref> and linguistic discourse theory <ref type="bibr" target="#b1">(Brown and Yule, 1983)</ref>. Based on this typology, they collected annotations for model-generated summaries on the CNN/DailyMail (CNN/DM; <ref type="bibr" target="#b24">Hermann et al., 2015)</ref> and XSum <ref type="bibr" target="#b37">(Narayan et al., 2018)</ref> datasets, resulting in 2250 annotated system outputs. Each summary sentence was annotated by three annotators. We take the majority vote for each sentence to get a sentence-level label and consider a summary as consistent if all sentences are consistent.</p><p>SummEval SummEval <ref type="bibr" target="#b13">(Fabbri et al., 2020</ref>) is a comprehensive study of evaluation metrics for text summarization. The authors collected human judgments for 16 model outputs on 100 articles taken from the CNN/DM dataset, using both extractive and abstractive models. Annotators were asked to rate summaries on a Likert scale from 1 to 5, over 4 dimensions: consistency, coherence, fluency and relevance. Each summary was scored by 5 crowd-workers and 3 expert annotators. We label summaries as consistent only if all the expert annotators gave a consistency score of 5.</p><p>MNBM <ref type="bibr" target="#b35">Maynez et al. (2020)</ref> annotated system outputs for the XSum dataset <ref type="bibr" target="#b37">(Narayan et al., 2018)</ref>. They sampled 500 articles and annotated summaries generated by four different systems, as well as the gold summaries. Annotators were asked to assess whether the summary includes hallucinations. Judgments from three different annotators were collected for each document-summary pair.</p><p>To convert to a binary-label format, we use the binary consistency decision of whether a summary contains no hallucinations, and assign a label by taking the majority vote of the three annotators.</p><p>QAGS <ref type="bibr" target="#b60">Wang et al. (2020)</ref> collected judgments of factual consistency on generated summaries for CNN/DM and XSum. Annotators were presented with the summaries one sentence at a time, along with the article, and determined whether each sentence is factually consistent w.r.t the article. Each sentence was annotated by 3 annotators, using the majority vote as the final score. To convert to binary-label format, we consider a summary consistent only if all its sentences are consistent.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.2">Dialogue Generation</head><p>BEGIN <ref type="bibr" target="#b11">(Dziri et al., 2021)</ref> is a dataset for evaluating groundedness in knowledge-grounded dialogue systems, in which system outputs should be consistent with a grounding knowledge provided to the dialogue agent. BEGIN frames the task as textual entailment <ref type="bibr" target="#b3">(Dagan et al., 2006;</ref><ref type="bibr" target="#b0">Bowman et al., 2015)</ref>, adopting the entailment and contradiction labels, and splitting the neutral label into three subcategories: hallucination, off-topic responses and generic responses. Dialogue responses were generated by fine-tuning two systems on the Wizard of Wikipedia (WOW) dataset <ref type="bibr" target="#b9">(Dinan et al., 2019)</ref>, in which responses should be grounded in a span of text from Wikipedia. The generated responses were split into sentences, and each sentence was annotated separately. To convert to a binary-label format, we treat entailed sentences as consistent and all others as inconsistent.</p><p>Q 2 Honovich et al. ( <ref type="formula">2021</ref>) annotated 1,088 generated dialogue responses for binary factual consistency w.r.t the knowledge paragraph provided to the dialogue model, for two dialogue models trained on WOW. Responses were annotated using binary labels by 3 of the paper authors, one annotator per response. We use Q 2 's labels without changes.</p><p>DialFact <ref type="bibr" target="#b21">Gupta et al. (2021)</ref> introduced the task of fact-verification in dialogue and constructed a dataset of conversational claims paired with pieces of evidence from Wikipedia. They define three tasks: (1) detecting whether a response contains verifiable content (2) retrieving relevant evidence and (3) predicting whether a response is supported by the evidence, refuted by the evidence or if there is not enough information to determine. We use the verifiable (i.e., factual, rather than personal) responses annotated for the third task, treating supported annotations as consistent and the rest as inconsistent. In cases where several evidence were marked as required for verification, we concatenate all evidence sentences to be the grounding text.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.3">Fact Verification</head><p>FEVER <ref type="bibr" target="#b59">Thorne et al. (2018)</ref> introduced FEVER (Fact Extraction and VERification), a dataset for fact verification against textual sources. FEVER was constructed by extracting information from Wikipedia, generating claims using annotators, then labeling whether each claim is supported or refuted by Wikipedia. Claims can also be labeled with NotEnoughInfo, meaning that there is not enough information in Wikipedia to either verify or refute the claim. Given a claim, the task defined by FEVER is to first extract evidence, then to determine whether it supports or refutes the claim.</p><p>In a slightly different framing, the latter stage in FEVER is to determine whether the claim is factually consistent or not w.r.t the evidence, which is aligned with what we aim to measure in TRUE. We use the development set of the NLI version of FEVER <ref type="bibr" target="#b38">(Nie et al., 2019</ref><ref type="bibr" target="#b39">(Nie et al., , 2020))</ref>, treating supported claims as consistent and the rest as inconsistent.</p><p>VitaminC Schuster et al. ( <ref type="formula">2021</ref>) derived a largescale fact verification dataset from factual revisions to Wikipedia pages. Each example includes an evidence text from Wikipedia and a fact, with an annotation of whether the fact is supported, refuted or neutral w.r.t the evidence. The authors collected factual revisions to Wikipedia articles (pairs of "before" and "after" sentences), and asked annotators to write two facts for each pair: one that is supported by the first sentence and refuted by the second, and vice versa. When no explicit contradiction was present, the annotators wrote facts that are neutral w.r.t the evidence. Additional examples were created by revising examples from FEVER. We treat examples that include supported facts as consistent, and refuted or neutral facts as inconsistent. <ref type="bibr" target="#b68">Zhang et al. (2019)</ref> constructed a dataset for paraphrase identification with 108,463 paraphrase and non-paraphrase pairs with high lexical overlap, generated by controlled word swapping and back-translation, followed by judgments from human raters. Source sentences were drawn from Wikipedia and the Quora Question Pairs (QQP) corpus. We only use the examples with Wikipedia source sentences and view the binary paraphrase labels as consistency labels. We note that the definition of paraphrase is not equivalent to the definition of factual consistency, as a subset of a source text is not a paraphrase but may still be factually consistent with the source. However, PAWS was constructed such that non-paraphrases usually have contradicting meanings and is therefore relevant.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.4">Paraphrase Detection</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>PAWS</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Meta-Evaluation</head><p>Previous work on evaluating factual consistency focused on measuring correlation with human judgements <ref type="bibr" target="#b41">(Pagnoni et al., 2021)</ref> to compare different metrics. However, such system-level numbers are not very informative when one is interested in evaluating the absolute performance of inconsistency detection methods that perform a binary decision w.r.t each input. <ref type="bibr" target="#b7">Deutsch et al. (2022)</ref> also recently discuss various issues in measuring system-level correlations to assess the validity of automatic evaluation metrics for summarization.</p><p>To conduct a more fine-grained evaluation at the single example level, we report the Receiver Operating Characteristic Area Under the Curve (ROC AUC) w.r.t binary detection of inconsistent examples. <ref type="foot" target="#foot_4">6</ref> The ROC curve is created by plotting the true positive rate (TPR, a.k.a. the recall) against the false positive rate (FPR, a.k.a. the fallout) at different possible thresholds for each tested metric. Measuring ROC AUC evaluates the different metrics without setting a specific decision threshold.</p><p>For datasets with existing development/test split, we also tune a threshold for the binary consistency/inconsistency decision on the development set and report the test set accuracy using this threshold. We tune the thresholds by optimizing the geometric mean of the TPR and 1-FPR:</p><p>TPR * (1 -FPR).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Evaluation Metrics</head><p>We compare various standard as well as state-ofthe-art approaches to measure factual consistency. This comparison should draw a clear picture of current research on this subject and raise directions for future work. For example, we expect that robust metrics should perform well across various tasks and datasets. We next describe the different metrics we assess as part of this study. We note that for all reference-based metrics, we use the grounding text as the reference. For metrics where the scores are not in the [0,1] range, we normalize the scores to be in that range.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">N-Gram Based Metrics</head><p>Standard N-Gram matching metrics such as BLEU <ref type="bibr" target="#b44">(Papineni et al., 2002)</ref>, ROUGE <ref type="bibr" target="#b33">(Lin, 2004</ref>) and token-level F1 were shown to have weak correlation with factual consistency <ref type="bibr" target="#b35">(Maynez et al., 2020;</ref><ref type="bibr" target="#b25">Honovich et al., 2021)</ref>. We add them as baselines to this study mainly to corroborate this claim on a wide set of datasets and tasks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Model-Based Metrics</head><p>BERTScore <ref type="bibr" target="#b67">(Zhang et al., 2020)</ref> aggregates similarity scores between the BERT contextual embedding of tokens in candidate and reference sentences.</p><p>We report results for the BERTScore-precision variant as it showed better results in preliminary experiments. We use BERTScore version 0.3.11 with the DeBERTa-xl-MNLI model <ref type="bibr" target="#b22">(He et al., 2021;</ref><ref type="bibr" target="#b36">Nangia et al., 2017)</ref>, which is the recommended model as of the time of writing this paper.<ref type="foot" target="#foot_5">foot_5</ref> </p><p>BLEURT <ref type="bibr">(Sellam et al., 2020a,b</ref>) is a learned metric based on BERT <ref type="bibr" target="#b8">(Devlin et al., 2019)</ref> for evaluating text generation. BLEURT includes additional pretraining on synthetic data followed by fine-tuning on human judgements to train a model that scores system outputs. We use the recommended BLEURT-20 checkpoint <ref type="bibr" target="#b46">(Pu et al., 2021</ref>).<ref type="foot" target="#foot_6">foot_6</ref> </p><p>FactCC <ref type="bibr" target="#b28">(Kryscinski et al., 2020</ref>) is a BERTbased metric for verifying the factual consistency of summaries. It is trained on synthetically generated data obtained by applying rule-based transformations to generate consistent and inconsistent summaries.</p><p>BARTScore <ref type="bibr" target="#b66">(Yuan et al., 2021</ref>) evaluates text using probabilities from force-decoding with a BART model <ref type="bibr" target="#b32">(Lewis et al., 2020)</ref>. We use the version finetuned on the ParaBank2 dataset <ref type="bibr" target="#b26">(Hu et al., 2019)</ref>.</p><p>CTC <ref type="bibr" target="#b4">(Deng et al., 2021)</ref> measures the average token-level alignment of the generated text w.r.t the grounding text using a BERT sequence tagging model. The model is trained to detect hallucinated tokens generated by a BART model in a self-supervised manner.<ref type="foot" target="#foot_7">foot_7</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Natural Language Inference Metrics</head><p>ANLI The task of Textual Entailment <ref type="bibr" target="#b3">(Dagan et al., 2006)</ref> or Natural Language Inference (NLI; <ref type="bibr" target="#b0">Bowman et al., 2015)</ref> is to determine, given two sentences, a hypothesis and a premise, whether the hypothesis in entailed by the premise, contradicts it, or is neutral w.r.t to it. The resemblance<ref type="foot" target="#foot_8">foot_8</ref> of NLI to factual consistency evaluation has led to utilizing NLI models for measuring factual consistency <ref type="bibr" target="#b59">(Thorne et al., 2018;</ref><ref type="bibr" target="#b62">Welleck et al., 2019;</ref><ref type="bibr" target="#b35">Maynez et al., 2020;</ref><ref type="bibr" target="#b11">Dziri et al., 2021)</ref>. We trained an NLI model by fine-tuning T5-11B <ref type="bibr" target="#b48">(Raffel et al., 2020)</ref> on the Adversarial NLI (ANLI; The steps of the QG-QA approach are as follows:</p><p>(1) Questions are automatically generated for spans in the generated text, such that the answer to a question is its respective input span. (2) The generated questions are answered using a QA model on the grounding text, resulting in an answer span or a "no-answer" output. (3) For each question, the two answer spans from the grounding and the generated text are compared to get a score. (4) The scores for all questions are aggregated into a final score.</p><p>Q 2 <ref type="bibr" target="#b25">(Honovich et al., 2021</ref>) is a QG-QA method that employs an NLI model to compare the two answers for each question, where the grounding text answer is the premise and the generated text answer is the hypothesis. We report results for a re-implementation of Q 2 using T5-11B as the backbone for the QG, QA and NLI models. While Honovich et al. ( <ref type="formula">2021</ref>) validate each generated question by answering it using a QA model and comparing to the original extracted answer candidate using exact match, we relax this and instead use F1 token-overlap with a predefined threshold. 13   QuestEval <ref type="bibr">(Scialom et al., 2021</ref>) is a QG-QA method that measures both factual consistency and relevance (by reversing the roles of the generated and grounding texts). The authors trained a model that weights each generated question according to the relevance of its answer to appear in the generated text. Their results showed high correlation with human judgments in comparison to prior work on the SummEval benchmark <ref type="bibr">(Fabbri et al., 2021a)</ref>. We use the publicly available version. 14</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Results</head><p>We report the ROC AUC 15 of various metrics on the standardized datasets in Table <ref type="table" target="#tab_2">3</ref>. The ROC curves can be found in Figure <ref type="figure" target="#fig_1">2</ref> in the appendix. SC ZS was trained on VitaminC which includes examples from FEVER, so we exclude those datasets from the average AUC calculation for a more fair comparison. As all metrics operate in a "zero-shot" manner on all datasets (except for SC ZS on Vita-minC and FEVER) and no threshold tuning is required, we report results on the development sets. 16  The results show that the NLI-based models (ANLI, SC ZS 17 ) outperformed the other approaches on 6 datasets, with average AUC of 81.5 and 81.4 for ANLI and SC ZS , respectively. Q 2 outperformed the other approaches on 4 datasets, with an average AUC of 80.7. The next best method, BARTScore, 13 More implementation details are available in Section B in the appendix.</p><p>14 <ref type="url" target="https://github.com/ThomasScialom/QuestEval">https://github.com/ThomasScialom/ QuestEval</ref> 15 Multiplied by 100 for better readability. 16 AUC for the test sets and accuracy for the dev and test sets are provided in Tables 10, 11 and 12 in the appendix. 17 We report results for SCZS as it performed better in our experiments. Results for SCConv are available in Table <ref type="table" target="#tab_5">10</ref>  had lower average AUC of 72.2. All other approaches scored 72 or lower on average across all datasets (excluding FEVER and VitaminC). As expected, the simple token-matching based metrics did not perform well, and for completeness, we report their performance in Table <ref type="table">9</ref> in the appendix.</p><p>We keep the F1 score in Table <ref type="table" target="#tab_2">3</ref> for convenient comparison to the other metrics. One outlier is BEGIN, which is the only dataset where simple metrics like F1 token overlap achieved scores higher than 80. We measured the average overlap between the grounding and target texts per dataset, and found that BEGIN exhibits a high difference between grounded and ungrounded texts in comparison to other datasets (Table 8 in appendix A), which explains this.</p><p>We follow <ref type="bibr" target="#b29">Laban et al. (2021)</ref> and perform significance testing through bootstrap resampling <ref type="bibr" target="#b12">(Efron, 1982)</ref>, comparing the best method to the second-best method on each dataset. We perform interval comparison at p = 0.05 and p = 0.01 and find significantly best results on 6 datasets, 3 achieved by Q 2 and 3 by the ANLI-based model.</p><p>Given that no single method outperformed the rest on all datasets, we hypothesize that the NLI and QG-QA based metrics are complementary. We test this by averaging the Q 2 , ANLI and SC ZS scores per example 18 (Ensemble in Table <ref type="table" target="#tab_2">3</ref>). Indeed, averaging the three methods yields better results on most datasets and on average, with an increase of 4.5 in ROC AUC from the best single-metric result.</p><p>Our results show that a single metric can do well across all tasks and datasets, with all 3 best metrics scoring higher than 80 on average on the 11 datasets. This corroborates our hypothesis that 18 Pairwise ensembles are reported in the appendix, Table <ref type="table">9</ref>.</p><p>evaluating factual consistency can be unified, and we hope such unified perspective will be adopted in future work to accelerate progress on the subject.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Analysis</head><p>Input Length. As QA and NLI models may struggle with long inputs <ref type="bibr" target="#b27">(Kočiský et al., 2018;</ref><ref type="bibr">Pang et al., 2021;</ref><ref type="bibr" target="#b65">Yin et al., 2021;</ref><ref type="bibr" target="#b58">Shaham et al., 2022)</ref>, metrics based on them may fail when handling long text. To study the effect of input length on the metrics performance, we unify all datasets <ref type="foot" target="#foot_11">19</ref>and split examples into 6 bins according to the grounding length. <ref type="foot" target="#foot_12">20</ref> We focus on the grounding as the target texts are usually short (see Table <ref type="table">7</ref> in Appendix A). We measure AUC of the best 3 metrics according to their overall score for each length bin, sampling 1,000 examples per bin.</p><p>The results are shown in Figure <ref type="figure" target="#fig_0">1</ref>. We find that there is a consistent degradation for texts longer than 200 tokens for all metrics, including SC ZS which is designed to better handle long text. We find it surprising that the ANLI-based model and Q 2 still do relatively well on the longest bin (with AUC &gt; 0.825) as they perform end-to-end QA and NLI on text with more than 500 tokens.</p><p>Model Size. Model-based metrics are expected to benefit from increasing the model size. To quantify this we study the effect of using smaller models for the ANLI, BLEURT and BERTScore metrics. We compare the average ROC AUC of larger and smaller model variants for each metric. The ablation results are in Table <ref type="table">4</ref>. We find an advantage of 4.7, 3.7 and 1.3 average ROC AUC for the larger ANLI, BLEURT and BERTScore variants respectively, showing that larger models indeed allow for better factual consistency evaluation metrics, and hinting at potential improvements from using even larger models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model</head><p>Avg. ROC AUC ANLI-T5-11B 81.5 (+4.7) ANLI-T5-Large 76.8 BLEURT-20 71.4 (+3.7) BLEURT-20-D6 67.7 BERTScore P -deberta-xl-mnli 71.4 (+1.3) BERTScore P -roberta-large 70.1</p><p>Table <ref type="table">4</ref>: Ablation study comparing the average ROC AUC results for models with different sizes. "BERTScore P" stands for BERTScore Precision.</p><p>Qualitative Analysis. We conduct manual error analysis to point at weaknesses of the different metrics and present challenges posed by the task. We analyze 80 examples that were misclassified by all three best metrics, as well as 100 examples that were correctly classified by one or two of the three. Out of the analyzed examples, many seem to have a wrong label. This is especially true for cases in which all best metrics failed, with annotation errors in 35/80 cases. For the cases where one or two metrics failed, we found annotation errors in 27/100 cases. To verify that the high annotation error rate is indeed a result of inspecting the "hardest" examples and not a general issue in the datasets we used, we uniformly sample 100 additional examples, finding that only 10 had annotation errors. We therefore stress that the high misannotation rate indeed characterizes "hard" examples only, and is not a general property of the datasets we used. This is inline with the findings of <ref type="bibr" target="#b18">Freitag et al. (2021)</ref>, who showed that in some cases, metrics may be "better" than non-expert annotators. These findings demonstrate the potential of automatic methods in "cleaning" training data by filtering factually inconsistent examples.</p><p>Despite showing impressive results, the bestperforming metrics fail to detect subtle inconsistencies, as presented in Table <ref type="table">5</ref>. This was the case for 21/180 analyzed examples. Metrics that aggregate scores across parts of a target text, such as Q 2 or SC ZS , might assign a high score for texts in which all but a small part is consistent. End-to-end NLI should predict "contradiction" even when only a small part of the text contradicts the grounding, but it may fail to do so. Applying a strict approach in the aggregation step, like taking the minimum instead of the average, could potentially remedy this -with the price of having more false-negatives. Other errors are caused by domain-specific challenges, such as handling personal statements in dialogues. As shown in Table <ref type="table">5</ref>, such statements may be falsely classified as ungrounded. This was the case for 10/62 analyzed dialogue responses. A possible way to alleviate this would be to automatically exclude non-factual parts from the evaluation.</p><p>Ensemble Analysis. As shown in §4, a simple averaging ensemble using the three best metrics achieves strong results, outperforming individual metrics on most datasets. To understand this further, we analyze cases in which at least one of the best three metrics failed, while the ensemble succeeded. Overall, there were 25,761 such cases, where in 85.2% of these cases, two out of the three metrics succeeded, and only one failed. In 14.6% of these cases, one metric succeeded while the other two failed, and only in 0.2% of the cases, the ensemble succeeded while all metrics failed. These cases are a result of the different threshold used for the ensemble model vs. the thresholds for the individual metrics. We sample 100 of these examples and manually analyze them. Out of the sampled examples, 47% were misclassified by one metric only, where this metric assigned a borderline score -i.e., close to the decision threshold. 36% of these examples were misclassified by one metric only, and also with a non-borderline score -i.e., the metric was far from a correct prediction. Other cases include two, or even three, erroneous metrics.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Related Work</head><p>Adding to the related work mentioned throughout the paper, works on unified evaluation of text Grounding Generated Text Explanation The word "philately" is the English version of the French word "philatélie", coined by Georges Herpin in 1864.</p><p>The word philately is actually a french word coined by george herpin.</p><p>The word philately is an English word based on a French word, but not French. All best metrics misclassified this. French police have interviewed presidential candidate francois fillon and his wife penelope over claims she was paid for fake work. They provided information that would help find the "truth", mr fillon said. . . French presidential candidate francois fillon has said he and his wife penelope have been questioned by police over claims she worked illegally.</p><p>Most details are correct and the hallucination is subtle. In the case of Q 2 , most of the generated questions have the same answer based on the grounding and the generated text, therefore the overall score was high. Stamp collecting is generally accepted as one of the areas that make up the wider subject of philately, which is the study of stamps. I've never heard of stamps, but I do know that the word "philately" refers to the study of stamps.</p><p>The personal statement "I've never heard of stamps" is not factual and should not be evaluated. Evidence suggests that cognitive behavioral therapy and a gradual increase in activity suited to individual capacity can be beneficial in some cases.</p><p>It has been suggested that cognitive behavioral therapy and gradual increase in exercise could help in some cases so I'm going to try that for now.</p><p>Similar to the previous examples -SummaC and ANLI falsely marked the text as inconsistent, probably due to the personal statement.</p><p>Table <ref type="table">5</ref>: Examples for the error analysis. The first two rows show cases of challenging inconsistencies, while the last two show dialogue responses containing non-factual personal statements.</p><p>generation across tasks include GEM <ref type="bibr" target="#b20">(Gehrmann et al., 2021)</ref>, where the focus is on evaluating system outputs and not the factual consistency evaluation methods as in TRUE. BEAMetrics <ref type="bibr" target="#b55">(Scialom and Hill, 2021)</ref> proposes meta-evaluation protocols across tasks, but does not focus on factual consistency. When discussing consistency ("correctness") they measure correlations, which are not sufficient as mentioned in Section 2.3. <ref type="bibr" target="#b2">Chen et al. (2021)</ref> present an adversarial meta-evaluation for factual consistency evaluators, focused on summarization. Other works on meta-evaluation of factual consistency across datasets include GO-FIGURE <ref type="bibr" target="#b19">(Gabriel et al., 2021)</ref> FRANK <ref type="bibr" target="#b41">(Pagnoni et al., 2021)</ref> SummaC <ref type="bibr" target="#b29">(Laban et al., 2021)</ref> and QAFactEval <ref type="bibr">(Fabbri et al., 2021b)</ref>, however they all focus solely on summarization. <ref type="bibr" target="#b64">Yeh et al. (2021)</ref> conduct a thorough assessment of dialog metrics, however not specifically around factual consistency. To the best of our knowledge, our work is the first to generalize the discussion on evaluating factual consistency across tasks and datasets, and the first to show that large-scale QG-QA and NLI are strong and highly complementary -setting better baselines and metaevaluation methodology for future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Discussion and Future Work</head><p>We discuss the main takeaways of the TRUE study, pointing at actionable insights for future work. First, as QG-QA and NLI-based methods show better performance than other approaches, especially when combined together, we recommend model developers to use those methods for evaluation when factual consistency is a priority. As for metric developers, we recommend using those methods and the datasets in TRUE when evaluating new metrics.</p><p>We also suggest reporting ROC AUC rather than correlations, as it is more interpretable and actionable. Our proposed binary annotation scheme allows to easily test new metrics across tasks and datasets, which would be useful for future work.</p><p>Finally, we encourage data curators to use the binary annotation scheme, which is inline with the recommendations of <ref type="bibr">Rashkin et al. (2021a)</ref>. Having said that, we do not rule out more detailed labeling schemes -but rather ask to provide a protocol for converting such labels into the more general binary format. Future work may also address the challenges of long inputs and personal statements in dialogue, which we point out in our analysis.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8">Conclusions</head><p>We presented TRUE, a survey and assessment of automatic factual consistency evaluation methods. We standardized various datasets from diverse tasks into a unified labeling scheme to perform a thorough comparison of automatic evaluation methods, showing that large scale NLI and QG-QA based approaches perform well across multiple tasks and datasets. We further show that these methods are highly complementary -hinting at additional headroom for improvement while pointing on current limitations. We hope our results and methodology will encourage a more unified perspective in future work to foster progress towards more factuallyconsistent NLP applications.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A Additional Data Statistics</head><p>Tables <ref type="table" target="#tab_3">6</ref> and<ref type="table">7</ref> presents statistics regarding the length of the grounding text and the generated text for TRUE's datasets, respectively. Table <ref type="table">7</ref>: Generated text length statistics for TRUE.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>B Implementation Details</head><p>We train all models using the t5x library. 21</p><p>QG-QA For our reimplementation of Q 2 (Honovich et al., 2021) we use T5-11B as the pretrained model for QG, QA and NLI, while Honovich et al.</p><p>(2021) used T5-Base, ALBERT <ref type="bibr" target="#b30">(Lan et al., 2019)</ref>, and RoBERTa <ref type="bibr" target="#b34">(Liu et al., 2019)</ref> for the QG, QA and NLI models, respectively. We use a maximum length of 2048 tokens for the input. We set the F1 token overlap threshold to 0.54 by tuning it on a held-out dataset. We use beam search with a beam size of 4 to generate multiple questions, and use the first question that passes the validation threshold.</p><p>NLI We fine-tune a T5-11B model on ANLI <ref type="bibr" target="#b39">(Nie et al., 2020)</ref> for 25K steps with a learning rate of 10 -4 and a batch size of 32. During inference we use a maximum input length of 2048 tokens.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>C ROC Curves</head><p>Figure <ref type="figure" target="#fig_1">2</ref> presents the ROC curves for the different datasets studied in TRUE, using the bestperforming metrics. Table <ref type="table">8</ref>: Average overlap between the generated text and the grounding, measured using ROUGE-L and simple F1 token-overlap, taking the grounding to be the reference text. The "Pos" columns contain the statistics for the grounded text, while the "Neg" columns contain the statistics for the ungrounded text.  </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: ROC AUC when splitting TRUE's data according to the grounding length.</figDesc><graphic coords="8,70.87,70.87,218.60,116.75" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: ROC curves for the best performing methods.</figDesc><graphic coords="15,151.14,626.34,145.14,108.85" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>Table 2 :</head><label>2</label><figDesc>Statistics for the datasets incorporated in TRUE. Cons. is the ratio of consistent examples.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1"><head></head><label></label><figDesc><ref type="bibr" target="#b39">Nie et al., 2020)</ref> dataset. As suggested by<ref type="bibr" target="#b35">Maynez et al. (2020)</ref>, we compute the entailment probability with the grounding text as the premise and the generated text as the hypothesis and use it as the examplelevel factual consistency score. 11 SUMMAC (Summary Consistency;<ref type="bibr" target="#b29">Laban et al., 2021)</ref> is focused on evaluating factual consistency in summarization. They use NLI for detecting inconsistencies by splitting the document and summary into sentences and computing the entailment probabilities on all document/summary sentence pairs, where the premise is a document sentence and the hypothesis is a summary sentence. They aggregate the NLI scores for all pairs by either taking the maximum score per summary sentence and averaging (SC ZS ) or by training a convolutional neural network to aggregate the scores (SC Conv ).</figDesc><table><row><cell>We use the publicly available implementation. 12</cell></row><row><cell>3.4 QG-QA Based Metrics</cell></row><row><cell>Durmus et al. (2020) and Wang et al. (2020) pro-</cell></row><row><cell>posed to use Question Generation (QG) and Ques-</cell></row><row><cell>tion Answering (QA) models to automatically eval-</cell></row><row><cell>uate factual consistency in abstractive summariza-</cell></row><row><cell>tion, showing promising results. Honovich et al.</cell></row><row><cell>(2021) employed a similar approach for evaluating</cell></row><row><cell>knowledge-grounded dialogue generation.</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head>Table 3 :</head><label>3</label><figDesc>in the appendix. ROC AUC results for the different metrics on the TRUE development set. We exclude VitaminC and FEVER from the average calculation as SC ZS was trained on VitaminC that includes examples from FEVER. The highest score in each row (excluding the Ensemble) is in bold and the aforementioned SC results are in strikethrough. Statistically significant results are indicated using * and ** for p &lt; 0.05 and p &lt; 0.01 respectively.</figDesc><table><row><cell></cell><cell></cell><cell>Ensemble</cell><cell>Q 2</cell><cell>metric</cell><cell>ANLI</cell><cell cols="2">SCZS F1</cell><cell cols="4">BLEURT QuestEval FactCC BARTscore BERTscore</cell></row><row><cell cols="2">FRANK</cell><cell>91.2</cell><cell cols="2">87.8</cell><cell>89.4</cell><cell>89.1</cell><cell cols="2">76.1 82.8</cell><cell>84.0</cell><cell>76.4</cell><cell>86.1</cell><cell>84.3</cell></row><row><cell cols="2">SummEval</cell><cell>82.9</cell><cell cols="2">78.8</cell><cell>80.5</cell><cell>81.7</cell><cell cols="2">61.4 66.7</cell><cell>70.1</cell><cell>75.9</cell><cell>73.5</cell><cell>77.2</cell></row><row><cell cols="2">MNBM</cell><cell>76.6</cell><cell cols="2">68.7</cell><cell cols="2">77.9** 71.3</cell><cell cols="2">46.2 64.5</cell><cell>65.3</cell><cell>59.4</cell><cell>60.9</cell><cell>62.8</cell></row><row><cell cols="2">QAGS-C</cell><cell>87.7</cell><cell cols="2">83.5</cell><cell>82.1</cell><cell>80.9</cell><cell cols="2">63.8 71.6</cell><cell>64.2</cell><cell>76.4</cell><cell>80.9</cell><cell>69.1</cell></row><row><cell cols="2">QAGS-X</cell><cell>84.8</cell><cell cols="2">70.9</cell><cell>83.8</cell><cell>78.1</cell><cell cols="2">51.1 57.2</cell><cell>56.3</cell><cell>64.9</cell><cell>53.8</cell><cell>49.5</cell></row><row><cell cols="2">BEGIN</cell><cell>86.2</cell><cell cols="2">79.7</cell><cell>82.6</cell><cell>82.0</cell><cell cols="2">86.4 86.4</cell><cell>84.1</cell><cell>64.4</cell><cell>86.3</cell><cell>87.9</cell></row><row><cell>Q 2</cell><cell>dataset</cell><cell>82.8</cell><cell cols="2">80.9*</cell><cell>72.7</cell><cell>77.4</cell><cell cols="2">65.9 72.4</cell><cell>72.2</cell><cell>63.7</cell><cell>64.9</cell><cell>70.0</cell></row><row><cell cols="2">DialFact</cell><cell>90.4</cell><cell cols="2">86.1**</cell><cell>77.7</cell><cell>84.1</cell><cell cols="2">72.3 73.1</cell><cell>77.3</cell><cell>55.3</cell><cell>65.6</cell><cell>64.2</cell></row><row><cell cols="2">PAWS</cell><cell>91.2</cell><cell cols="2">89.7**</cell><cell>86.4</cell><cell>88.2</cell><cell cols="2">51.1 68.3</cell><cell>69.2</cell><cell>64.0</cell><cell>77.5</cell><cell>77.5</cell></row><row><cell cols="2">FEVER</cell><cell>94.7</cell><cell cols="2">88.4</cell><cell cols="2">93.2** 93.2</cell><cell cols="2">51.8 59.5</cell><cell>72.6</cell><cell>61.9</cell><cell>64.1</cell><cell>63.3</cell></row><row><cell cols="2">VitaminC</cell><cell>96.1</cell><cell cols="2">81.4</cell><cell cols="2">88.3** 97.9</cell><cell cols="2">61.4 61.8</cell><cell>66.5</cell><cell>56.3</cell><cell>63.2</cell><cell>62.5</cell></row><row><cell cols="2">Avg. w/o VitC, FEVER</cell><cell>86.0</cell><cell cols="2">80.7</cell><cell>81.5</cell><cell>81.4</cell><cell cols="2">63.8 71.4</cell><cell>71.4</cell><cell>66.7</cell><cell>72.2</cell><cell>71.4</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3"><head>Table 6 :</head><label>6</label><figDesc>Grounding length statistics for TRUE.</figDesc><table><row><cell>Dataset</cell><cell cols="4">Min len. Max len. Median len. Avg len.</cell></row><row><cell>FRANK</cell><cell>102</cell><cell>1005</cell><cell>550</cell><cell>548</cell></row><row><cell>SummEval</cell><cell>100</cell><cell>540</cell><cell>367</cell><cell>359</cell></row><row><cell>MNBM</cell><cell>8</cell><cell>10315</cell><cell>287</cell><cell>383</cell></row><row><cell cols="2">QAGS-CNNDM 73</cell><cell>360</cell><cell>325</cell><cell>318</cell></row><row><cell>QAGS-XSUM</cell><cell>218</cell><cell>520</cell><cell>339</cell><cell>351</cell></row><row><cell>BEGIN</cell><cell>7</cell><cell>64</cell><cell>23</cell><cell>23</cell></row><row><cell>Q 2</cell><cell>6</cell><cell>71</cell><cell>21</cell><cell>23</cell></row><row><cell>DialFact</cell><cell>4</cell><cell>174</cell><cell>22</cell><cell>26</cell></row><row><cell>PAWS</cell><cell>5</cell><cell>37</cell><cell>21.0</cell><cell>21</cell></row><row><cell>FEVER</cell><cell>8</cell><cell>286</cell><cell>44</cell><cell>59</cell></row><row><cell>VitaminC</cell><cell>1</cell><cell>265</cell><cell>26</cell><cell>28</cell></row><row><cell>Dataset</cell><cell cols="4">Min len. Max len. Median len. Avg len.</cell></row><row><cell>FRANK</cell><cell>2</cell><cell>126</cell><cell>40</cell><cell>41</cell></row><row><cell>SummEval</cell><cell>5</cell><cell>133</cell><cell>61</cell><cell>63</cell></row><row><cell>MNBM</cell><cell>2</cell><cell>52</cell><cell>19</cell><cell>19</cell></row><row><cell cols="2">QAGS-CNNDM 23</cell><cell>85</cell><cell>47</cell><cell>49</cell></row><row><cell>QAGS-XSUM</cell><cell>9</cell><cell>31</cell><cell>18</cell><cell>18</cell></row><row><cell>BEGIN</cell><cell>5</cell><cell>40</cell><cell>13</cell><cell>14</cell></row><row><cell>Q 2</cell><cell>7</cell><cell>44</cell><cell>15</cell><cell>16</cell></row><row><cell>DialFact</cell><cell>4</cell><cell>69</cell><cell>16</cell><cell>17</cell></row><row><cell>PAWS</cell><cell>5</cell><cell>37</cell><cell>21</cell><cell>21</cell></row><row><cell>FEVER</cell><cell>2</cell><cell>36</cell><cell>8</cell><cell>8</cell></row><row><cell>VitaminC</cell><cell>1</cell><cell>103</cell><cell>12</cell><cell>13</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5"><head>Table 10 :</head><label>10</label><figDesc>ROC AUC results for the different metrics on the TRUE test set. We exclude VitaminC from the average calculation as SC ZS was trained on VitaminC. The highest score in each row (excluding the Ensemble) is in bold and the aforementioned SC results are in strikethrough.</figDesc><table><row><cell></cell><cell></cell><cell>Ensemble</cell><cell>Q 2</cell><cell>metric</cell><cell cols="3">ANLI SCZS F1</cell><cell cols="4">BLEURT QuestEval FactCC BARTscore BERTscore</cell></row><row><cell cols="2">FRANK</cell><cell>83.2</cell><cell cols="2">82.9</cell><cell>83.5</cell><cell>80.9</cell><cell cols="2">67.5 76.0</cell><cell>74.2</cell><cell>73.9</cell><cell>80.2</cell><cell>77.0</cell></row><row><cell cols="2">SummEval</cell><cell>79.4</cell><cell cols="2">77.3</cell><cell>72.9</cell><cell>75.0</cell><cell cols="2">64.2 66.4</cell><cell>67.0</cell><cell>65.3</cell><cell>68.9</cell><cell>73.7</cell></row><row><cell cols="2">MNBM</cell><cell>69.6</cell><cell cols="2">66.5</cell><cell>66.7</cell><cell>64.5</cell><cell cols="2">40.4 53.7</cell><cell>66.1</cell><cell>62.9</cell><cell>61.0</cell><cell>60.1</cell></row><row><cell cols="2">QAGS-C</cell><cell>81.3</cell><cell cols="2">78.3</cell><cell>75.3</cell><cell>72.8</cell><cell cols="2">62.6 68.9</cell><cell>62.6</cell><cell>70.6</cell><cell>74.5</cell><cell>66.8</cell></row><row><cell cols="2">QAGS-X</cell><cell>77.4</cell><cell cols="2">63.6</cell><cell>80.3</cell><cell>72.8</cell><cell cols="2">51.0 56.5</cell><cell>56.9</cell><cell>65.3</cell><cell>54.4</cell><cell>52.3</cell></row><row><cell cols="2">BEGIN</cell><cell>77.9</cell><cell cols="2">73.0</cell><cell>76.0</cell><cell>79.7</cell><cell cols="2">80.0 78.1</cell><cell>75.5</cell><cell>66.6</cell><cell>77.4</cell><cell>80.5</cell></row><row><cell>Q 2</cell><cell>dataset</cell><cell>76.8</cell><cell cols="2">76.1</cell><cell>66.6</cell><cell>71.3</cell><cell cols="2">61.4 67.0</cell><cell>65.8</cell><cell>60.5</cell><cell>59.7</cell><cell>66.1</cell></row><row><cell cols="2">DialFact</cell><cell>83.4</cell><cell cols="2">80.5</cell><cell>70.9</cell><cell>75.8</cell><cell cols="2">66.4 67.0</cell><cell>69.9</cell><cell>53.4</cell><cell>60.8</cell><cell>61.2</cell></row><row><cell cols="2">PAWS</cell><cell>83.4</cell><cell cols="2">83.5</cell><cell>80.5</cell><cell>81.5</cell><cell cols="2">50.2 64.2</cell><cell>64.3</cell><cell>60.2</cell><cell>72.2</cell><cell>71.1</cell></row><row><cell cols="2">FEVER</cell><cell>90.4</cell><cell cols="2">82.7</cell><cell>90.2</cell><cell>87.6</cell><cell cols="2">52.3 57.7</cell><cell>69.4</cell><cell>57.2</cell><cell>60.5</cell><cell>58.7</cell></row><row><cell cols="2">VitaminC</cell><cell>90.8</cell><cell cols="2">76.0</cell><cell>82.3</cell><cell>93.5</cell><cell cols="2">58.0 58.0</cell><cell>62.2</cell><cell>55.0</cell><cell>59.1</cell><cell>58.6</cell></row><row><cell cols="2">Avg. w/o VitC, FEVER</cell><cell>79.2</cell><cell cols="2">75.7</cell><cell>74.7</cell><cell>74.9</cell><cell cols="2">60.4 66.4</cell><cell>66.9</cell><cell>64.3</cell><cell>67.6</cell><cell>67.6</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6"><head>Table 11 :</head><label>11</label><figDesc>Accuracy results for the different metrics on the TRUE development set. Note that thresholds were tuned on the development set itself. We exclude VitaminC and FEVER from the average calculation as SC ZS was trained on VitaminC that includes examples from FEVER. The highest score in each row (excluding the Ensemble) is in bold and the aforementioned SC results are in strikethrough.</figDesc><table><row><cell></cell><cell>Ensemble</cell><cell>Q 2</cell><cell cols="7">ANLI SCZS BLEURT QuestEval FactCC BARTscore BERTscore</cell></row><row><cell>FRANK</cell><cell>83.0</cell><cell cols="2">81.5 82.0</cell><cell>79.0</cell><cell>76.6</cell><cell>73.0</cell><cell>72.1</cell><cell>80.7</cell><cell>75.6</cell></row><row><cell>BEGIN</cell><cell>76.8</cell><cell cols="2">74.1 76.8</cell><cell>78.9</cell><cell>74.3</cell><cell>73.4</cell><cell>62.09</cell><cell>74.8</cell><cell>78.1</cell></row><row><cell>DialFact</cell><cell>80.9</cell><cell cols="2">78.1 68.4</cell><cell>74.2</cell><cell>67.1</cell><cell>69.0</cell><cell>52.5</cell><cell>58.6</cell><cell>60.2</cell></row><row><cell>PAWS</cell><cell>84.8</cell><cell cols="2">84.1 82.1</cell><cell>82.3</cell><cell>62.9</cell><cell>64.8</cell><cell>60.7</cell><cell>70.9</cell><cell>69.8</cell></row><row><cell>VitaminC</cell><cell>92.1</cell><cell cols="2">77.5 83.9</cell><cell>94.2</cell><cell>59.0</cell><cell>63.3</cell><cell>55.5</cell><cell>59.8</cell><cell>58.0</cell></row><row><cell>Avg. w/o VitC</cell><cell>81.4</cell><cell cols="2">79.4 77.3</cell><cell>78.6</cell><cell>70.2</cell><cell>70.0</cell><cell>62.1</cell><cell>71.3</cell><cell>70.9</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_7"><head>Table 12 :</head><label>12</label><figDesc>Accuracy results for the different metrics on the TRUE test set. Thresholds were tuned on the corresponding development sets. We exclude VitaminC from the average calculation as SC ZS was trained on VitaminC. The highest score in each row (excluding the Ensemble) is in bold and the aforementioned SC results are in strikethrough.</figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_0"><p>The name is a homage to GLUE<ref type="bibr" target="#b61">(Wang et al., 2018)</ref> and not an acronym.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_1"><p>We focus on English text-to-text tasks, and leave data-totext<ref type="bibr" target="#b45">(Parikh et al., 2020;</ref><ref type="bibr" target="#b51">Reiter and Thomson, 2020)</ref>, multilingual and multimodal tasks to future work.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_2"><p>We conduct significance testing, see section 4.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_3"><p>We exclude personal and social statements such as opinions and chit-chat from the scope of factual information.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_4"><p>This is equivalent to the AUC w.r.t detecting consistent examples.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_5"><p>https://github.com/Tiiiger/bert_score</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="8" xml:id="foot_6"><p>https://github.com/google-research/ bleurt/blob/master/checkpoints.md</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="9" xml:id="foot_7"><p>This metric has come to our attention after the paper was accepted, so we add the results to the appendix to avoid adding unreviewed results in the camera ready version. See https: //github.com/tanyuqian/ctc-gen-eval/ blob/master/factual-consistency.md for implementation details and Table9for results.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="10" xml:id="foot_8"><p>One example where the definition of NLI and factual consistency differs is in dialog, where subjective or opinionated statements of the dialog agent are not evaluated as factual statements, while NLI models consider all the text in the premise.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="11" xml:id="foot_9"><p>More implementation details on the NLI model are available in Section B in the appendix.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="12" xml:id="foot_10"><p>https://github.com/tingofurro/summac</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="19" xml:id="foot_11"><p>Excluding VitaminC as it is much larger than other datasets and might therefore distort results. Statistics regarding the grounding and target text lengths per dataset is in Appendix A.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="20" xml:id="foot_12"><p>We measure length in tokens (before subword splitting) as different metrics use different subword tokenizations.</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgements</head><p>We thank <rs type="person">Dipanjan Das</rs>, <rs type="person">Sebastian Gehrmann</rs> and <rs type="person">Joshua Maynez</rs> for their valuable comments and suggestions for this work.</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">A large annotated corpus for learning natural language inference</title>
+		<author>
+			<persName><forename type="first">R</forename><surname>Samuel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gabor</forename><surname>Bowman</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Christopher</forename><surname>Angeli</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Christopher</forename><forename type="middle">D</forename><surname>Potts</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Manning</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D15-1075</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2015 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2015 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Lisbon, Portugal</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="632" to="642" />
+		</imprint>
+	</monogr>
+	<note>Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">Discourse Analysis</title>
+		<author>
+			<persName><forename type="first">Gillian</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">George</forename><surname>Yule</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1983">1983</date>
+			<publisher>Cambridge University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Are factuality checkers reliable? adversarial metaevaluation of factuality in summarization</title>
+		<author>
+			<persName><forename type="first">Yiran</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pengfei</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xipeng</forename><surname>Qiu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Findings of the Association for Computational Linguistics: EMNLP 2021</title>
+		<meeting><address><addrLine>Punta Cana, Dominican Republic</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="2082" to="2095" />
+		</imprint>
+	</monogr>
+	<note>Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">The pascal recognising textual entailment challenge</title>
+		<author>
+			<persName><forename type="first">Ido</forename><surname>Dagan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Oren</forename><surname>Glickman</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bernardo</forename><surname>Magnini</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Machine Learning Challenges. Evaluating Predictive Uncertainty, Visual Object Classification, and Recognising Tectual Entailment</title>
+		<meeting><address><addrLine>Berlin, Heidelberg</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer Berlin Heidelberg</publisher>
+			<date type="published" when="2006">2006</date>
+			<biblScope unit="page" from="177" to="190" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Compression, transduction, and creation: A unified framework for evaluating natural language generation</title>
+		<author>
+			<persName><forename type="first">Mingkai</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bowen</forename><surname>Tan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhengzhong</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Eric</forename><surname>Xing</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhiting</forename><surname>Hu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2021 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Dominican Republic. Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="7580" to="7605" />
+		</imprint>
+		<respStmt>
+			<orgName>Online and Punta Cana</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<author>
+			<persName><forename type="first">Emily</forename><surname>Denton</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mark</forename><surname>Díaz</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ian</forename><surname>Kivlichan</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2112.04554</idno>
+		<title level="m">Vinodkumar Prabhakaran, and Rachel Rosen. 2021. Whose ground truth? accounting for individual and collective identities underlying dataset annotation</title>
+		<imprint/>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Towards question-answering as an automatic metric for evaluating the content quality of a summary</title>
+		<author>
+			<persName><forename type="first">Daniel</forename><surname>Deutsch</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tania</forename><surname>Bedrax-Weiss</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dan</forename><surname>Roth</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Transactions of the Association for Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page" from="774" to="789" />
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title level="m" type="main">Reexamining system-level correlations of automatic summarization evaluation metrics</title>
+		<author>
+			<persName><forename type="first">Daniel</forename><surname>Deutsch</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Rotem</forename><surname>Dror</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dan</forename><surname>Roth</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2204.10216</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">BERT: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N19-1423</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<title level="s">Long and Short Papers</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>Minneapolis, Minnesota</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="4171" to="4186" />
+		</imprint>
+	</monogr>
+	<note>Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Wizard of Wikipedia: Knowledge-powered conversational agents</title>
+		<author>
+			<persName><forename type="first">Emily</forename><surname>Dinan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Stephen</forename><surname>Roller</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kurt</forename><surname>Shuster</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Angela</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><surname>Auli</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jason</forename><surname>Weston</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the International Conference on Learning Representations (ICLR)</title>
+		<meeting>the International Conference on Learning Representations (ICLR)</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">FEQA: A question answering evaluation framework for faithfulness assessment in abstractive summarization</title>
+		<author>
+			<persName><forename type="first">Esin</forename><surname>Durmus</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">He</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mona</forename><surname>Diab</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.454</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="5055" to="5070" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<title level="m" type="main">Evaluating groundedness in dialogue systems: The begin benchmark</title>
+		<author>
+			<persName><forename type="first">Nouha</forename><surname>Dziri</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Hannah</forename><surname>Rashkin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tal</forename><surname>Linzen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">David</forename><surname>Reitter</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title level="m" type="main">The jackknife, the bootstrap and other resampling plans</title>
+		<author>
+			<persName><surname>Bradley Efron</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1982">1982</date>
+			<publisher>SIAM</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<author>
+			<persName><forename type="first">Wojciech</forename><surname>Alexander R Fabbri</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bryan</forename><surname>Kryściński</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Caiming</forename><surname>Mccann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Richard</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dragomir</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Radev</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2007.12626</idno>
+		<title level="m">Summeval: Reevaluating summarization evaluation</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Caiming Xiong, Richard Socher, and Dragomir Radev. 2021a. Summeval: Re-evaluating summarization evaluation</title>
+		<author>
+			<persName><forename type="first">Wojciech</forename><surname>Alexander R Fabbri</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bryan</forename><surname>Kryściński</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Mccann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Transactions of the Association for Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page" from="391" to="409" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title level="m" type="main">2021b. Qafacteval: Improved qa-based factual consistency evaluation for summarization</title>
+		<author>
+			<persName><forename type="first">Alexander</forename><forename type="middle">R</forename><surname>Fabbri</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chien-Sheng</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wenhao</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Caiming</forename><surname>Xiong</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Ranking generated summaries by correctness: An interesting but challenging application for natural language inference</title>
+		<author>
+			<persName><forename type="first">Tobias</forename><surname>Falke</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Leonardo</forename><forename type="middle">F R</forename><surname>Ribeiro</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/P19-1213</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 57th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Florence, Italy</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="2214" to="2220" />
+		</imprint>
+	</monogr>
+	<note>Prasetya Ajie Utama, Ido Dagan, and Iryna Gurevych. Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Frame semantics and the nature of language *</title>
+		<author>
+			<persName><forename type="first">C</forename><surname>Fillmore</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Annals of the New York Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="page">280</biblScope>
+			<date type="published" when="1976">1976</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title level="m" type="main">Experts, errors, and context: A large-scale study of human evaluation for machine translation</title>
+		<author>
+			<persName><forename type="first">Markus</forename><surname>Freitag</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">George</forename><surname>Foster</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">David</forename><surname>Grangier</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Viresh</forename><surname>Ratnakar</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Qijun</forename><surname>Tan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wolfgang</forename><surname>Macherey</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2104.14478</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">GO FIGURE: A meta evaluation of factuality in summarization</title>
+		<author>
+			<persName><forename type="first">Saadia</forename><surname>Gabriel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Asli</forename><surname>Celikyilmaz</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Rahul</forename><surname>Jha</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yejin</forename><surname>Choi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.findings-acl.42</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Findings of the Association for Computational Linguistics: ACL-IJCNLP 2021</title>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="478" to="487" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">The GEM benchmark: Natural language generation, its evaluation and metrics</title>
+		<author>
+			<persName><forename type="first">Sebastian</forename><surname>Gehrmann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tosin</forename><surname>Adewumi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Karmanya</forename><surname>Aggarwal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pawan</forename><surname>Sasanka Ammanamanchi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Anuoluwapo</forename><surname>Aremu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Antoine</forename><surname>Bosselut</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Raghavi</forename><surname>Khyathi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Miruna-Adriana</forename><surname>Chandu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dipanjan</forename><surname>Clinciu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kaustubh</forename><surname>Das</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wanyu</forename><surname>Dhole</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Esin</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ondřej</forename><surname>Durmus</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chris</forename><surname>Dušek</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Varun</forename><surname>Chinenye Emezue</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Cristina</forename><surname>Gangal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tatsunori</forename><surname>Garbacea</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yufang</forename><surname>Hashimoto</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yacine</forename><surname>Hou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Harsh</forename><surname>Jernite</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yangfeng</forename><surname>Jhamtani</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shailza</forename><surname>Ji</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mihir</forename><surname>Jolly</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dhruv</forename><surname>Kale</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Faisal</forename><surname>Kumar</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aman</forename><surname>Ladhak</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mounica</forename><surname>Madaan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Khyati</forename><surname>Maddela</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Saad</forename><surname>Mahajan</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Mahamood</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Prasad</forename><surname>Bodhisattwa</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pedro</forename><forename type="middle">Henrique</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Angelina</forename><surname>Martins</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Simon</forename><surname>Mcmillan-Major</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Mille</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Moin</forename><surname>Emiel Van Miltenburg</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shashi</forename><surname>Nadeem</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vitaly</forename><surname>Narayan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andre</forename><surname>Nikolaev</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Salomey</forename><surname>Niyongabo Rubungo</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ankur</forename><surname>Osei</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Laura</forename><surname>Parikh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Niranjan</forename><surname>Perez-Beltrachini</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ramesh</forename><surname>Rao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vikas</forename><surname>Raunak</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Juan</forename></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Diego</forename><surname>Rodriguez</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sashank</forename><surname>Santhanam</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.gem-1.10</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 1st Workshop on Natural Language Generation</title>
+		<editor>
+			<persName><forename type="first">João</forename><surname>Sedoc</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Thibault</forename><surname>Sellam</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Samira</forename><surname>Shaikh</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Anastasia</forename><surname>Shimorina</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Marco</forename><surname>Antonio Sobrevilla</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Hendrik</forename><surname>Cabezudo</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Nishant</forename><surname>Strobelt</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Wei</forename><surname>Subramani</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Diyi</forename><surname>Xu</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Akhila</forename><surname>Yang</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Jiawei</forename><surname>Yerukola</surname></persName>
+		</editor>
+		<editor>
+			<persName><surname>Zhou</surname></persName>
+		</editor>
+		<meeting>the 1st Workshop on Natural Language Generation</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="96" to="120" />
+		</imprint>
+	</monogr>
+	<note>Evaluation, and Metrics (GEM 2021</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<author>
+			<persName><forename type="first">Prakhar</forename><surname>Gupta</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chien-Sheng</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wenhao</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Caiming</forename><surname>Xiong</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2110.08222</idno>
+		<title level="m">Dialfact: A benchmark for fact-checking in dialogue</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Deberta: Decoding-enhanced bert with disentangled attention</title>
+		<author>
+			<persName><forename type="first">Pengcheng</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xiaodong</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Weizhu</forename><surname>Chen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International Conference on Learning Representations</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">On the essence of truth</title>
+		<author>
+			<persName><forename type="first">Martin</forename><surname>Heidegger</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Nature of Truth: Classic and Contemporary Perspectives</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="295" to="316" />
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Teaching machines to read and comprehend</title>
+		<author>
+			<persName><forename type="first">Karl</forename><surname>Moritz Hermann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tomas</forename><surname>Kocisky</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Edward</forename><surname>Grefenstette</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lasse</forename><surname>Espeholt</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Will</forename><surname>Kay</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mustafa</forename><surname>Suleyman</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Phil</forename><surname>Blunsom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<publisher>Curran Associates, Inc</publisher>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="volume">28</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Evaluating factual consistency in knowledgegrounded dialogues via question generation and question answering</title>
+		<author>
+			<persName><forename type="first">Or</forename><surname>Honovich</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Leshem</forename><surname>Choshen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Roee</forename><surname>Aharoni</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ella</forename><surname>Neeman</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Idan</forename><surname>Szpektor</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Omri</forename><surname>Abend</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2021 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Dominican Republic. Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="7856" to="7870" />
+		</imprint>
+		<respStmt>
+			<orgName>Online and Punta Cana</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Largescale, diverse, paraphrastic bitexts via sampling and clustering</title>
+		<author>
+			<persName><forename type="first">J</forename><forename type="middle">Edward</forename><surname>Hu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Abhinav</forename><surname>Singh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nils</forename><surname>Holzenberger</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matt</forename><surname>Post</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Benjamin</forename><surname>Van Durme</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/K19-1005</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 23rd Conference on Computational Natural Language Learning (CoNLL)</title>
+		<meeting>the 23rd Conference on Computational Natural Language Learning (CoNLL)<address><addrLine>Hong Kong, China</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="44" to="54" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">The NarrativeQA reading comprehension challenge</title>
+		<author>
+			<persName><forename type="first">Tomáš</forename><surname>Kočiský</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jonathan</forename><surname>Schwarz</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Phil</forename><surname>Blunsom</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chris</forename><surname>Dyer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Karl</forename><forename type="middle">Moritz</forename><surname>Hermann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gábor</forename><surname>Melis</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Edward</forename><surname>Grefenstette</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/tacl_a_00023</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Transactions of the Association for Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="page" from="317" to="328" />
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Evaluating the factual consistency of abstractive text summarization</title>
+		<author>
+			<persName><forename type="first">Wojciech</forename><surname>Kryscinski</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bryan</forename><surname>Mccann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Caiming</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Richard</forename><surname>Socher</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.emnlp-main.750</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</title>
+		<meeting>the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="9332" to="9346" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+		<title level="m" type="main">Summac: Re-visiting nlibased models for inconsistency detection in summarization</title>
+		<author>
+			<persName><forename type="first">Philippe</forename><surname>Laban</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tobias</forename><surname>Schnabel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul</forename><forename type="middle">N</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Marti</forename><forename type="middle">A</forename><surname>Hearst</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2111.09525</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+		<title level="m" type="main">Albert: A lite bert for self-supervised learning of language representations</title>
+		<author>
+			<persName><forename type="first">Zhenzhong</forename><surname>Lan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mingda</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sebastian</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kevin</forename><surname>Gimpel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Piyush</forename><surname>Sharma</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Radu</forename><surname>Soricut</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1909.11942</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Hallucinations in neural machine translation</title>
+		<author>
+			<persName><forename type="first">Katherine</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Orhan</forename><surname>Firat</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ashish</forename><surname>Agarwal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Clara</forename><surname>Fannjiang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">David</forename><surname>Sussillo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">NeurIPS 2018 Workshop on Interpretability and Robustness for Audio, Speech, and Language</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">BART: Denoising sequence-to-sequence pretraining for natural language generation, translation, and comprehension</title>
+		<author>
+			<persName><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yinhan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Naman</forename><surname>Goyal ; Abdelrahman Mohamed</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Omer</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Veselin</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.703</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">Marjan Ghazvininejad,. 2020</date>
+			<biblScope unit="page" from="7871" to="7880" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">ROUGE: A package for automatic evaluation of summaries</title>
+		<author>
+			<persName><forename type="first">Chin-Yew</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Text Summarization Branches Out</title>
+		<meeting><address><addrLine>Barcelona, Spain</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2004">2004</date>
+			<biblScope unit="page" from="74" to="81" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+		<author>
+			<persName><forename type="first">Yinhan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Myle</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Naman</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jingfei</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mandar</forename><surname>Joshi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Danqi</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Omer</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Veselin</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1907.11692</idno>
+		<title level="m">Roberta: A robustly optimized bert pretraining approach</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">On faithfulness and factuality in abstractive summarization</title>
+		<author>
+			<persName><forename type="first">Joshua</forename><surname>Maynez</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shashi</forename><surname>Narayan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bernd</forename><surname>Bohnet</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ryan</forename><surname>Mcdonald</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.173</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="1906" to="1919" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">The RepEval 2017 shared task: Multi-genre natural language inference with sentence representations</title>
+		<author>
+			<persName><forename type="first">Nikita</forename><surname>Nangia</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Adina</forename><surname>Williams</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Angeliki</forename><surname>Lazaridou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Samuel</forename><surname>Bowman</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/W17-5301</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2nd Workshop on Evaluating Vector Space Representations for NLP</title>
+		<meeting>the 2nd Workshop on Evaluating Vector Space Representations for NLP<address><addrLine>Copenhagen, Denmark</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="1" to="10" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Don&apos;t give me the details, just the summary! topic-aware convolutional neural networks for extreme summarization</title>
+		<author>
+			<persName><forename type="first">Shashi</forename><surname>Narayan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shay</forename><forename type="middle">B</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mirella</forename><surname>Lapata</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D18-1206</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2018 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Brussels, Belgium</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="1797" to="1807" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Combining fact extraction and verification with neural semantic matching networks</title>
+		<author>
+			<persName><forename type="first">Yixin</forename><surname>Nie</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Haonan</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mohit</forename><surname>Bansal</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Association for the Advancement of Artificial Intelligence (AAAI)</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Adversarial NLI: A new benchmark for natural language understanding</title>
+		<author>
+			<persName><forename type="first">Yixin</forename><surname>Nie</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Adina</forename><surname>Williams</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Emily</forename><surname>Dinan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mohit</forename><surname>Bansal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jason</forename><surname>Weston</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Douwe</forename><surname>Kiela</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.441</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="4885" to="4901" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">2021. I like fish, especially dolphins: Addressing contradictions in dialogue modeling</title>
+		<author>
+			<persName><forename type="first">Yixin</forename><surname>Nie</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mary</forename><surname>Williamson</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mohit</forename><surname>Bansal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Douwe</forename><surname>Kiela</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jason</forename><surname>Weston</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.acl-long.134</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing</title>
+		<meeting>the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="1699" to="1713" />
+		</imprint>
+	</monogr>
+	<note>Long Papers)</note>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Understanding factuality in abstractive summarization with FRANK: A benchmark for factuality metrics</title>
+		<author>
+			<persName><forename type="first">Artidoro</forename><surname>Pagnoni</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vidhisha</forename><surname>Balachandran</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yulia</forename><surname>Tsvetkov</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.naacl-main.383</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<meeting>the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="4812" to="4829" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">The Proposition Bank: An Annotated Corpus of Semantic Roles</title>
+		<author>
+			<persName><forename type="first">Martha</forename><surname>Palmer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Daniel</forename><surname>Gildea</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul</forename><surname>Kingsbury</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/0891201053630264</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="71" to="106" />
+			<date type="published" when="2005">2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<monogr>
+		<author>
+			<persName><forename type="first">Richard</forename><surname>Yuanzhe</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pang</forename></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alicia</forename><surname>Parrish</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nitish</forename><surname>Joshi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nikita</forename><surname>Nangia</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jason</forename><surname>Phang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Angelica</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vishakh</forename><surname>Padmakumar</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Johnny</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jana</forename><surname>Thompson</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2112.08608</idno>
+		<title level="m">He He, et al. 2021. Quality: Question answering with long input texts, yes! arXiv preprint</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Bleu: a method for automatic evaluation of machine translation</title>
+		<author>
+			<persName><forename type="first">Kishore</forename><surname>Papineni</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Salim</forename><surname>Roukos</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Todd</forename><surname>Ward</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wei-Jing</forename><surname>Zhu</surname></persName>
+		</author>
+		<idno type="DOI">10.3115/1073083.1073135</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 40th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 40th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Philadelphia, Pennsylvania, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2002">2002</date>
+			<biblScope unit="page" from="311" to="318" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">ToTTo: A controlled table-totext generation dataset</title>
+		<author>
+			<persName><forename type="first">Ankur</forename><surname>Parikh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xuezhi</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sebastian</forename><surname>Gehrmann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Manaal</forename><surname>Faruqui</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bhuwan</forename><surname>Dhingra</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Diyi</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dipanjan</forename><surname>Das</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.emnlp-main.89</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</title>
+		<meeting>the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="1173" to="1186" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Learning compact metrics for MT</title>
+		<author>
+			<persName><forename type="first">Amy</forename><surname>Pu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Hyung</forename><forename type="middle">Won</forename><surname>Chung</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ankur</forename><surname>Parikh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sebastian</forename><surname>Gehrmann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Thibault</forename><surname>Sellam</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2021 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Dominican Republic. Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="751" to="762" />
+		</imprint>
+		<respStmt>
+			<orgName>Online and Punta Cana</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">Don&apos;t be contradicted with anything! CI-ToD: Towards benchmarking consistency for task-oriented dialogue system</title>
+		<author>
+			<persName><forename type="first">Libo</forename><surname>Qin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tianbao</forename><surname>Xie</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shijue</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Qiguang</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xiao</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wanxiang</forename><surname>Che</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2021 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="2357" to="2367" />
+		</imprint>
+		<respStmt>
+			<orgName>Online and Punta Cana</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Exploring the limits of transfer learning with a unified text-totext transformer</title>
+		<author>
+			<persName><forename type="first">Colin</forename><surname>Raffel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Adam</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Katherine</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sharan</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><surname>Matena</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yanqi</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wei</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">140</biblScope>
+			<biblScope unit="page" from="1" to="67" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<monogr>
+		<title level="m" type="main">Gaurav Singh Tomar, Iulia Turc, and David Reitter. 2021a. Measuring attribution in natural language generation models</title>
+		<author>
+			<persName><forename type="first">Vitaly</forename><surname>Hannah Rashkin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matthew</forename><surname>Nikolaev</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><surname>Lamm</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dipanjan</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Slav</forename><surname>Das</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Petrov</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2112.12870</idno>
+		<imprint/>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">2021b. Increasing faithfulness in knowledge-grounded dialogue with controllable features</title>
+		<author>
+			<persName><forename type="first">David</forename><surname>Hannah Rashkin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gaurav</forename><surname>Reitter</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dipanjan</forename><surname>Singh Tomar</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Das</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.acl-long.58</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing</title>
+		<meeting>the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="704" to="718" />
+		</imprint>
+	</monogr>
+	<note>Long Papers)</note>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Shared task on evaluating accuracy</title>
+		<author>
+			<persName><forename type="first">Ehud</forename><surname>Reiter</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Craig</forename><surname>Thomson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 13th International Conference on Natural Language Generation</title>
+		<meeting>the 13th International Conference on Natural Language Generation<address><addrLine>Dublin, Ireland</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="227" to="231" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title level="a" type="main">Object hallucination in image captioning</title>
+		<author>
+			<persName><forename type="first">Anna</forename><surname>Rohrbach</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lisa</forename><forename type="middle">Anne</forename><surname>Hendricks</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kaylee</forename><surname>Burns</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Trevor</forename><surname>Darrell</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kate</forename><surname>Saenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2018 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="4035" to="4045" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Get your vitamin C! robust fact verification with contrastive evidence</title>
+		<author>
+			<persName><forename type="first">Tal</forename><surname>Schuster</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Adam</forename><surname>Fisch</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Regina</forename><surname>Barzilay</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.naacl-main.52</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2021 Conference of the North American Chapter of the Asso-ciation for Computational Linguistics: Human Language Technologies</title>
+		<meeting>the 2021 Conference of the North American Chapter of the Asso-ciation for Computational Linguistics: Human Language Technologies</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="624" to="643" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">QuestEval: Summarization asks for fact-based evaluation</title>
+		<author>
+			<persName><forename type="first">Thomas</forename><surname>Scialom</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul-Alexis</forename><surname>Dray</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sylvain</forename><surname>Lamprier</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Benjamin</forename><surname>Piwowarski</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jacopo</forename><surname>Staiano</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alex</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Patrick</forename><surname>Gallinari</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2021 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Dominican Republic. Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="6594" to="6604" />
+		</imprint>
+		<respStmt>
+			<orgName>Online and Punta Cana</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<monogr>
+		<title level="m" type="main">Beametrics: A benchmark for language generation evaluation evaluation</title>
+		<author>
+			<persName><forename type="first">Thomas</forename><surname>Scialom</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Felix</forename><surname>Hill</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2110.09147</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">BLEURT: Learning robust metrics for text generation</title>
+		<author>
+			<persName><forename type="first">Thibault</forename><surname>Sellam</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dipanjan</forename><surname>Das</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ankur</forename><surname>Parikh</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.704</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="7881" to="7892" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title level="a" type="main">Dipanjan Das, and Ankur Parikh. 2020b. Learning to evaluate translation beyond English: BLEURT submissions to the WMT metrics 2020 shared task</title>
+		<author>
+			<persName><forename type="first">Thibault</forename><surname>Sellam</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Amy</forename><surname>Pu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Hyung</forename><forename type="middle">Won</forename><surname>Chung</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sebastian</forename><surname>Gehrmann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Qijun</forename><surname>Tan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Markus</forename><surname>Freitag</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Fifth Conference on Machine Translation</title>
+		<meeting>the Fifth Conference on Machine Translation</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<biblScope unit="page" from="921" to="927" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<monogr>
+		<author>
+			<persName><forename type="first">Uri</forename><surname>Shaham</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Elad</forename><surname>Segal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Maor</forename><surname>Ivgi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Avia</forename><surname>Efrat</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ori</forename><surname>Yoran</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Adi</forename><surname>Haviv</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ankit</forename><surname>Gupta</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wenhan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mor</forename><surname>Geva</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jonathan</forename><surname>Berant</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Omer</forename><surname>Levy</surname></persName>
+		</author>
+		<title level="m">Scrolls: Standardized comparison over long language sequences</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title level="a" type="main">The fact extraction and VERification (FEVER) shared task</title>
+		<author>
+			<persName><forename type="first">James</forename><surname>Thorne</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andreas</forename><surname>Vlachos</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Oana</forename><surname>Cocarascu</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/W18-5501</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the First Workshop on Fact Extraction and VERification (FEVER)</title>
+		<meeting>the First Workshop on Fact Extraction and VERification (FEVER)<address><addrLine>Brussels, Belgium</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="1" to="9" />
+		</imprint>
+	</monogr>
+	<note>Christos Christodoulopoulos, and Arpit Mittal</note>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title level="a" type="main">Asking and answering questions to evaluate the factual consistency of summaries</title>
+		<author>
+			<persName><forename type="first">Alex</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.450</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="5008" to="5020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title level="a" type="main">GLUE: A multi-task benchmark and analysis platform for natural language understanding</title>
+		<author>
+			<persName><forename type="first">Alex</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Amanpreet</forename><surname>Singh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Julian</forename><surname>Michael</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Felix</forename><surname>Hill</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Omer</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Samuel</forename><surname>Bowman</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/W18-5446</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2018 EMNLP Workshop Black-boxNLP: Analyzing and Interpreting Neural Networks for NLP</title>
+		<meeting>the 2018 EMNLP Workshop Black-boxNLP: Analyzing and Interpreting Neural Networks for NLP<address><addrLine>Brussels, Belgium</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="353" to="355" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<analytic>
+		<title level="a" type="main">Dialogue natural language inference</title>
+		<author>
+			<persName><forename type="first">Sean</forename><surname>Welleck</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jason</forename><surname>Weston</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Arthur</forename><surname>Szlam</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/P19-1363</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 57th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Florence, Italy</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="3731" to="3741" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title level="a" type="main">Factual consistency evaluation for text summarization via counterfactual estimation</title>
+		<author>
+			<persName><forename type="first">Yuexiang</forename><surname>Xie</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Fei</forename><surname>Sun</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yang</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yaliang</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bolin</forename><surname>Ding</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Findings of the Association for Computational Linguistics: EMNLP 2021</title>
+		<meeting><address><addrLine>Punta Cana, Dominican Republic</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="100" to="110" />
+		</imprint>
+	</monogr>
+	<note>Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<analytic>
+		<title level="a" type="main">A comprehensive assessment of dialog evaluation metrics</title>
+		<author>
+			<persName><forename type="first">Yi-Ting</forename><surname>Yeh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Maxine</forename><surname>Eskenazi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shikib</forename><surname>Mehri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">The First Workshop on Evaluations and Assessments of Neural Conversation Systems</title>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="15" to="33" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<analytic>
+		<title level="a" type="main">DocNLI: A large-scale dataset for documentlevel natural language inference</title>
+		<author>
+			<persName><forename type="first">Wenpeng</forename><surname>Yin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dragomir</forename><surname>Radev</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Caiming</forename><surname>Xiong</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.findings-acl.435</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Findings of the Association for Computational Linguistics: ACL-IJCNLP 2021</title>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="4913" to="4922" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<analytic>
+		<title level="a" type="main">BARTScore: Evaluating generated text as text generation</title>
+		<author>
+			<persName><forename type="first">Weizhe</forename><surname>Yuan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Graham</forename><surname>Neubig</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pengfei</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<analytic>
+		<title level="a" type="main">Bertscore: Evaluating text generation with bert</title>
+		<author>
+			<persName><forename type="first">Tianyi</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Varsha</forename><surname>Kishore</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Felix</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kilian</forename><forename type="middle">Q</forename><surname>Weinberger</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yoav</forename><surname>Artzi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International Conference on Learning Representations</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b68">
+	<analytic>
+		<title level="a" type="main">PAWS: Paraphrase adversaries from word scrambling</title>
+		<author>
+			<persName><forename type="first">Yuan</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jason</forename><surname>Baldridge</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luheng</forename><surname>He</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N19-1131</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<title level="s">Long and Short Papers</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>Minneapolis, Minnesota</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="1298" to="1308" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b69">
+	<monogr>
+		<author>
+			<persName><forename type="first">Zheng</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shay</forename><forename type="middle">B</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bonnie</forename><surname>Webber</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2009.13312</idno>
+		<title level="m">Reducing quantity hallucinations in abstractive summarization</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b70">
+	<analytic>
+		<title level="a" type="main">Detecting hallucinated content in conditional neural sequence generation</title>
+		<author>
+			<persName><forename type="first">Chunting</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Graham</forename><surname>Neubig</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jiatao</forename><surname>Gu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mona</forename><surname>Diab</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Francisco</forename><surname>Guzmán</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Marjan</forename><surname>Ghazvininejad</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.findings-acl.120</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Findings of the Association for Computational Linguistics: ACL-IJCNLP 2021</title>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="1393" to="1404" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

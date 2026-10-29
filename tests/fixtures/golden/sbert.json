@@ -1,0 +1,20 @@
+{
+  "title": "Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks",
+  "structure_ok": true,
+  "headings": [
+    "Abstract",
+    "Introduction",
+    "Related Work",
+    "Model",
+    "Training Details",
+    "Evaluation -Semantic Textual Similarity",
+    "Unsupervised STS",
+    "Supervised STS",
+    "Argument Facet Similarity",
+    "Wikipedia Sections Distinction",
+    "Evaluation -SentEval",
+    "Ablation Study",
+    "Computational Efficiency",
+    "Conclusion"
+  ]
+}

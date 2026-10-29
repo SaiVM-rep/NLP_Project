@@ -1,0 +1,6 @@
+Rewrite the text below so that it says exactly the same thing in different words.
+Do not add, remove or change any fact. Keep numbers, names and units exactly as written.
+Return JSON: {"text": "<rewritten text>"}
+
+TEXT:
+{text}

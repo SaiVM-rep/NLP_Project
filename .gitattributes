@@ -1,0 +1,4 @@
+# LF everywhere: char offsets into text fixtures are the backbone (SC2), and the
+# Dockerfile/Makefile run on Linux. Stops Windows core.autocrlf rewriting checkouts.
+* text=auto eol=lf
+*.pdf binary

@@ -1,0 +1,39 @@
+# --- python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# --- env / venv ---
+.venv/
+venv/
+.env
+.env.local
+
+# --- caches ---
+.cache/
+.hf/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+
+# --- data & outputs (PRD §10: git-ignored) ---
+data/
+results/
+
+# --- notebooks ---
+.ipynb_checkpoints/
+
+# --- os / editor ---
+Thumbs.db
+desktop.ini
+.DS_Store
+.idea/
+.vscode/
+
+# --- not ours ---
+# ad-hoc input papers belong in data/ (ignored); fixtures live in tests/fixtures/pdfs
+/*.pdf

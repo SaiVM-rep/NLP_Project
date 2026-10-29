@@ -1,0 +1,27 @@
+# Local hooks run the pinned tools from the uv venv, so pre-commit and
+# `make check` can never disagree on versions. Install: `make hooks`.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: uv run --no-sync ruff check --fix
+        language: system
+        types: [python]
+      - id: black
+        name: black
+        entry: uv run --no-sync black
+        language: system
+        types: [python]
+      - id: mypy
+        name: mypy
+        entry: uv run --no-sync mypy
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: pytest-unit
+        name: pytest (unit)
+        entry: uv run --no-sync pytest tests/unit
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -1,0 +1,1476 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">ChatGPT as a Factual Inconsistency Evaluator for Text Summarization</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability  status="unknown">
+					<licence/>
+				</availability>
+				<date type="published" when="2023-04-13">13 Apr 2023</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName><forename type="first">Zheheng</forename><surname>Luo</surname></persName>
+							<email>zheheng.luo@manchester.ac.uk</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">The University of Manchester</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Qianqian</forename><surname>Xie</surname></persName>
+							<email>qianqian.xie@manchester.ac.uk</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">The University of Manchester</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Sophia</forename><surname>Ananiadou</surname></persName>
+							<email>sophia.ananiadou@manchester.ac.uk</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">The University of Manchester</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main">ChatGPT as a Factual Inconsistency Evaluator for Text Summarization</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2023-04-13">13 Apr 2023</date>
+						</imprint>
+					</monogr>
+					<idno type="MD5">888588481335306915C0317A27E462BD</idno>
+					<idno type="arXiv">arXiv:2303.15621v2[cs.CL]</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.1" ident="GROBID" when="2026-10-29T09:29+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The performance of text summarization has been greatly boosted by pre-trained language models. A main concern of existing methods is that most generated summaries are not factually inconsistent with their source documents.</p><p>To alleviate the problem, many efforts have focused on developing effective factuality evaluation metrics based on natural language inference, question answering, and syntactic dependency et al. However, these approaches are limited by either their high computational complexity or dependence on annotated data. Most recently, large language models(LLMs) such as ChatGPT have shown excellent performance in not only text generation but also language comprehension. In this paper, we particularly explore ChatGPT's ability to evaluate factual inconsistency under a zero-shot setting by examining it on both coarse-grained and fine-grained evaluation tasks including binary entailment inference, summary ranking, and consistency rating. Experimental results indicate that ChatGPT generally outperforms previous evaluation metrics across the three tasks, indicating its great potential for factual inconsistency evaluation. However, a closer inspection of ChatGPT's output reveals certain limitations including its preference for more lexically similar candidates, false reasoning, and inadequate understanding of instructions. * Corresponding author 1 the problem is also referred to as unfaithfulness, we use these terms interchangeably in the following</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Recently, pre-trained language models have greatly improved the performance of automatic text summarization <ref type="bibr" target="#b24">(Liu and Lapata, 2019;</ref><ref type="bibr" target="#b22">Lewis et al., 2020;</ref><ref type="bibr" target="#b48">Zhang et al., 2020)</ref>. However, a major concern that has limited existing state-of-the-art text summarization methods is factual inconsistency, namely, the generated summaries containing information that is not entailed by input documents 1 <ref type="bibr" target="#b19">(Kryściński et al., 2020;</ref><ref type="bibr" target="#b26">Maynez et al., 2020)</ref>. To fill the gap, significant efforts have been made in developing automatic evaluation metrics for assessing the factuality of generated summaries, such as semi-supervised method FactCC <ref type="bibr" target="#b19">(Kryściński et al., 2020)</ref>, question-answering based approach FEQA <ref type="bibr" target="#b38">(Wang et al., 2020)</ref> and QuestEval <ref type="bibr" target="#b36">(Scialom et al., 2021)</ref>, and natural language inference (NLI) based method SummaC <ref type="bibr" target="#b21">(Laban et al., 2022)</ref>. Nevertheless, existing evaluation metrics either have high computational complexity which requires training on a huge amount of data or rely on multi-model combined pipelines, putting in more uncertainties during inferences. Moreover, evaluations based on these metrics exhibit limited agreement with human assessments <ref type="bibr" target="#b32">(Pagnoni et al., 2021)</ref>. Inspired by the ability of pre-trained language models (PLMs) on natural language understanding and generation, a few efforts have been devoted to building data and computationalefficient evaluation metrics based on PLMs like BARTScore <ref type="bibr" target="#b46">(Yuan et al., 2021)</ref>.</p><p>Most recently, large language models (LLMs), such as GPT-3 <ref type="bibr" target="#b2">(Brown et al., 2020)</ref>, Instruct-GPT <ref type="bibr" target="#b31">(Ouyang et al., 2022)</ref>, PaLM <ref type="bibr" target="#b3">(Chowdhery et al., 2022), and</ref><ref type="bibr">BLOOM (Scao et al., 2022)</ref>, have dwarfed small scale fine-tuned models in various natural language processing tasks often requiring only few-shot or zero-shot learning. These LLMs have demonstrated exceptional performance not only in natural language understanding and generation but also in their ability to perform inference and reasoning tasks." Specifically, equipped with explicitly designed prompts, LLMs can better solve a range of various reasoning tasks in terms of arithmetics, symbolic, and logic <ref type="bibr" target="#b18">(Kojima et al., 2022;</ref><ref type="bibr" target="#b42">Wei et al., 2022)</ref>. Moreover, the most recent effort <ref type="bibr">ChatGPT (OpenAI, 2022)</ref> in particular has been proven to obtain strong natural language inference ability, surpassing fine-tuned pre-trained language models (PLMs) on several datasets <ref type="bibr" target="#b50">(Zhong et al., 2023)</ref>. As a result, researchers have paid closer attention to using large language models (LLMs) to evaluate generated text. <ref type="bibr">Kocmi and Federmann (2023a)</ref> investigated the use of rating-based prompts in translation evaluation and achieved better accuracy compared to other metrics across three language pairs. Inspired by this work, <ref type="bibr">Wang et al. (2023b)</ref> extends the method into a broader natural language generation field including summarisation, where ChatGPT shows dominating alignment with human rating on four attributes including coherence, relevance, fluency, and consistency. However, their experiments only use a single summarisation evaluation dataset and rather focus on exploring ChatGPT to evaluate the overall quality of generated summaries. In addition, they solely framed the evaluation as a marking task and compared the results with only general text generation metrics such as ROUGE <ref type="bibr" target="#b23">(Lin, 2004)</ref> and BERTScore <ref type="bibr">(Zhang et al.)</ref>, which have been proven to be not effective in assessing factual consistency <ref type="bibr" target="#b26">(Maynez et al., 2020)</ref>. Metrics proposed specifically for assessing inconsistency such as FactCC, DAE <ref type="bibr" target="#b11">(Goyal and Durrett, 2020)</ref>, SummaC have not been examined, leaving a huge gap for a thorough exploration of using ChatGPT to assess the factual consistency in text summarisation.</p><p>To fill the gap, in this paper, we conduct a preliminary study of how ChatGPT can perform in both coarse-grained and fine-grained factual inconsistency evaluation from three tasks including inconsistency detection as entailment inference (EI), consistency comparison as summary ranking, and quantitative judgement as consistency rating. We design different prompts on both zero-shot and zero-shot chain-of-thought (CoT) <ref type="bibr" target="#b18">(Kojima et al., 2022)</ref> to explore the factuality assessment ability of ChatGPT. We conduct experiments on the benchmark of the EI-based inconsistency detection task including six large standardized datasets, and existing datasets on the other two tasks, and compare the results with SOTA evaluation methods. From experimental results and analysis, we have the following findings:</p><p>1. ChatGPT shows great potential for evaluation factuality of text summarisation under the zero-shot setting and outperforms previous SOTA evaluation methods on most datasets across three tested tasks.</p><p>2. Though showing remarkable performance measured by numeric metrics, ChatGPT is found to have the preference to predict a document and a claim is consistent when the lexical similarity is high without considering the semantic entailment between them. Moreover, evidence of ChatGPT conducting false inferences has been observed, revealing the limitation of ChatGPT's language reasoning ability.</p><p>3. Despite effectively instructing ChatGPT to detect inconsistency, the tested prompts are not able to keep the output constantly sticking to the given requirements, indicating the insufficient prompting of ChatGPT.</p><p>To the best of our knowledge, we are the first to systematically explore ChatGPT's ability in evaluating factual consistency for text summarization. Overall, our results show a comparable if not better performance of ChatGPT than SOTA evaluation metrics, but concerns remain on lexical biases, false reasoning, and inadequate alignment which are expected to be addressed to improve its reliability.</p><p>2 Related Work Moreover, there is also question answeringbased metrics such as FEQA <ref type="bibr">(Durmus et al., 2020a)</ref>, QAGS <ref type="bibr" target="#b38">(Wang et al., 2020)</ref>, and QuestEval <ref type="bibr" target="#b36">(Scialom et al., 2021)</ref>, by assessing the alignment of the generated answer based on the generated summary and the source, with the given question. Different from unsupervised NLI-based methods, the semi-supervised methods further utilize the synthetic data from text summarization for weakly supervised learning, such as FactCC <ref type="bibr" target="#b19">(Kryściński et al., 2020)</ref>. However, these methods are usually computationally expensive or rely on annotated data <ref type="bibr">(Huang et al., 2021)</ref>. Inspired by the effectiveness of PLMs, there are efforts on developing factuality evaluation metrics based on the likelihoods of PLMs, that are computation and dataefficient such as BARTScore <ref type="bibr" target="#b46">(Yuan et al., 2021)</ref> and T5Score <ref type="bibr" target="#b34">(Qin et al., 2022)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">ChatGPT for Natural Language Processing</head><p>Most recently, many efforts have explored the zeroshot ability of ChatGPT on various natural language processing tasks <ref type="bibr" target="#b14">(Jiao et al., 2023;</ref><ref type="bibr" target="#b50">Zhong et al., 2023;</ref><ref type="bibr" target="#b33">Qin et al., 2023;</ref><ref type="bibr" target="#b0">Bang et al., 2023;</ref><ref type="bibr">Yang et al., 2023a)</ref>. ChatGPT has been proven to exhibit good performance on machine translation <ref type="bibr" target="#b14">(Jiao et al., 2023)</ref>. On the GLUE benchmark, <ref type="bibr" target="#b50">Zhong et al. (2023)</ref> has found ChatGPT shows significantly better performance on inference tasks, has comparable performance on sentiment analysis and question-answering tasks, and has poor performance on paraphrase and similarity tasks when compared with 4 representative BERT-based fintuning methods. <ref type="bibr" target="#b33">Qin et al. (2023)</ref> further shows ChatGPT has superior performance on reasoningrequired tasks including dialogue tasks, natural language inference tasks, and question-answering tasks than GPT-3.5, and has worse performance on the summarization task than GPT-3.5. Chat-GPT and GPT-3.5 have comparable performance on sentiment analysis. <ref type="bibr" target="#b0">Bang et al. (2023)</ref> shown ChatGPT outperforms SOTA zero-shot methods in 9/13 NLP datasets and has poor performance on low-resource languages such as Marathi, Sundanese, and Buginese. <ref type="bibr">Yang et al. (2023b)</ref> and <ref type="bibr">Wang et al. (2023a)</ref> explored the query and aspect-based text summarization and cross-lingual summarization with ChatGPT, where it shows comparable performance with the fine-tuning-based methods. <ref type="bibr" target="#b37">(Soni and Wade, 2023)</ref> conducted a human evaluation and found reviewers struggle to distinguish hand-written summaries against generated ones from ChatGPT. <ref type="bibr">Wang et al. (2023b)</ref> examined the ability of ChatGPT on evaluating natural language generation (NLG) tasks such as summarization, story generation, and data-to-text tasks.</p><p>ChatGPT shows great potential as the NLG metric, whose evaluation results have a high correlation with human judgment. However, they only utilized one summarisation dataset and focused on exploring ChatGPT to evaluate the relevance by comparing it with non-factuality evaluation metrics such as ROUGE and BERTScore, leaving a huge gap for a thorough exploration of the ability of ChatGPT to assess the factual consistency in text summarisation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">ChatGPT as a Factual Inconsistency Evaluator</head><p>In this section, we introduce the details of three different tasks for detecting inconsistency with Chat-GPT including the prompt designing, evaluation setting, tested datasets, and baseline models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Entailment Inference</head><p>Evaluation Setting. Inconsistency evaluation of the generated summary can be cast as a binary natural language inference classification, in which the evaluation model is solely required to assess if the summary is consistent with the source document rather than rating the consistent levels <ref type="bibr" target="#b21">(Laban et al., 2022)</ref>. Under this framework, two parameters are needed for the prompts: source document and summary. We provide ChatGPT with the question including the source document and the corresponding generated summary and ask it to answer yes or no to infer the consistency between the source document and the corresponding generated summary, and then we collect the decisions from the outputs and aggregate the results.</p><p>Prompts. We experiment with two different zeroshot prompts in the NLI setting. The first one is based on direct assessment by directly asking ChatGPT to answer yes or no given the question.</p><p>Another is based on zero-shot Chain-of-Thought inspired by previous work <ref type="bibr" target="#b18">(Kojima et al., 2022)</ref> of adding "let's think step by step" in prompt to en-courage LLMs unfolding a chain-of-thought style reasoning process, which has been proved to be effective on several reasoning tasks. We follow the approach to create the second prompt. The zero-shot template is shown below:</p><p>Decide if the following summary is consistent with the corresponding article. Note that consistency means all information in the summary is supported by the article.</p><p>Article: [Article] Summary: [Summary] Answer (yes or no):</p><p>The zero-shot CoT template is:</p><p>Decide if the following summary is consistent with the corresponding article. Note that consistency means all information in the summary is supported by the article.</p><p>Article: [Article] Summary: [Summary] Explain your reasoning step by step then answer (yes or no) the question:</p><p>When processing the responses, we only consider solid judgment like "the summary is consistent with the article" as consistency, claims such as "partially consistent" or 'mostly consistent' are all deemed as inconsistent. We also tried to use few-shot prompts. However, we found the performance unstable when changing the label, order, and amount of examples, so we decide to leave it for further exploration. Datasets We evaluate ChatGPT's performance on the SUMMAC benchmark <ref type="bibr" target="#b21">(Laban et al., 2022)</ref> which includes six largest summary inconsistency detection datasets FactCC <ref type="bibr" target="#b19">(Kryściński et al., 2020)</ref>, CoGenSumm <ref type="bibr">(Falke et al., 2019a)</ref>, XSum-Faith <ref type="bibr" target="#b26">(Maynez et al., 2020)</ref>, <ref type="bibr">SummEval (Fabbri et al., 2021)</ref>, FRANK <ref type="bibr" target="#b32">(Pagnoni et al., 2021)</ref>, and Polytope <ref type="bibr" target="#b12">(Huang et al., 2020)</ref>. Notably, not all the datasets in the SUMMAC benchmark are built for binary consistency classification. For example, in SummEval <ref type="bibr" target="#b6">(Fabbri et al., 2021)</ref>, generated summaries are marked on consistency over a range from 1-5 points. SUMMAC standardizes the six datasets into a binary classification format where each instance contains a triplet of (document, summary, label). The label is either consistent or inconsistent. Moreover, they manually created validation and test split for datasets where a such split is not conducted and computed the inter-annotator agreement for data with multiple annotators. The statistics of the benchmark are shown in Table <ref type="table" target="#tab_1">1</ref>. Baseline Models. We compare ChatGPT's performance with the following methods:</p><p>• NER Overlap uses the named entity recognition (NER) model to detect inconsistency by examining if an entity in the summary is in the document <ref type="bibr" target="#b20">(Laban et al., 2021)</ref>. The tested model considers only a subset of entity types such as PERSON, LOCATION, ORGANIZA-TION, etc.</p><p>• MNLI-doc fine-tunes a Roberta model <ref type="bibr">(Liu et al., 2019)</ref> on the MNLI dataset <ref type="bibr" target="#b43">(Williams et al., 2018)</ref> and labels the documentsummary pair by the predicted probability of entailment.</p><p>• FactCC <ref type="bibr" target="#b19">(Kryściński et al., 2020</ref>) is a Roberta model fine-tuned on data synthesized by corrupting sentences in the original documents as inconsistent candidates.</p><p>• DAE <ref type="bibr" target="#b11">(Goyal and Durrett, 2020</ref>) is a parsingbased model evaluating inconsistency by examining the entailment of individual dependency arcs.</p><p>• FEQA <ref type="bibr">(Durmus et al., 2020b)</ref> first generates question-answer pairs from candidate summaries, then compare the answers extracted from the source documents by asking the same questions. Then the answer sets are compared to determine the consistency.</p><p>• QuestEval <ref type="bibr" target="#b36">(Scialom et al., 2021)</ref> extends the methods above by adding an information recall score to a QA-based metric.</p><p>• SummaC <ref type="bibr" target="#b21">(Laban et al., 2022)</ref> builds an NLI matrix by splitting the document and summary into sentence sets, then predicts a score for each sentence pair in the matrix. SummaC zero-shot (Summac zs ) first obtain the maximum along the columns then average over to get a final consistency score. SummaC convolution (SummaC Conv ) instead trains a convolution layer to predict a score for each column and then uses the mean output as the summary-level score.</p><p>Detailed implementations of the above models used to compare can be found in <ref type="bibr">(Laban et</ref>  2022). For scoring models, the threshold is selected using the validation set and allowed to vary over different datasets.</p><p>Metric. Due to the unbalanced distribution of positive and negative samples in the testing sets, we choose balanced accuracy <ref type="bibr" target="#b1">(Brodersen et al., 2010)</ref> as the main metric since it is more sensitive to predictions difference for data of smaller proportions. Balanced accuracy is defined as the following:</p><formula xml:id="formula_0">bACC = 1 2 * ( T P T P + F N + T N T N + F P )<label>(1)</label></formula><p>The first term in the equation is sensitivity, which represents the recall of true positives while the next one is specificity standing for the recall of true negatives. We specifically counted the two submetrics to analyze ChatGPT's behavior.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Summary Ranking</head><p>Evaluation Setting Except binary NLI, a model's awareness of factual inconsistency can also be tested on how whether it can rank a consistent summary over an inconsistent one. In this section, we introduce another evaluation task Summary Ranking which is introduced in Falke et al. (2019a) and has been tested in other previous work. Specifically, the model will be asked to choose the consistent one over two candidate summaries (one is faithful, the other one is not) given the source document.</p><p>Prompts We use a zero-shot prompt which directly asks ChatGPT to answer which sentence out of the two candidates is more consistent with the given article sentence.</p><p>Decide which of the following summary is more consistent with the article sentence. Note that consistency means all information in the summary is supported by the article.</p><p>Article Baseline Models We compare other evaluation models that reported their performance on this dataset including the aforementioned FactCC <ref type="bibr" target="#b19">(Kryściński et al., 2020)</ref>, MNLI-doc, DAE <ref type="bibr" target="#b11">(Goyal and Durrett, 2020</ref>) and a human judgement from <ref type="bibr">(Falke et al., 2019a)</ref>.</p><p>Metric We report the accuracy of models successfully choosing consistent summary over inconsistent one. Specifically, when collecting responses from ChatGPT, we only deem claims that confirm the correct sentence is consistent as correct. Outputs alleging both candidate sentences are consistent or inconsistent are rendered as failures.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Consistency Rating</head><p>Evaluation Setting. Recently, several studies have found when given accordingly request prompts, LLMs are able to mark the quality of generated text from different aspects <ref type="bibr">(Kocmi and Federmann, 2023b;</ref><ref type="bibr" target="#b9">Fu et al., 2023;</ref><ref type="bibr">Wang et al., 2023c)</ref>. These scores show high correlations with human assessment, suggesting the potential of ChatGPT in predicting fine-grained consistency levels for summarisation. Moreover, in the experiments of the NLI task in Section 3.1, we found that part of the output judgments is "partially consistent" or "mostly consistent", indicating ChatGPT's awareness of different inconsistency degrees. Therefore, we apply the consistency rating task on ChatGPT by asking it to mark the consistency of a summary with the reference to its source document on a scale from 1-10 points, where 1 point stands for total inconsistency, and 10 represents full consistency.</p><p>Prompts. Following Kocmi and Federmann (2023b)'s approach, we design a prompt that requests ChatGPT to evaluate the consistency of a candidate summary w.r.t the source article in a [1-10] scale:</p><p>Score the following summary given the corresponding article with respect to consistency from 1 to 10. Note that consistency measures how much information included in the summary is present in the source article. 10 points indicate the summary contains only statements that are entailed by the source document.</p><p>[Summary]: [Source Article]: Marks:</p><p>The definition of consistency is added for the model to better understand the aspect it is to rate.</p><p>Datasets. The original versions of SummEval and FRANK datasets are used on this task given there are detailed consistency scores in their annotations.</p><p>In SummEval, 1600 summaries were labeled using a 5-point Likert scale along four categories: coherence, consistency, fluency, and relevance by 3 expert annotators. We average the points in the consistency aspect as the final score. FRANK has a binary consistency score for each sentence in a summary labeled by annotators, then aggregates a summary-level score from 0-1, resulting in 2250 marked summaries in total.</p><p>Baseline Models We compare other evaluation models that reported their performance on this dataset including the aforementioned FactCC, FEQA, DAE and QAGS <ref type="bibr" target="#b38">(Wang et al., 2020)</ref>, which is a QA-based faithfulness evaluation method.</p><p>Metrics To evaluate to what extent the examined models align with human judgment. Two widelyused correlation measures are adopted: (1) Spearman correlation <ref type="bibr" target="#b47">(Zar, 2005)</ref> assesses the monotonic relationships between two variables; (2) Pearman correlation (Mukaka, 2012) measures the linear relationships between two sets of data;</p><p>(3) Kendall's Tau <ref type="bibr" target="#b15">(Kendall, 1938)</ref>evaluates the ordinal association between two measured quantities.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Experiment</head><p>We conduct our experiments using the API of Chat-GPT (gpt-3.5-turbo-0301) which is trained based on InstructGPT <ref type="bibr" target="#b31">(Ouyang et al., 2022)</ref> with reinforce learning from human feedback (RLHF). To avoid the effects of historical dialogues, we sent each request individually to obtain the response.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Entailment Inference</head><p>The full results of the entailment inference task are shown in Table <ref type="table" target="#tab_3">2</ref>. Overall, ChatGPT is able to achieve comparable performance or even better performance compared to the previous stateof-the-art evaluation models without training on relevant tasks, demonstrating the potential of ChatGPT-like LLMs on detecting inconsistency between two pieces of text in a zero-shot setting. Specifically, ChatGPT with zero-shot CoT prompt produces the best results and outperforms the previous SOTA method SummaC ZS by 3.9%, 1.6% and 1.0% on CoGenSum, SummEval, and FRANK datasets correspondingly. It remains comparable to the best models on the rest three datasets including XsumFaith (63.1% compared to SummaC Conv with 66.4%), Polytope (61.4% compared to QuestEval with 70.3%), FactCC (79.5% compared to SummaC Conv with 89.5%). In almost all datasets, the ChatGPT ZS-COT which guides the ChatGPT with the chain-of-thought prompt has significantly better performance than ChatGPT ZS , In detail, ChatGPT ZS-COT outperforms ChatGPT ZS by 11.0%, 4.5%, 4.8%, 6.8% and 1.7% on the CoGen-Sum, Polytope, FactCC, SummEval, and FRANK datasets correspondingly. It shows great potential to better explore the factuality evaluation ability of ChatGPT by prompt engineering in the future.</p><p>To further investigate ChatGPT's performance in consistent and inconsistent instances, we break the balanced accuracy results of ChatGPT ZS-COT into sensitivity (positive recall) and specificity (negative recall), the comparison is in Fig 1 . In five out of the total six datasets, ChatGPT can successfully retrieve more than 95% consistent summaries (high negative recall namely specificity), while performing rather poorly on identifying all the inconsistent ones (low positive recall namely sensitivity). Based on this observation, we assume that during inference, ChatGPT might still rely more on semantic similarity to make its decision on consistency detection since most of the candidate summaries are lexically close to sentences in the source arti- cles, causing its vulnerability in finding these trivial modifications in inconsistent summaries that changes the meaning of the source document. This could be further demonstrated in ChatGPT's reverse performance on the two types of candidate summaries in the XSumFaith dataset which contains summaries generated by models trained on the XSum dataset in Table <ref type="table" target="#tab_3">2</ref>. Previous works <ref type="bibr">(Durmus et al., 2020a)</ref> have shown that the generated summaries are highly affected by training data and models trained on CNN/DM produce nearly extractive summaries while the same model trained on XSum will give significantly more abstractive ones. Abstrativeness brings the decline of lexical similarity between the candidate summary and the source document which might be the main reason why in XSumFaith, ChatGPT tends to predict more cases as inconsistent.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Summary Ranking</head><p>The results of the summary ranking task are shown in Table <ref type="table" target="#tab_4">3</ref>. It shows that ChatGPT without any in-context learning can outperform not only existing methods but also a human assessment reported in <ref type="bibr">Falke et al. (2019b)</ref>. Notably, the ranking dataset is sampled from the output of models trained on CNN/DM. Therefore, the candidate summaries are mostly identical to some sentences in the source document, the inconsistent ones tend to contain minor adjustments corrupting the meaning like deleting modifiers like "half of" as shown in Figure <ref type="figure" target="#fig_1">2</ref>. Though we conclude from Section 4.1 that Chat-GPT relies heavily on lexical similarity to decide the consistency degree of sentences, in this summary ranking task, we see that ChatGPT can detect the trivial semantic differences even when given two highly similar candidates and pick out the consistent one. For example, in the second case of Figure <ref type="figure" target="#fig_1">2</ref>, ChatGPT can correctly assess that sentence B is more consistent with the input article, given the highly lexical similarity between sentence B and sentence A. In our manual inspection, we found that ChatGPT is able to point out the inconsistency in some cases where it failed in the entailment inference when ranking them compared to their consistent counterparts. As shown in the first case of Figure <ref type="figure" target="#fig_1">2</ref>, ChatGPT failed in detecting the inconsistency of the summary with the input article in the entailment inference task. While it can correctly pick out the more consistent one when given two summaries with highly lexical similarity in the summary ranking task, as shown in the second case of Figure <ref type="figure" target="#fig_1">2</ref>. This indicates the importance of prompt engineering with useful contexts in better triggering ChatGPT's capability.   </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Consistency Rating</head><p>We further show the performance of all methods on the consistency rating task in  degree than the baseline models.</p><p>In particular, when splitting the FRANK dataset into summaries from CNN/DM and XSum, the correlations of ChatGPT show a considerable decline from CNN/DM to XSum, which matches our analysis in the previous two parts. The difference might come from the abstractiveness of summaries generated from models trained on XSum, so their lower lexical similarity with the source document affects the model's judgement of consistency, leading to the worse performance in the FRANK XSum dataset. However, though the abstractiveness of XSum summaries lowers the correlations generally, ChatGPT's pearson's correlation is still much higher than the single-digit results of the baselines, suggesting its better language understanding and inference ability.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4">Error Analysis</head><p>In this part, we show some example cases of Chat-GPT in the three tasks to showcase its limitations and attempt to provide a hint to understand Chat-In Figure <ref type="figure" target="#fig_1">2</ref>, we show an example from the Co-GenSumm dataset where ChatGPT failed in the entailment inference task. The model neglects the disappearance of "half of " in the candidate summary which significantly changes the meaning and decides the summary is consistent with the article. However, when putting the same summary and article into the summary ranking task combined with a consistent claim, ChatGPT successfully picks the consistent one and gives the right reasoning of why "Summary A" is inconsistent. The first case of Figure 2 supports our assumption of ChatGPT counting on lexical similarity to determine consistency as the high lexical overlap between inconsistent summary and the red-underlined part in the article cheats ChatGPT. Nevertheless, when another summary is both lexically and semantically closer to the article, ChatGPT detects the difference and manages to answer correctly in the second case of Figure <ref type="figure" target="#fig_1">2</ref>.</p><p>With further investigation of failure cases, we found ChatGPT makes false inferences as shown in Figure <ref type="figure" target="#fig_3">4</ref>. The summary claims that "prime minister matteo renzi" won the vote while the red underlined part in the article clearly says the bill has passed the lower house but is held up to be approved by both houses. However, ChatGPT determines this summary is consistent and tries to justify it by using "the bill is approved by the lower house" as evidence. This example, combined with the upper case in the first example, demonstrates that ChatGPT still has a limitation on understanding and inferencing of natural language. Furthermore, a CoT-style prompt is applied in this example to encourage the model to generate a reasoning process to assist its judgment. But ChatGPT directly produces the conclusion first and then unfolds its inference progress afterwards. According to the autoregressive training nature of GPT, the explanation is then conditioned on the "consistent" conclusion and thus cannot guide the decision while following the judgment. In our manual inspection, answers with the conclusion at first are not rare, suggesting zero-shot CoT-style prompts might not be the optimal instruction for ChatGPT to conduct a language inference task with reasoning progress. We suppose fined-engineered few-shot prompts might help to guide ChatGPT's generation and further improve its performance and will investigate it in the future. Though the summary is short, the fact within it is consistent with the article which ChatGPT also admits in the answer. Therefore, all three experts mark 5 out of 5 for the summary. However, ChatGPT then only rates the summary 1 point as it does not cover other facts in the article which is not in the given marking rubric, showing an inadequate understanding of giving prompts. This example demonstrates the insufficient alignment brought by our tested prompt. Prompt engineering including human-inthe-loop alignment optimization and few-shot incontext learning might be helpful to better calibrate ChatGPT's output.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>In this paper, we comprehensively investigate the factual inconsistency evaluation ability of ChatGPT in the zero-shot setting with three coarse-grained and fine-grained factual inconsistency detection tasks. Our experimental results empirically show the great potential of ChatGPT as a good factual inconsistency evaluator, where it outperforms SOTA evaluation metrics on six out of nine datasets. Although its great potential, ChatGPT is also found to have limitations on evaluation bias, false reasoning, and hallucination, which should be further addressed for its reliable use. The experiments also show that ChatGPT's performance can be sig-nificantly boosted by the chain-of-thought prompt. Lastly, We analyzed the limitation of the chain-ofthought prompt, which highlights the importance of alignment research in future work. The study in our paper is just the initial step in exploring the factual inconsistency evaluation ability of ChatGPT, which we hope can provide useful insights for future work in this direction.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Limitations</head><p>Our study has the following limitations: 1) Due to the cost limitation of using the API of Chat-GPT, we only investigated the effectiveness of using zero-shot prompts on three tasks. More effective prompts such as the few-shot prompts can be explored in future work; 2) We only evaluated the performance of ChatGPT on the factual inconsistency evaluation. A thorough comparison of different large language models (LLMs) such as GPT-3.5 and GPT-4 can be studied in future work, to help us figure out the superiors and limitations of different LLMs.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: The results of sensitivity and specificity of ChatGPT ZS-COT .</figDesc><graphic coords="6,306.14,70.86,226.77,170.08" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: ChatGPT's actions when given the same source document and an inconsistent summary but with and without a consistent one. The red underlined text in the article is content highly related to the candidate summaries.</figDesc><graphic coords="8,70.87,215.93,219.21,326.00" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: An example of ChatGPT fail to stick to the given definition of consistency.</figDesc><graphic coords="8,306.14,215.92,228.96,201.55" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: An example of ChatGPT conducts false reasoning.</figDesc><graphic coords="9,306.14,70.86,230.40,206.75" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1"><head>Table 1 :</head><label>1</label><figDesc>al., Statistics of datasets in SUMMAC Benchmark.</figDesc><table><row><cell>Dataset</cell><cell>Valid.</cell><cell>Test</cell><cell cols="2">%Positive Source</cell></row><row><cell></cell><cell>size</cell><cell>size</cell><cell></cell><cell></cell></row><row><cell>CoGenSumm</cell><cell>1281</cell><cell>400</cell><cell>49.8</cell><cell>C</cell></row><row><cell>XSumFaith</cell><cell>1250</cell><cell>1250</cell><cell>10.2</cell><cell>X</cell></row><row><cell>Polytope</cell><cell>634</cell><cell>634</cell><cell>6.6</cell><cell>C</cell></row><row><cell>FactCC</cell><cell>931</cell><cell>503</cell><cell>85.0</cell><cell>C</cell></row><row><cell>SummEval</cell><cell>850</cell><cell>850</cell><cell>90.6</cell><cell>C</cell></row><row><cell>FRANK</cell><cell>671</cell><cell>1575</cell><cell>33.2</cell><cell>C+X</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3"><head>Table 2 :</head><label>2</label><figDesc>Balanced accuracy results of inconsistency detect models on the test set of SummaC. Results of baselines are referenced from the paper<ref type="bibr" target="#b21">(Laban et al., 2022)</ref>.</figDesc><table><row><cell>Methods</cell><cell cols="6">SUMMAC Benchmark Datasets CoGenSum XsumFaith Polytope FactCC SummEval FRANK</cell></row><row><cell>NER Overlap</cell><cell>53.0</cell><cell>63.3</cell><cell>52.0</cell><cell>55.0</cell><cell>56.8</cell><cell>60.9</cell></row><row><cell>MNLI-doc</cell><cell>57.6</cell><cell>57.5</cell><cell>61.0</cell><cell>61.3</cell><cell>66.6</cell><cell>63.6</cell></row><row><cell>FactCC-CLS</cell><cell>63.1</cell><cell>57.6</cell><cell>61.0</cell><cell>75.9</cell><cell>60.1</cell><cell>59.4</cell></row><row><cell>DAE</cell><cell>63.4</cell><cell>50.8</cell><cell>62.8</cell><cell>75.9</cell><cell>70.3</cell><cell>61.7</cell></row><row><cell>FEQA</cell><cell>61.0</cell><cell>56.0</cell><cell>57.8</cell><cell>53.6</cell><cell>53.8</cell><cell>69.9</cell></row><row><cell>QuestEval</cell><cell>62.6</cell><cell>62.1</cell><cell>70.3</cell><cell>66.6</cell><cell>72.5</cell><cell>82.1</cell></row><row><cell>SummaC ZS</cell><cell>70.4</cell><cell>58.4</cell><cell>62.0</cell><cell>83.8</cell><cell>78.7</cell><cell>79.0</cell></row><row><cell>SummaC Conv</cell><cell>64.7</cell><cell>66.4</cell><cell>62.7</cell><cell>89.5</cell><cell>81.7</cell><cell>81.6</cell></row><row><cell>ChatGPT ZS</cell><cell>63.3</cell><cell>64.7</cell><cell>56.9</cell><cell>74.7</cell><cell>76.5</cell><cell>80.9</cell></row><row><cell cols="2">ChatGPT ZS-COT 74.3</cell><cell>63.1</cell><cell>61.4</cell><cell>79.5</cell><cell>83.3</cell><cell>82.6</cell></row><row><cell>Model</cell><cell></cell><cell>Ranking Acc.</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>FactCC</cell><cell></cell><cell>70.0</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>MNLI-doc</cell><cell></cell><cell>78.3</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="2">Rule-based dependency</cell><cell>74.8</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>DAE</cell><cell></cell><cell>83.6</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>Human</cell><cell></cell><cell>83.9</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>ChatGPT</cell><cell></cell><cell>85.2</cell><cell></cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4"><head>Table 3 :</head><label>3</label><figDesc>Performance of models on the summary ranking task. Results of baselines are reported in<ref type="bibr" target="#b11">Goyal and Durrett (2020)</ref>.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6"><head>Table 4 :</head><label>4</label><figDesc>Pearson correlation, and spearman rank correlation coefficients between human judgements and evaluation scores of different methods.</figDesc><table /></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<author>
+			<persName><forename type="first">Yejin</forename><surname>Bang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Samuel</forename><surname>Cahyawijaya</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nayeon</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wenliang</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dan</forename><surname>Su</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bryan</forename><surname>Wilie</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Holy</forename><surname>Lovenia</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ziwei</forename><surname>Ji</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tiezheng</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Willy</forename><surname>Chung</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2302.04023</idno>
+		<title level="m">A multitask, multilingual, multimodal evaluation of chatgpt on reasoning, hallucination, and interactivity</title>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">The balanced accuracy and its posterior distribution</title>
+		<author>
+			<persName><forename type="first">Kay</forename><surname>Henning Brodersen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Soon</forename><surname>Cheng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Klaas</forename><surname>Ong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Joachim</forename><forename type="middle">M</forename><surname>Enno Stephan</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Buhmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">2010 20th international conference on pattern recognition</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="3121" to="3124" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Language models are few-shot learners</title>
+		<author>
+			<persName><forename type="first">Tom</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Benjamin</forename><surname>Mann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nick</forename><surname>Ryder</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Melanie</forename><surname>Subbiah</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jared</forename><forename type="middle">D</forename><surname>Kaplan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Prafulla</forename><surname>Dhariwal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Arvind</forename><surname>Neelakantan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pranav</forename><surname>Shyam</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Girish</forename><surname>Sastry</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Amanda</forename><surname>Askell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Advances in neural information processing systems</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page" from="1877" to="1901" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+		<author>
+			<persName><forename type="first">Aakanksha</forename><surname>Chowdhery</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sharan</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Maarten</forename><surname>Bosma</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gaurav</forename><surname>Mishra</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Adam</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul</forename><surname>Barham</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Hyung</forename><forename type="middle">Won</forename><surname>Chung</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Charles</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sebastian</forename><surname>Gehrmann</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2204.02311</idno>
+		<title level="m">Palm: Scaling language modeling with pathways</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">FEQA: A question answering evaluation framework for faithfulness assessment in abstractive summarization</title>
+		<author>
+			<persName><forename type="first">Esin</forename><surname>Durmus</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">He</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mona</forename><surname>Diab</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.454</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="5055" to="5070" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<title level="m" type="main">Feqa: A question answering evaluation framework for faithfulness assessment in abstractive summarization</title>
+		<author>
+			<persName><forename type="first">Esin</forename><surname>Durmus</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">He</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mona</forename><forename type="middle">T</forename><surname>Diab</surname></persName>
+		</author>
+		<idno>ArXiv, abs/2005.03754</idno>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Summeval: Re-evaluating summarization evaluation</title>
+		<author>
+			<persName><forename type="first">Wojciech</forename><surname>Alexander R Fabbri</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bryan</forename><surname>Kryściński</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Caiming</forename><surname>Mccann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Richard</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dragomir</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Radev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Transactions of the Association for Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page" from="391" to="409" />
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Ranking generated summaries by correctness: An interesting but challenging application for natural language inference</title>
+		<author>
+			<persName><forename type="first">Tobias</forename><surname>Falke</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Leonardo</forename><forename type="middle">F R</forename><surname>Ribeiro</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/P19-1213</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 57th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Florence, Italy</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="2214" to="2220" />
+		</imprint>
+	</monogr>
+	<note>Prasetya Ajie Utama, Ido Dagan, and Iryna Gurevych. Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Ranking generated summaries by correctness: An interesting but challenging application for natural language inference</title>
+		<author>
+			<persName><forename type="first">Tobias</forename><surname>Falke</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Leonardo F R</forename><surname>Ribeiro</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Prasetya Ajie Utama, Ido Dagan, and Iryna Gurevych</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+		<title level="m" type="main">Gptscore: Evaluate as you desire</title>
+		<author>
+			<persName><forename type="first">Jinlan</forename><surname>Fu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">See-Kiong</forename><surname>Ng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhengbao</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pengfei</forename><surname>Liu</surname></persName>
+		</author>
+		<idno>ArXiv, abs/2302.04166</idno>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Assessing the factual accuracy of generated text</title>
+		<author>
+			<persName><forename type="first">Ben</forename><surname>Goodrich</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vinay</forename><surname>Rao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mohammad</forename><surname>Saleh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery &amp; Data Mining</title>
+		<meeting>the 25th ACM SIGKDD International Conference on Knowledge Discovery &amp; Data Mining</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="166" to="175" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Evaluating factuality in generation with dependency-level entailment</title>
+		<author>
+			<persName><forename type="first">Tanya</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Greg</forename><surname>Durrett</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.findings-emnlp.322</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Association for Computational Linguistics (ACL)</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="3592" to="3603" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">What have we achieved on text summarization?</title>
+		<author>
+			<persName><forename type="first">Dandan</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Leyang</forename><surname>Cui</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sen</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Guangsheng</forename><surname>Bao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kun</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jun</forename><surname>Xie</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yue</forename><surname>Zhang</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.emnlp-main.33</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</title>
+		<meeting>the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="446" to="469" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<author>
+			<persName><forename type="first">Yichong</forename><surname>Huang</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2104.14839</idno>
+		<title level="m">Xiachong Feng, Xiaocheng Feng, and Bing Qin. 2021. The factual inconsistency problem in abstractive text summarization: A survey</title>
+		<imprint/>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<author>
+			<persName><forename type="first">Wenxiang</forename><surname>Jiao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wenxuan</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jen-Tse</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xing</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhaopeng</forename><surname>Tu</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2301.08745</idno>
+		<title level="m">Is chatgpt a good translator? a preliminary study</title>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">A new measure of rank correlation</title>
+		<author>
+			<persName><forename type="first">Maurice G</forename><surname>Kendall</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">30</biblScope>
+			<biblScope unit="issue">1/2</biblScope>
+			<biblScope unit="page" from="81" to="93" />
+			<date type="published" when="1938">1938</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">2023a. Large language models are state-of-the-art evaluators of translation quality</title>
+		<author>
+			<persName><forename type="first">Tom</forename><surname>Kocmi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Christian</forename><surname>Federmann</surname></persName>
+		</author>
+		<idno>ArXiv, abs/2302.14520</idno>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title level="m" type="main">Large language models are state-of-the-art evaluators of translation quality</title>
+		<author>
+			<persName><forename type="first">Tom</forename><surname>Kocmi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Christian</forename><surname>Federmann</surname></persName>
+		</author>
+		<idno>ArXiv, abs/2302.14520</idno>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title level="m" type="main">Large language models are zero-shot reasoners</title>
+		<author>
+			<persName><forename type="first">Takeshi</forename><surname>Kojima</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shane</forename><surname>Shixiang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Machel</forename><surname>Gu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yutaka</forename><surname>Reid</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yusuke</forename><surname>Matsuo</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Iwasawa</surname></persName>
+		</author>
+		<idno>ArXiv, abs/2205.11916</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title level="m" type="main">Evaluating the factual consistency of abstractive text summarization</title>
+		<author>
+			<persName><forename type="first">Wojciech</forename><surname>Kryściński</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bryan</forename><surname>Mccann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Caiming</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Richard</forename><surname>Socher</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.emnlp-main.750</idno>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<publisher>Association for Computational Linguistics</publisher>
+			<biblScope unit="page" from="9332" to="9346" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Keep it simple: Unsupervised simplification of multi-paragraph text</title>
+		<author>
+			<persName><forename type="first">Philippe</forename><surname>Laban</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tobias</forename><surname>Schnabel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Marti</forename><forename type="middle">A</forename><surname>Hearst</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.acl-long.498</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing</title>
+		<meeting>the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="6365" to="6378" />
+		</imprint>
+	</monogr>
+	<note>Long Papers). Online. Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Summac: Re-visiting nlibased models for inconsistency detection in summarization</title>
+		<author>
+			<persName><forename type="first">Philippe</forename><surname>Laban</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tobias</forename><surname>Schnabel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul</forename><forename type="middle">N</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Marti</forename><forename type="middle">A</forename><surname>Hearst</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Transactions of the Association for Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page" from="163" to="177" />
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">BART: Denoising sequence-to-sequence pretraining for natural language generation, translation, and comprehension</title>
+		<author>
+			<persName><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yinhan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Naman</forename><surname>Goyal ; Abdelrahman Mohamed</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Omer</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Veselin</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.703</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">Marjan Ghazvininejad,. 2020</date>
+			<biblScope unit="page" from="7871" to="7880" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">ROUGE: A package for automatic evaluation of summaries</title>
+		<author>
+			<persName><forename type="first">Chin-Yew</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Text Summarization Branches Out</title>
+		<meeting><address><addrLine>Barcelona, Spain</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2004">2004</date>
+			<biblScope unit="page" from="74" to="81" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Text summarization with pretrained encoders</title>
+		<author>
+			<persName><forename type="first">Yang</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mirella</forename><surname>Lapata</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D19-1387</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)</title>
+		<meeting>the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)<address><addrLine>Hong Kong, China</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="3730" to="3740" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title level="m" type="main">Roberta: A robustly optimized bert pretraining approach</title>
+		<author>
+			<persName><forename type="first">Yinhan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Myle</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Naman</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jingfei</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mandar</forename><surname>Joshi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Danqi</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Omer</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Veselin</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<idno>ArXiv, abs/1907.11692</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Looking beyond sentencelevel natural language inference for question answering and text summarization</title>
+		<author>
+			<persName><forename type="first">Joshua</forename><surname>Maynez</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shashi</forename><surname>Narayan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bernd</forename><surname>Bohnet</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ryan</forename><forename type="middle">T</forename><surname>Mcdonald</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">;</forename><surname>Xiang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lorraine</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pavan</forename><surname>Kapanipathi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kartik</forename><surname>Talamadupula</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.naacl-main.104</idno>
+		<idno>ArXiv, abs/2005.00661</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<meeting>the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020. 2021</date>
+			<biblScope unit="page" from="1322" to="1336" />
+		</imprint>
+	</monogr>
+	<note>On faithfulness and factuality in abstractive summarization</note>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">A guide to appropriate use of correlation coefficient in medical research</title>
+		<author>
+			<persName><forename type="first">M</forename><surname>Mavuto</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Mukaka</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Malawi medical journal</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="69" to="71" />
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+		<title level="m" type="main">Abstractive text summarization using sequence-to-sequence rnns and beyond</title>
+		<author>
+			<persName><forename type="first">Ramesh</forename><surname>Nallapati</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bowen</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Caglar</forename><surname>Gulcehre</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bing</forename><surname>Xiang</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1602.06023</idno>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Entitylevel factual consistency of abstractive text summarization</title>
+		<author>
+			<persName><forename type="first">Feng</forename><surname>Nan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ramesh</forename><surname>Nallapati</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhiguo</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Cicero</forename><surname>Nogueira Dos Santos</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Henghui</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dejiao</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kathleen</forename><surname>Mckeown</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bing</forename><surname>Xiang</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.eacl-main.235</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 16th Conference of the European Chapter of the Association for Computational Linguistics: Main Volume</title>
+		<meeting>the 16th Conference of the European Chapter of the Association for Computational Linguistics: Main Volume</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="2727" to="2733" />
+		</imprint>
+	</monogr>
+	<note>Online. Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+		<title/>
+		<author>
+			<persName><surname>Openai</surname></persName>
+		</author>
+		<ptr target="https://openai.com/blog/chatgpt" />
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+		<title level="m" type="main">Training language models to follow instructions with human feedback</title>
+		<author>
+			<persName><forename type="first">Long</forename><surname>Ouyang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jeff</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xu</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Diogo</forename><surname>Almeida</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Carroll</forename><forename type="middle">L</forename><surname>Wainwright</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pamela</forename><surname>Mishkin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chong</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sandhini</forename><surname>Agarwal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Katarina</forename><surname>Slama</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alex</forename><surname>Ray</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">John</forename><surname>Schulman</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jacob</forename><surname>Hilton</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Fraser</forename><surname>Kelton</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luke</forename><forename type="middle">E</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Maddie</forename><surname>Simens</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Amanda</forename><surname>Askell</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><surname>Welinder</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul</forename><surname>Francis Christiano</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jan</forename><surname>Leike</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ryan</forename><forename type="middle">J</forename><surname>Lowe</surname></persName>
+		</author>
+		<idno>ArXiv, abs/2203.02155</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<monogr>
+		<title level="m" type="main">Understanding factuality in abstractive summarization with frank: A benchmark for factuality metrics</title>
+		<author>
+			<persName><forename type="first">Artidoro</forename><surname>Pagnoni</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vidhisha</forename><surname>Balachandran</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yulia</forename><surname>Tsvetkov</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.naacl-main.383</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+		<title level="m" type="main">Is chatgpt a general-purpose natural language processing task solver</title>
+		<author>
+			<persName><forename type="first">Chengwei</forename><surname>Qin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aston</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhuosheng</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jiaao</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michihiro</forename><surname>Yasunaga</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Diyi</forename><surname>Yang</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2302.06476</idno>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+		<author>
+			<persName><forename type="first">Yiwei</forename><surname>Qin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Weizhe</forename><surname>Yuan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Graham</forename><surname>Neubig</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pengfei</forename><surname>Liu</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2212.05726</idno>
+		<title level="m">T5score: Discriminative fine-tuning of generative evaluation metrics</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+		<title level="m" type="main">Bloom: A 176b-parameter open-access multilingual language model</title>
+		<author>
+			<persName><forename type="first">Le</forename><surname>Teven</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Angela</forename><surname>Scao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Christopher</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Elizabeth-Jane</forename><surname>Akiki</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Suzana</forename><surname>Pavlick</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">'</forename><surname>Ili</surname></persName>
+		</author>
+		<idno>ArXiv, abs/2211.05100</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<monogr>
+		<title level="m" type="main">Questeval: Summarization asks for fact-based evaluation</title>
+		<author>
+			<persName><forename type="first">Thomas</forename><surname>Scialom</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul-Alexis</forename><surname>Dray</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Patrick</forename><surname>Gallinari</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sylvain</forename><surname>Lamprier</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Benjamin</forename><surname>Piwowarski</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jacopo</forename><surname>Staiano</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alex</forename><surname>Wang</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title level="m" type="main">Comparing abstractive summaries generated by chatgpt to real summaries through blinded reviewers and text classification algorithms</title>
+		<author>
+			<persName><forename type="first">Mayank</forename><surname>Soni</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vincent</forename><forename type="middle">P</forename><surname>Wade</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Asking and answering questions to evaluate the factual consistency of summaries</title>
+		<author>
+			<persName><forename type="first">Alex</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.450</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="5008" to="5020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<monogr>
+		<author>
+			<persName><forename type="first">Jiaan</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yunlong</forename><surname>Liang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Fandong</forename><surname>Meng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhixu</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jianfeng</forename><surname>Qu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jie</forename><surname>Zhou</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2302.14229</idno>
+		<title level="m">Crosslingual summarization via chatgpt</title>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<monogr>
+		<author>
+			<persName><forename type="first">Jiaan</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yunlong</forename><surname>Liang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Fandong</forename><surname>Meng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Haoxiang</forename><surname>Shi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhixu</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jinan</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jianfeng</forename><surname>Qu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jie</forename><surname>Zhou</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2303.04048</idno>
+		<title level="m">Is chatgpt a good nlg evaluator? a preliminary study</title>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<monogr>
+		<title level="m" type="main">Is chatgpt a good nlg evaluator? a preliminary study</title>
+		<author>
+			<persName><forename type="first">Jiaan</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yunlong</forename><surname>Liang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Fandong</forename><surname>Meng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Haoxiang</forename><surname>Shi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhixu</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jinan</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jianfeng</forename><surname>Qu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jie</forename><surname>Zhou</surname></persName>
+		</author>
+		<idno>ArXiv, abs/2303.04048</idno>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<monogr>
+		<title level="m" type="main">Chain of thought prompting elicits reasoning in large language models</title>
+		<author>
+			<persName><forename type="first">Jason</forename><surname>Wei</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xuezhi</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dale</forename><surname>Schuurmans</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Maarten</forename><surname>Bosma</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ed</forename><surname>Huai Hsin Chi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Quoc</forename><surname>Le</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Denny</forename><surname>Zhou</surname></persName>
+		</author>
+		<idno>ArXiv, abs/2201.11903</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">A broad-coverage challenge corpus for sentence understanding through inference</title>
+		<author>
+			<persName><forename type="first">Adina</forename><surname>Williams</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nikita</forename><surname>Nangia</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Samuel</forename><surname>Bowman</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N18-1101</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<title level="s">Long Papers</title>
+		<meeting>the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>New Orleans, Louisiana</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="1112" to="1122" />
+		</imprint>
+	</monogr>
+	<note>Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<monogr>
+		<title level="m" type="main">Qianqian Xie, and Sophia Ananiadou. 2023a. On the evaluations of chatgpt and emotion-enhanced prompting for mental health analysis</title>
+		<author>
+			<persName><forename type="first">Kailai</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shaoxiong</forename><surname>Ji</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tianlin</forename><surname>Zhang</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2304.03347</idno>
+		<imprint/>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<monogr>
+		<title level="m" type="main">Exploring the limits of chatgpt for query or aspect-based text summarization</title>
+		<author>
+			<persName><forename type="first">Xianjun</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yan</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xinlu</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Haifeng</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wei</forename><surname>Cheng</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2302.08081</idno>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Bartscore: Evaluating generated text as text generation</title>
+		<author>
+			<persName><forename type="first">Weizhe</forename><surname>Yuan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Graham</forename><surname>Neubig</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pengfei</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="page" from="27263" to="27277" />
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<monogr>
+		<author>
+			<persName><forename type="first">Jerrold</forename><forename type="middle">H</forename><surname>Zar</surname></persName>
+		</author>
+		<title level="m">Spearman rank correlation. Encyclopedia of biostatistics</title>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="volume">7</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Pegasus: Pre-training with extracted gap-sentences for abstractive summarization</title>
+		<author>
+			<persName><forename type="first">Jingqing</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yao</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mohammad</forename><surname>Saleh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><surname>Liu</surname></persName>
+		</author>
+		<idno>PMLR</idno>
+	</analytic>
+	<monogr>
+		<title level="m">International Conference on Machine Learning</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="11328" to="11339" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">Bertscore: Evaluating text generation with bert</title>
+		<author>
+			<persName><forename type="first">Tianyi</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Varsha</forename><surname>Kishore</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Felix</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kilian</forename><forename type="middle">Q</forename><surname>Weinberger</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yoav</forename><surname>Artzi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International Conference on Learning Representations</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<monogr>
+		<title level="m" type="main">Can chatgpt understand too? a comparative study on chatgpt and fine-tuned bert</title>
+		<author>
+			<persName><forename type="first">Qihuang</forename><surname>Zhong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Liang</forename><surname>Ding</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Juhua</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bo</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dacheng</forename><surname>Tao</surname></persName>
+		</author>
+		<idno>ArXiv, abs/2302.10198</idno>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

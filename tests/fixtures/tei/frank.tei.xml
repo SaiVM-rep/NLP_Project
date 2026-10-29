@@ -1,0 +1,1109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Understanding Factuality in Abstractive Summarization with FRANK: A Benchmark for Factuality Metrics</title>
+				<funder ref="#_7pUDtyX">
+					<orgName type="full">DARPA CMO</orgName>
+				</funder>
+				<funder ref="#_CrnZFMZ #_2eCYrth">
+					<orgName type="full">National Science Foundation</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability  status="unknown">
+					<licence/>
+				</availability>
+				<date type="published" when="2021-07-23">23 Jul 2021</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName><forename type="first">Artidoro</forename><surname>Pagnoni</surname></persName>
+							<email>apagnoni@cs.cmu.edu</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Language Technologies Institute Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Vidhisha</forename><surname>Balachandran</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Language Technologies Institute Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Yulia</forename><surname>Tsvetkov</surname></persName>
+							<email>ytsvetko@cs.cmu.edu</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Language Technologies Institute Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Understanding Factuality in Abstractive Summarization with FRANK: A Benchmark for Factuality Metrics</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2021-07-23">23 Jul 2021</date>
+						</imprint>
+					</monogr>
+					<idno type="MD5">0B13DAA4F8F6108EB9E5DD22576DED59</idno>
+					<idno type="arXiv">arXiv:2104.13346v2[cs.CL]</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.1" ident="GROBID" when="2026-10-29T09:30+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>FRANK Benchmark Data Annotation Per sentence error category annotation Typology of Factual Errors Frame semantics</term>
+					<term>discourse analysis Summarization System Evaluation Which mistakes? Factuality Metric Evaluation What is the best metric? Amazon Mechanical Turk Worker Quality Screening Training</term>
+					<term>Evaluation</term>
+					<term>Bonus 2250 Summaries by 9 Systems CNN/DM XSum</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Modern summarization models generate highly fluent but often factually unreliable outputs. This motivated a surge of metrics attempting to measure the factuality of automatically generated summaries. Due to the lack of common benchmarks, these metrics cannot be compared. Moreover, all these methods treat factuality as a binary concept and fail to provide deeper insights on the kinds of inconsistencies made by different systems. To address these limitations, we devise a typology of factual errors and use it to collect human annotations of generated summaries from state-of-the-art summarization systems for the CNN/DM and XSum datasets. Through these annotations we identify the proportion of different categories of factual errors in various summarization models and benchmark factuality metrics, showing their correlation with human judgement as well as their specific strengths and weaknesses. 1</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Factuality is defined as a measure of "whether eventualities are characterized as corresponding to facts, possibilities, or situations that do not hold in the world" <ref type="bibr" target="#b30">(Sauri, 2008;</ref><ref type="bibr" target="#b31">Saurí and Pustejovsky, 2012)</ref>. In summarization, this "world" is the article, which is taken as ground-truth, and the output summary must be faithful to the article's facts. Despite advancements in neural abstractive summarization <ref type="bibr" target="#b24">(Narayan et al., 2018;</ref><ref type="bibr" target="#b21">Liu and Lapata, 2019;</ref><ref type="bibr" target="#b19">Lewis et al., 2020)</ref>, ∼30% of summaries have factual inconsistencies <ref type="bibr" target="#b4">(Cao et al., 2018)</ref>. With summarization being an integral component of information consumption, this highlights a need for ensuring summarization systems are factually consistent and developing methods for evaluating them.</p><p>Common evaluation metrics for summarization based on n-gram overlap -BLEU, ROUGE, and METEOR <ref type="bibr" target="#b26">(Papineni et al., 2002;</ref><ref type="bibr" target="#b20">Lin, 2004;</ref><ref type="bibr" target="#b18">Lavie and Agarwal, 2007)</ref> -are insufficient to measure the factual correctness of summaries and fail to correlate with the human judgements of factuality <ref type="bibr" target="#b8">(Falke et al., 2019;</ref><ref type="bibr" target="#b16">Kryscinski et al., 2019)</ref>. More recent metrics proposed to improve the evaluation of summarization factuality <ref type="bibr" target="#b17">(Kryscinski et al., 2020;</ref><ref type="bibr" target="#b6">Durmus et al., 2020;</ref><ref type="bibr" target="#b35">Wang et al., 2020;</ref><ref type="bibr" target="#b23">Maynez et al., 2020)</ref> cannot be compared due to the lack of common benchmarks. More critically, while these approaches differ in the way they model factuality, they all consider factuality as a binary concept, labeling summaries of any length as factual or non-factual. They do not provide any finegrained understanding of the factual errors made by different systems that could serve as an actionable feedback on a system's limitations.</p><p>The binary factuality of a text can be difficult to determine. <ref type="bibr" target="#b8">Falke et al. (2019)</ref> show relatively low crowd-expert agreement, indicating the presence of subjectivity in the annotation process. Moreover, not all factual errors are equally important and the number of errors can have a significant impact on the perceived factuality of a text. This suggests that non-factuality should be modeled as a multidimensional construct and not a label.</p><p>In this work, we propose a linguistically motivated typology of factual errors for fine-grained analysis of factuality in summarization systems ( §2). Our typology is theoretically grounded in frame semantics <ref type="bibr" target="#b9">(Fillmore et al., 1976;</ref><ref type="bibr" target="#b25">Palmer et al., 2005)</ref> and linguistic discourse theory <ref type="bibr" target="#b3">(Brown and Yule, 1983)</ref>. It provides several benefits. First, we find that decomposing the concept of factuality in (relatively) well-defined and grounded categories makes the final binary decision more objective leading to near perfect agreement between crowd and expert annotators (κ = 0.86). Second, this approach provides some measure of the degree of non-factuality both in terms of the quantity and the category of factual violations that appear Figure <ref type="figure">1</ref>: We propose a linguistically grounded typology of factual errors. We select crowd workers to annotate summaries from two datasets according to this typology achieving near perfect agreement with experts. We collect FRANK, the resulting dataset, to benchmark factuality metrics and state-of-art summarization systems.</p><p>in the text. This typology also provides us with the means to categorize the types of errors made by summarization systems, helping us gain deeper insights than simply categorizing content as factual or hallucinated.</p><p>We define an annotation protocol of factuality based on our typology and collect a dataset of human judgements over a diverse set of model generated summaries on the CNN/DM <ref type="bibr" target="#b15">(Hermann et al., 2015)</ref> and XSum <ref type="bibr" target="#b24">(Narayan et al., 2018)</ref> datasets ( §3). Through this dataset, we aim to both assess the factuality of summarization systems and benchmark recently proposed factuality metrics. In §4 we discuss various state-of-art models and show a detailed analysis of the factual errors they make. Finally, in §5 we evaluate multiple summarization metrics against our benchmark and show their strengths and weaknesses in detecting specific types of factual errors. Figure <ref type="figure">1</ref> shows an overview of this work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Typology of Factual Errors</head><p>Previous studies of factuality in summarization only distinguish factual and hallucinated content <ref type="bibr" target="#b16">(Kryscinski et al., 2019;</ref><ref type="bibr" target="#b23">Maynez et al., 2020)</ref> and provide limited insights on the fine-grained types of factual errors. In the simplest case, factual errors appear within a single proposition. However, as summaries include several sentences, discourse markers describe relations across propositions. These cross-sentence links, such as causality or temporal ordering, can introduce inconsistencies with the article. Furthermore, information in the summary should be verifiable given the article. This understanding outlines different levels of linguistic structure where factual mistakes can arise in summaries: at the semantic frame level, at the discourse level, or because the content cannot be verified. Below we define a typology of factual errors further detailing these three levels. This typology is theoretically grounded in frame semantics <ref type="bibr" target="#b9">(Fillmore et al., 1976;</ref><ref type="bibr" target="#b0">Baker et al., 1998;</ref><ref type="bibr" target="#b25">Palmer et al., 2005)</ref> and linguistic discourse analysis <ref type="bibr" target="#b3">(Brown and Yule, 1983)</ref>. Examples for each category are shown in Table <ref type="table" target="#tab_0">1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Semantic Frame Errors</head><p>A semantic frame is a schematic representation of an event, relation, or state, which consists of a predicate and a list of participants, called frame elements <ref type="bibr" target="#b0">(Baker et al., 1998)</ref>. A semantic frame has both core and non-core frame elements (FE). Core frame elements are essential to the meaning of the frame, while non-core (e.g. location, time) provide additional descriptive information. Our first three categories capture factual errors in each of these components (frame, core and non-core FE) respectively.</p><p>Predicate Error (PredE): Category PredE encompasses errors where the predicate in a summary statement is inconsistent with the source text. More generally, this represents cases where the frame from a summary statement does not align with what is expressed in the source text.</p><p>Entity Error (EntE): Category EntE captures errors where the primary arguments (like entities) of the predicate are wrong or have the wrong attributes, although the relation was expressed in the original text. More generally, these account for cases where the core frame elements in a frame are wrong. This also captures directionality errors where the elements are interchanged (similar to agent-patient swap).</p><p>Circumstance Error (CircE): In additional to the core arguments, predicates can be further specified using additional information or attributes that describe the circumstance in which the arguments</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Category Description Example</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>PredE</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Relation Error</head><p>The predicate in the summary statement is inconsistent with the source article.</p><p>The Ebola vaccine was rejected by the FDA in 2019.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>EntE</head><p>Entity Error The primary arguments (or their attributes) of the predicate are wrong.</p><p>The COVID-19 vaccine was approved by the FDA in 2019.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>CircE</head><p>Circumstance Error The additional information (like location or time) specifying the circumstance around a predicate is wrong.</p><p>The first vaccine for Ebola was approved by the FDA in 2014.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>CorefE Coreference Error</head><p>A pronoun/reference with wrong or nonexisting antecedent.</p><p>The first vaccine for Ebola was approved in 2019. They say a vaccine for COVID-19 is unlikely to be ready this year.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>LinkE</head><p>Discourse Link Error</p><p>Error in how multiple statements are linked together in the discourse (for example temporal ordering/causal link).</p><p>To produce the vaccine, scientists have to show successful human trials, then sequence the DNA of the virus.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>OutE</head><p>Out of Article Error The statement contains information not present in the source article.</p><p>China has already started clinical trials of the COVID-19 vaccine.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>GramE Grammatical Error</head><p>The grammar of the sentence is so wrong that it becomes meaningless.</p><p>The Ebola vaccine accepted have already started. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Discourse Errors</head><p>The communicative intent of an author is also expressed through relations that hold between parts of the text. Factual errors in summarized text can often extend beyond a single semantic frame introducing erroneous links between discourse segments.</p><p>Below we outline such categories of errors which are grounded in discourse analysis and rhetorical structure theory (RST) <ref type="bibr" target="#b3">(Brown and Yule, 1983;</ref><ref type="bibr" target="#b22">Mann and Thompson, 1988)</ref>. RST is an elaborate system for annotating coherence relations in discourse. Some examples of such relations include: "Elaboration", "Background", "Motivation", and "Volitional Cause". Here we depart from semantic frame terminology as its rooting in a single frame does not allow us to represent such errors.</p><p>Coreference Error (CorefE): Category CorefE accounts for errors where pronouns and other types of references to previously mentioned entities either are incorrect or have no clear antecedents, making them ambiguous.</p><p>Discourse Link Error (LinkE): Category LinkE encompasses errors involving a discourse link between different statements. These include errors of incorrect temporal ordering or incorrect discourse links (e.g. RST relations, discourse connectors) between statements.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Content Verifiability Errors</head><p>Often statements in a summary cannot be verified against the source text due to difficulty in aligning them to the source. Below we outline two categories of errors for such cases.</p><p>Out of Article Error (OutE): Since summaries of a document should only contain information that can be deduced from the original text, we include a category for such errors OutE (prior work refers to this as extrinsic hallucinations <ref type="bibr" target="#b23">(Maynez et al., 2020)</ref>).</p><p>Grammatical Error (GramE): We use GramE to categorize statements that are not well formed. When grammatical mistakes make the meaning of a statement incomprehensible or ambiguous, it cannot be verified against the source and is thus considered trivially wrong. Minor grammatical errors are acceptable.</p><p>Finally, for completeness in our annotation exercise, we add two additional categories Others (OthE) for factually errors that do not correspond to any of the above categories and Not an Error (NE) for statements that do not contain any errors.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Dataset Creation</head><p>Beyond theoretical grounding, we empirically verify our typology through large scale human annota-tions of five abstractive summarization models on the CNN/DM dataset and four on the XSum dataset. Through our dataset, we aim to have a broad coverage of different types of errors made by neural summarization systems, with human judgements on their fine-grained factuality errors.</p><p>Annotation Data For the annotation, we include model summaries from CNN/DM and XSum datasets as they present different characteristics. CNN/DM summaries are longer, with three sentences on average, while XSum has only single sentence summaries. Having longer summaries is crucial to identify discourse level errors. On the other hand, XSum summaries are more abstractive and include more factual errors on average <ref type="bibr" target="#b23">(Maynez et al., 2020)</ref>. For a diverse set of model summaries, we collect publicly available model outputs from different summarization models with differing factuality capabilities. For the CNN/DM dataset, we use model outputs from a LSTM Seq-to-Seq model (S2S) <ref type="bibr" target="#b29">(Rush et al., 2015)</ref>, a Pointer-Generator Network (PGN) model <ref type="bibr" target="#b32">(See et al., 2017)</ref>, a Bottom-Up Summarization (BUS) model <ref type="bibr" target="#b11">(Gehrmann et al., 2018)</ref>, a Bert based Extractive-Abstractive model (BertSum) <ref type="bibr" target="#b21">(Liu and Lapata, 2019)</ref> and a jointly pretrained transformer based encoder-decoder model BART <ref type="bibr" target="#b19">(Lewis et al., 2020)</ref>. For the XSum dataset, we collect model outputs from a Topic-Aware CNN Model <ref type="bibr" target="#b24">(Narayan et al., 2018)</ref>, a Pointer-Generator Network (PGN) model, a randomly initialized (TransS2S) <ref type="bibr" target="#b34">(Vaswani et al., 2017)</ref> and one initialized with Bert-Base (BertS2S) <ref type="bibr" target="#b5">(Devlin et al., 2019)</ref>.<ref type="foot" target="#foot_1">foot_1</ref> Details of the models used are provided in §A.1.</p><p>Annotation Collection Using the above model generated summaries, we collect human annotations from three independent annotators for 250 articles from each dataset (with a total of 1250 model outputs on CNN/DM and 1000 on XSum). We annotate each sentence of a summary to break the judgement of factuality into smaller units. We present sentences in the context of the entire summary to identify discourse errors spanning multiple sentences. Annotations are a two step process: for each sentence in the summary, the annotator first selects whether the sentence is factual, and if marked not factual, identifies the category of each error based on our typology.<ref type="foot" target="#foot_2">foot_2</ref> A sentence can be annotated with more than one category of errors to account for multiple errors within a sentence. We conduct the annotation task on the Amazon Mechanical Turk (MTurk) platform. To achieve high quality crowd-sourced annotations, we build an intuitive interface<ref type="foot" target="#foot_3">foot_3</ref> which combines:</p><p>1. Clear Instructions: We explain the annotation scheme without assuming linguistic knowledge and give several examples for each category.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Training and Evaluation:</head><p>We setup training tutorials for first time users to train and provide feedback on the task. We also setup a qualification test which tests their understanding of our annotation scheme and require annotators to obtain &gt;85% score to qualify. Further, we continuously evaluate annotators during the task against artificially generated factual errors to ensure continued high quality. 3. Fair Pay and Bonus: All workers are paid 50% more than the average American minimum wage. We offer bonuses for scores of 60% or above on the continuous evaluation, and for completing sets of 10 annotations. Further details on our interface are added in §A.6</p><p>Inter-Annotator Agreement: We report interannotator agreement in terms of Fleiss Kappa κ <ref type="bibr" target="#b10">(Fleiss, 1971)</ref>. Following <ref type="bibr" target="#b6">Durmus et al. (2020)</ref>, we report the percentage p of annotators that agree with the majority class. Each datapoint in our dataset corresponds to a sentence in a summary. We compute agreement on all 4942 annotated sentences. On the annotation of whether a sentence is factual or not we obtain κ = 0.58, with p = 91% of annotators agreeing with the majority class. As a comparison, <ref type="bibr" target="#b6">Durmus et al. (2020)</ref> reports p = 76.7% average agreement. When all three annotators agree that a sentence is not factual, we obtain κ = 0.39 with p = 73.9% of annotators agreeing with the majority class on the eight category annotation (seven categories of errors and "other") which indicate a moderate agreement.</p><p>Agreement with Domain Expert: We measure agreement between the majority class of the three   <ref type="table" target="#tab_0">1</ref>.</p><p>annotators and one expert annotator on 201 datapoints (10 summaries from CNN/DM and 10 summaries from XSum). We find a Cohen Kappa of κ = 0.86 indicating nearly perfect agreement. Previous work found agreement of κ = 0.65 between three crowd annotators and expert annotations of factuality <ref type="bibr" target="#b8">(Falke et al., 2019)</ref>. Even with more than nine workers, they report agreement with expert annotations of at most κ = 0.74. This improvement validates the robustness of our annotation interface and protocol which achieves higher agreement with fewer workers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Summarization Model Analysis</head><p>We evaluate the performance of different summarization models in terms of factuality. Figure <ref type="figure" target="#fig_1">2</ref> visualizes the percentage of summaries with factual errors for each category model and dataset, with a breakdown of proportion of different error types within each. A summary is considered incorrect if it contains at least one sentence with a factual error. A sentence contains a factual error if the majority of annotators indicate the presence of an error (here we do not consider annotations where all three annotators disagree on the category).</p><p>How factual are generated summaries across different datasets? From our annotations, we observe that 60% of the summaries that were annotated contain at least one factual error. From Figure <ref type="figure" target="#fig_1">2</ref>, we see that the XSum dataset has more factually incorrect model summaries (92%) than CNN/DM (43%). It poses more significant challenges in terms of factuality as all models produce &gt; 80% summaries with factual errors, with the best model (BertS2S) producing 83% wrong summaries. On the CNN/DM dataset, while state-of-the-art pretrained models like BERTSum and BART have better factuality numbers, the percentage of factually incorrect summaries is still high (23% for BERTSum and 27% for BART). The proportion of errors across different categories vary widely between the two datasets. For the CNN/DM dataset, the most frequent classes of errors are Entity Error (EntE) and Coreference Error (CorefE). For the XSum dataset they are Out of Article Error (OutE) and Entity Error (EntE). Note that there are no discourse errors (CorefE, LinkE) in the XSum dataset because the data only contains single sentence summaries. Additionally, we observe that OthE makes up a very small percentage (∼ 1%) of errors overall showing that our typology is complete with most errors being mapped to one of our existing categories.</p><p>How factual are generated summaries across different models? From Figure <ref type="figure" target="#fig_1">2</ref>, we observe that LSTM based models like S2S and BUS generate many incorrect summaries. Interestingly, PGN on CNN/DM has fewer summaries with factual errors (26%) compared to S2S (74%) and BUS (62%) potentially due to the extractive nature of CNN/DM and the copy based objective in PGN. PGN has been previously shown to produce highly extractive summaries on CNN/DM copying large portions of text (often entire sentences) <ref type="bibr" target="#b11">(Gehrmann et al., 2018;</ref><ref type="bibr" target="#b1">Balachandran et al., 2021)</ref>. On the more abstractive dataset XSum, PGN produces &gt; 96% factually incorrect summaries. We also observe that large-scale pretrained models improve factuality on both datasets, as also noted by <ref type="bibr" target="#b6">Durmus et al. (2020)</ref>, with more significant gains on CNN/DM. On CNN/DM, BERTSum and BART display half the error rate of BUS. In contrast, on XSum, BertS2S improves over non-pretrained models by ∼ 10% only, showing that XSum poses a significant challenge for factuality even in pretrained models.</p><p>Different models also exhibit different distributions in the error categories. LSTM based mod-els have higher proportion of Grammatical Errors (GramE) while transformer and CNN based models have a lower proportion. For pretrained transformer models, we observe that the improved error-rate on the CNN/DM dataset can be attributed to improvements at the frame level (PredE, EntE, CircE) while the discourse level errors still remain a challenge. Errors CorefE, LinkE account for a higher proportion of errors in BERTSum and BART compared to the other models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Factuality Metric Evaluation</head><p>We propose the FRANK dataset resulting from the human annotation study as a common benchmark to assess different factuality metrics. We provide an evaluation protocol of factuality metrics, which controls for dataset biases, and a fine grained analysis of the strengths of each metric.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Benchmark</head><p>The FRANK benchmark provides a diverse dataset for evaluating various metrics on their ability to capture factual errors. Notably, our benchmark has factual error diversity, as it covers all types of errors described in the typology in §2, and data diversity as it combines 2250 summaries from different systems and datasets. Our annotations go beyond binary labels of factuality on a summary by providing fine-grained category annotations for every sentence. This allows us to determine how well each metric can capture each type of error. Furthermore, through averaging of sentence level judgements, we can also obtain a factuality scores (0 to 1 range) for a summary. To measure the degree that automated metrics capture a certain characteristic, we compute their correlation with human judgements and report Pearson correlation and Spearman rank correlation along with their p-values.</p><p>We evaluate different classes of metrics against the FRANK benchmark. We select four general summarization metrics. ROUGE, BLEU, and Meteor are n-gram based metrics and computed with respect to the reference summary. BERTScore <ref type="bibr" target="#b36">(Zhang et al., 2020)</ref> computes BERT <ref type="bibr" target="#b5">(Devlin et al., 2019)</ref> contextual embeddings on summary and source article and measures distances between matched embeddings. We select five metrics focused on factuality. As <ref type="bibr" target="#b12">Goodrich et al. (2019)</ref>, we use a simple OpenIE <ref type="bibr" target="#b2">(Banko et al., 2007)</ref> baseline. This involves extracting OpenIE triples and matching them through sentence embeddings (Reimers and Gurevych, 2019). FactCC <ref type="bibr" target="#b17">(Kryscinski et al., 2020)</ref> and DAE <ref type="bibr" target="#b13">(Goyal and Durrett, 2020)</ref> are entailment based metrics. FactCC operates with sentences as claims, while DAE uses dependency level entailment. FEQA <ref type="bibr" target="#b6">(Durmus et al., 2020)</ref> and QAGS <ref type="bibr" target="#b35">(Wang et al., 2020)</ref> are two question answering and generation metrics (QGA). More details on the differences between these metrics is in §A.2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Controlling for Dataset Biases</head><p>Since our benchmark contains diverse summaries from different datasets and models, dataset biases can hamper accurate reporting. In Figure <ref type="figure" target="#fig_2">3</ref>, we visually show correlations between two factuality metrics (FEQA and FactCC) and human judgement on the entire data and on partitions of the data. For both metrics, we notice that the slope (an unscaled measure of correlation) of the line fitted through the entire data (red line) is significantly larger. In FEQA, the dotted lines (fitted on subsets of the data of each model and dataset) are almost horizontal. This likely indicates the presence of a confounding variable associated with the properties of each system and dataset. This can lead to false measures of high correlation if not accounted for. To address this, we suggest to control for confounding variables using partial correlations. We include details on partial correlations in the Appendix. In this case, both the system and the dataset are taken to be confounding variables.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Results</head><p>In Table <ref type="table" target="#tab_2">2</ref>, we report the partial Pearson correlation and Spearman rank correlation coefficients with human judgements for each metric, along with their .10 0.00 0.07 0.00 0.08 0.01 0.08 0.01 0.14 0.00 0.20 0.00 METEOR 0.14 0.00 0.11 0.00 0.12 0.00 0.10 0.00 0.15 0.00 0.10 0.00 Rouge-1 0.14 0.00 0.10 0.00 0.12 0.00 0.10 0.00 0.15 0.00 0.09 0.01 Rouge-2 0.12 0.00 0.08 0.00 0.08 0.00 0.07 0.01 0.17 0.00 0.14 0.00 Rouge-L 0.13 0.00 0.09 0.00 0.11 0.00 0.09 0.00 0.16 0.00 0.10 0.00 OpenIE 0.11 0.00 0.02 0.36 0.16 0.00 0.15 0.00 0.00 0.93 -0.45 0.00 BERTS P 0.27 0.00 0.24 0.00 0.35 0.00 0.29 0.00 0.18 0.00 0.09 0.00 BERTS R 0.14 0.00 0.13 0.00 0.21 0.00 0.17 0.00 0.07 0.03 0.03 0.38 BERTS F1 0.24 0.00 0.21 0.00 0.32 0.00 0.26 0.00 0.15 0.00 0.06 0.05 FEQA 0.00 0.83 0.01 0.60 -0.01 0.76 -0.01 0.72 0.02 0.45 0.07 0.04 QAGS 0.06 0.00 0.08 0.00 0.13 0.00 0.09 0.00 -0.02 0.48 0.01 0.65 DAE 0.16 0.00 0.14 0.00 0.25 0.00 0.24 0.00 0.04 0.16 0.28 0.00 FactCC 0.20 0.00 0.30 0.00 0.36 0.00 0.33 0.00 0.07 0.02 0.25 0.00  <ref type="figure">4</ref>, we observe that entailment metrics have significantly higher partial Pearson correlation on the CNN/DM dataset than XSum where their correlation is reduced by a factor of four. QAGS and the OpenIE baseline have similar behavior. This suggests that these metrics capture the error types from CNN/DM better that those from XSum. Specifically, XSum has uniquely high Out of Article (OutE) errors which they might not capture well. This also highlights the importance of data diversity in building and benchmarking factuality metrics to avoid overfitting to certain types of errors.</p><p>How well do different metrics capture errors from pretrained and non-pretrained models? On the CNN/DM dataset we observe that entailment metrics and QAGS perform significantly better on non-pretrained models. This indicates that the artificial factual errors on which entailment metrics are trained on are closest to the mistakes that non-pretrained models make. This also suggests that the errors made by pretrained models might be more difficult to capture by these metrics. These trends are less clear on the XSum dataset which we again attribute to high Out of Article (OutE) errors in the pretrained and non-pretrained models (ref Figure <ref type="figure" target="#fig_1">2</ref>)</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.4">Error Analysis</head><p>Figure <ref type="figure">4</ref> shows partial Pearson correlation on six subsets of the data. To understand capabilities of metrics across the broad categories of errors (semantic frame errors, discourse errors, and content verifiability errors) we perform an ablation study.</p><p>For each category, we compute the variation in partial correlation with errors from that category omitted. In Figure <ref type="figure">5</ref>, we visualize the influence of a given type of error using the variation for each 6 Related Work Question Generation and Answering (QGA) FEQA <ref type="bibr" target="#b6">(Durmus et al., 2020)</ref> and QAGS <ref type="bibr" target="#b35">(Wang et al., 2020)</ref> are two metrics which reduce factuality evaluation to question generation and answering. These methods use a question generation model to obtain questions from the output summary and a question answering model to answer them, separately using the article and the output summary.</p><p>Prior Efforts on Factuality Annotations of Summaries Fabbri et al. ( <ref type="formula">2020</ref>) and <ref type="bibr" target="#b23">Maynez et al. (2020)</ref> have collected annotations on the CNN/DM and XSum dataset respectively. In this work we cover both datasets to ensure greater data diversity.</p><p>Other efforts <ref type="bibr" target="#b17">(Kryscinski et al., 2020;</ref><ref type="bibr" target="#b35">Wang et al., 2020;</ref><ref type="bibr" target="#b6">Durmus et al., 2020)</ref> were smaller in scale <ref type="bibr" target="#b6">Durmus et al. (2020)</ref> and <ref type="bibr" target="#b17">Kryscinski et al. (2020)</ref> annotated 200 and 503 sentences while <ref type="bibr" target="#b35">Wang et al. (2020)</ref> annotated 470 summaries (we collect judgements on 2250 summaries). Crucially, all previous efforts portray factuality as a binary label without variations in degree or type of factual errors.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Conclusion</head><p>In this work we provide a linguistically grounded typology of factual errors which we use to collect FRANK, a dataset of human annotations of 2250 summaries covering both CNN/DM and XSum datasets. We use FRANK to assess the factuality of summarization systems and benchmark recently proposed factuality metrics highlighting the types of errors they can capture. With the FRANK benchmark we have started moving away from a summary-level binary understanding of factuality.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8">Ethical Considerations</head><p>We have collected crowd annotations using the Amazon Mechanical Turk platform. Workers were paid 50% more than the average American minimum wage and offered additional bonuses as an incentive to maintain high quality work. No information about the workers will be released and worker IDs will be anonymized.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A Appendices</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.1 Model details</head><p>We provide details of the models used in the human evaluation task to construct FRANK.</p><p>A  <ref type="bibr" target="#b28">(Rothe et al., 2020)</ref> where both encoder and decoder are initialized with the BERT-Base checkpoints <ref type="bibr" target="#b5">(Devlin et al., 2019)</ref> and fine-tuned on XSum</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.2 Metrics</head><p>In this work we compare the following five metrics.</p><p>BERTScore <ref type="bibr" target="#b36">(Zhang et al., 2020)</ref>: We report BERTScore Precision, Recall, and F1 between the model output and the article being summarized.</p><p>Our experiments show that recall and F1 do not correlate as well with the human judgement of factuality for BERTScore.</p><p>OpenIE : We use a simple baseline based on OpenIE <ref type="bibr" target="#b2">(Banko et al., 2007)</ref> and Sentence-BERT <ref type="bibr" target="#b27">(Reimers and Gurevych, 2019)</ref>. We use OpenIE <ref type="bibr" target="#b2">(Banko et al., 2007)</ref> to extract subject-relationobject triplets from the article, reference summary, and model generated summary. We consider binary relations only and thus use the first two arguments of the relation. <ref type="foot" target="#foot_4">5</ref> After replacing corefering entity mentions with the main mention of the cluster<ref type="foot" target="#foot_5">foot_5</ref> , we use BERT base Sentence-BERT <ref type="bibr" target="#b27">(Reimers and Gurevych, 2019)</ref> to obtain embeddings of each element of the subject-relation-object triplets extracted by OpenIE. Two relation triplets are considered to be equivalent if their embeddings have cosine similarity higher than a threshold for all three elements of the triplet (we use 0.6 as threshold after a grid search between 0.5 and 0.9 on data from our pilot study).</p><p>FEQA <ref type="bibr" target="#b6">(Durmus et al., 2020)</ref>: FEQA is a question generation and answering (QGA) factuality metric. We relied on the original implementation of the authors for this metric as well as their pretrained model weights. We used the full summary to generate questions and we answer them both using the summary and article text.</p><p>QAGS <ref type="bibr" target="#b35">(Wang et al., 2020)</ref>: QAGS is another QGA metric. The authors kindly provided outputs on the FRANK benchmark generating 10 questions for each summary.</p><p>DAE <ref type="bibr" target="#b13">(Goyal and Durrett, 2020)</ref>: DAE is an entailment classification metric that operates on dependencies. The authors kindly provided outputs on the FRANK benchmark. We note that the model was trained with a max length of 128 after concatenating both article and summary. The CNN/DM articles can be significantly longer, thus the results reported for this metric involve truncating parts of the article.</p><p>FactCC <ref type="bibr" target="#b17">(Kryscinski et al., 2020)</ref>: FactCC is an entailment classification metric. We use the sentences of the model generated summary as input claims to the entailment classifier FactCC. For each sentence we obatain a binary factuality label. We take the average of these labels as the factuality score for the summary.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.3 Summarization System Analysis Details</head><p>See Table <ref type="table" target="#tab_0">1</ref> for more details.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.4 Hotelling Williams Test</head><p>The correlation numbers in Table <ref type="table" target="#tab_2">2</ref> should be read in combination with the pairwise Hotelling-Williams test <ref type="bibr" target="#b14">Graham (2015)</ref> results in Table <ref type="table" target="#tab_8">4</ref>.</p><p>The highlighted numbers indicate pairs of models for which the difference in correlation is statistically significant. We use partial correlations to run the test and compute metric-metric correlations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.5 Mutual Exclusiveness of typology:</head><p>To understand if our annotations are mutually exclusive, we study cases where two annotators agree on the error category (majority class) and one disagrees (minority class). In Figure <ref type="figure">6</ref>, we report the confusion between majority and minority classes.</p><p>For each category as majority, we report the distribution of other categories as minority.</p><p>We observe that all categories with the exception of OutE are frequently confused with NE which stands for no factual error. This primarily due to the noise in the annotations collected by crowd workers. However, for category (coreference errors) the confusion is significantly higher with 69.7%. We have noticed the same trend in practice tutorials: crowd annotators easily overlook situations where the correct pronoun is used (in terms of number and gender) but no antecedent appears in the summary. Intuitively after reading the article, unless paying particular attention, it is easy to subconsciously associate referring expressions with entities in the article without noticing their absence in the summary. The error persists despite stating the scenario explicitly in the instructions. This indicates an issue with annotators rather than annotation scheme.</p><p>The other trend that we observe is that categories PredE (wrong relation) and CircE (wrong modifier) are often confused with OutE (outside information). In our definition of OutE, outside information corresponds to the presence of entities not mentioned in the article or relations that cannot be verified based on the article. The confusion with PredE indicates that annotators can have different judgements on whether a relation is verifiable based on the article. Similarly, but to a lesser degree, wrong circumstantial information might be considered unverifiable given the article.</p><p>Finally, there were relatively few discourse con- text errors LinkE, so the analysis is less statistically significant. Discourse context errors correspond to using a wrong connectors between different facts, for example different logical links. These were confused with PredE and EntE (wrong relation). The distinction between the two errors lies in the confusion between what an entity and a fact are, since PredE occurs at the frame level while LinkE at the discourse level. Note, that there was no confusion in the other direction (PredE being confused with LinkE).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.6 Annotation Setup Details</head><p>Below are more details on the annotation set up.</p><p>Clear Instructions We explain the annotation scheme without assuming linguistic knowledge and give several examples for each category. We also provide a practival ste-by-step to determine the category of the errors.</p><p>Training Every first-time user has to go through a tutorial which exercises the comprehension of the annotation scheme. The tutorial presents an article and several hand-crafted summaries of the article that need to be annotated. It is designed to be very similar to the actual annotation task and to contain at least one occurrence of each category of error. Feedback is provided when a user selects the wrong category of error. This tutorial is not used to evaluate users, only to help them understand the different categories in a practical setting.  Qualification test To participate in the annotation, users have to obtain a minimum score of 85% on a qualification test. The test comprehends an article and several summaries to be annotated. It contains at least one instance of each category of error. We use this test to verify that users can effectively recognize error categories. This ensures that users are able to perform the task correctly, but does not enforce that high standards of work quality are maintained throughout the annotation task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Continuous evaluation</head><p>We continuously evaluate a user by verifying that they read the text. For every article that is annotated, we ask to identify one of three entities that was not present in the article. We also monitor the annotations on artificially altered sentences that are randomly inserted at the end of summaries. Wrong sentences contain one of the following errors: negation of declarative sentences (PredE), pronoun swap (CorefE), sample sentence from another article (OutE), word scrambling (GramE). We immediately block users that fail the entity test or perform poorly on these sentences (less than 50% of correct answers on altered sentences) to ensure high quality annotations.</p><p>Bonuses All workers are paid 50% more than the average American minimum wage but we offer bonuses for scores of 60% or above on the continuous evaluation, and for completion a sequences of 10 annotations. We observe that bonuses increase the percentage of users with high continuous evaluation scores (&lt;10% blocked users with bonuses versus 30% without bonuses).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.7 Correlation with Confounding Variables</head><p>Partial correlation measures the degree of association between two random variables, with the effect of a set of controlling random variables removed.</p><p>Although we are unaware of the exact confounding variable, we use the categorical variable C of which system and dataset the summary was generated from. Let M k represent the output of metric k on the summaries. To compute partial correlation between M k and human judgements H which we treat as random variables, we solve the two regression problems M k |C = c ∼ w M k c and H|C = c ∼ w H c and get the residuals:</p><formula xml:id="formula_0">∆M k = M k -ŵM k C ∆H = M k -ŵH C</formula><p>And then calculate the correlation between these residuals ρ(∆M k , ∆H) instead of the original random variables. Since partial correlations are proper correlations between random variables, we can apply statistical significance tests without any modification.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.8 Annotation Interface</head><p>We include screenshots of the annotation interface which we will make available.     </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>Figure2: Proportion of summaries with factual errors based on collected annotations, with breakdown of the categories of errors within. Full specification of categories of errors in Table1.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Correlation between metrics and human judgement on subsets of data. The x and y axis represent the human judgement the metric scores respectively. The red line is a linear regression fitted on full data. Each dotted line is a linear regression fitted on a model-dataset subset. Each colored point has coordinates equal to average factuality judgement, and metric score for its corresponding partition.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc><ref type="bibr" target="#b16">Kryscinski et al. (2019)</ref> and<ref type="bibr" target="#b7">Fabbri et al. (2020)</ref> find that standard n-gram based metrics have low correlation with human judgements of factuality. Motivated by this, several automated metrics falling in two paradigms were proposed to improve the evaluation of factuality.Entailment Classification<ref type="bibr" target="#b12">Goodrich et al. (2019)</ref>;<ref type="bibr" target="#b17">Kryscinski et al. (2020)</ref>;<ref type="bibr" target="#b23">Maynez et al. (2020)</ref>;<ref type="bibr" target="#b13">Goyal and Durrett (2020)</ref> model factuality as entailment classification breaking down the summary into smaller units, such as sentences, which are verified against the original article. However, modeling factuality as a classification task requires supervision on factual and hallucinated data. FactCC<ref type="bibr" target="#b17">(Kryscinski et al., 2020)</ref> is trained on the CNN/DM dataset augmented with four types of artificial mistakes as supervision.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 7 :</head><label>7</label><figDesc>Figure 7: Instructions can be toggled.</figDesc><graphic coords="16,70.87,84.35,453.54,323.26" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 8 :</head><label>8</label><figDesc>Figure 8: The sentences being annotated is highlighted in yellow. Relevant text is underlined in the article plain text.</figDesc><graphic coords="16,70.87,464.47,453.54,259.20" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 9 :</head><label>9</label><figDesc>Figure 9: After selecting that the sentence is not factual annotators choose the category of error.</figDesc><graphic coords="17,70.87,83.22,453.53,261.00" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 10 :</head><label>10</label><figDesc>Figure 10: Articles web pages are provided.</figDesc><graphic coords="17,70.87,398.81,453.54,337.94" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 11 :</head><label>11</label><figDesc>Figure 11: Entity question to ensure annotators read the text.</figDesc><graphic coords="18,70.87,244.21,453.54,331.55" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>Table 1 :</head><label>1</label><figDesc>Typology of factual errors. Original text for the examples: The first vaccine for Ebola was approved by the FDA in 2019 in the US, five years after the initial outbreak in 2014. To produce the vaccine, scientists had to sequence the DNA of Ebola, then identify possible vaccines, and finally show successful clinical trials. Scientists say a vaccine for COVID-19 is unlikely to be ready this year, although clinical trials have already started.</figDesc><table><row><cell>and predicates interact (e.g. location, time, manner,</cell></row><row><cell>direction, modality). Category CircE captures er-</cell></row><row><cell>rors where one or more such attributes (non-core</cell></row><row><cell>frame elements within a frame) are wrong.</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head>Table 2 :</head><label>2</label><figDesc>Partial Pearson correlation and Spearman rank correlation coefficients and p-values between human judgements and metrics scores. Comparisons should be made along with the pairwise Williams test found in Table4.</figDesc><table><row><cell>How do different metrics correlate with human</cell></row><row><cell>judgements? From Table 2 we observe that all</cell></row><row><cell>metrics exhibit low correlations with human judge-</cell></row><row><cell>ments of factuality. The best metrics overall are</cell></row><row><cell>FactCC with 0.20 Pearson and 0.30 Spearman cor-</cell></row><row><cell>relation and BERTScore P with 0.27 Pearson and</cell></row><row><cell>0.35 Spearman correlation. Interestingly, we ob-</cell></row><row><cell>serve that general summarization metrics BLEU,</cell></row><row><cell>Rouge, and METEOR, and the OpenIE baseline</cell></row><row><cell>have statistically significant correlations with fac-</cell></row><row><cell>tuality, close to FactCC (ρ = 0.14 for Rouge-1</cell></row><row><cell>and METEOR versus ρ = 0.20 for FactCC). The</cell></row><row><cell>entailment metrics (FactCC and DAE) and con-</cell></row><row><cell>textual embedding method (BERTScore) have the</cell></row><row><cell>highest correlations and are statistically significant.</cell></row><row><cell>The two QGA metrics have lower overall correla-</cell></row><row><cell>tion. FEQA's correlation is not statistically signifi-</cell></row><row><cell>cant. QAGS has low, but significant correlation of</cell></row><row><cell>ρ = 0.06.</cell></row><row><cell>How well do different metrics capture errors in</cell></row><row><cell>different datasets? In Figure</cell></row></table><note><p>p-values indicating statistical significance.</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3"><head></head><label></label><figDesc>Partial Pearson correlation on different partitions of the data. Entailment metrics have highest correlation on pretrained models in the CNN/DM dataset. Their performance degrades significantly on XSum.</figDesc><table><row><cell>Pearson correlation</cell><cell cols="5">0.0 0.2 0.4 0.0 CNN/DM no pretr. CNN/DM pretr. 0.2 0.0 0.2 0.4 0.6 0.8 1.0</cell><cell></cell><cell>CNN/DM 0.4</cell><cell>XSum no pretr. XSUM pretrained 0.6 0.8</cell><cell>XSUM</cell><cell>1.0</cell><cell>Rouge L OpenIE BERTS P QAGS FEQA DAE FactCC</cell></row><row><cell cols="2">0.0 0.1 0.2 Figure 4: BS P Pearson correlation</cell><cell>RougeL</cell><cell>OpenIE</cell><cell>QAGS</cell><cell>DAE.</cell><cell>FactCC</cell><cell>Semantic Frame Errors Discourse Errors Content Verifiability Erros</cell><cell>Entailment metrics Both entailment metrics correlate well with semantic frame and content ver-ifiability errors. DAE has the highest correlation of all metrics with discourse errors suggesting that entailment at the dependency level can help model discourse errors (CorefE and LinkE). FactCC is</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>nearly uncorrelated in this category, indicating that</cell></row><row><cell cols="8">Figure 5: Variation in partial Pearson correlation when</cell><cell>artificially generated factual errors need to go be-</cell></row><row><cell cols="8">omitting error types. Higher variation indicates greater influence of an error type in the overall correlation.</cell><cell>yond simple pronoun swaps to train models to cap-ture discourse errors. FactCC is best at capturing</cell></row><row><cell cols="8">metric and category. A higher positive bar indicates</cell><cell>semantic frame among all metrics evaluated.</cell></row><row><cell cols="8">that the error type was a significant contributer to</cell></row><row><cell cols="8">the overall correlation (or metric highly correlates</cell></row><row><cell cols="8">with error) causing the correlation without it to</cell></row><row><cell cols="2">drop.</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="8">General Summarization metrics Unsurpris-</cell></row><row><cell cols="8">ingly, we observe that Rouge L is best correlated</cell></row><row><cell cols="8">with content verifiability errors (which contains</cell></row><row><cell cols="8">Out of Article Errors) as n-gram matches detect</cell></row><row><cell cols="8">them. Rouge L has negative correlation with se-</cell></row><row><cell cols="8">mantic frame errors and low correlation with dis-</cell></row><row><cell cols="8">course level errors indicating that n-gram matching</cell></row><row><cell cols="8">fails to capture them. We observe that OpenIE is</cell></row><row><cell cols="8">more correlated with semantic frame errors. The</cell></row><row><cell cols="8">metric matches entities and verifies the predicate</cell></row><row><cell cols="8">that relates them and hence is able to capture se-</cell></row><row><cell cols="8">mantic frame errors. We observe that BERTScore's</cell></row><row><cell cols="8">high correlation is primarily due to its ability to</cell></row><row><cell cols="8">capture content verifiability errors while it has low</cell></row><row><cell cols="7">correlation on semantic frame errors.</cell><cell></cell></row><row><cell cols="8">QGA metrics Both QGA metrics have negative</cell></row><row><cell cols="8">correlation with discourse errors suggesting that</cell></row><row><cell cols="8">QGA metrics are not able to capture coreference</cell></row><row><cell cols="8">errors or discourse link errors potentially due to</cell></row><row><cell cols="8">the entity oriented questions in their training data.</cell></row><row><cell cols="8">FEQA additionally is also negatively correlated</cell></row><row><cell cols="8">with semantic frame errors and has low positive</cell></row><row><cell cols="8">correlation with content verifiability errors. In con-</cell></row><row><cell cols="8">trast QAGS is best correlated with semantic frame</cell></row><row><cell cols="2">errors.</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5"><head></head><label></label><figDesc>Figure 6: Confusion matrix of different types of errors.Entry at row i, column j corresponds to the frequency of annotations that have Fi as the majority class and for which disagreeing annotator selected Fj.</figDesc><table><row><cell>NE EntE PredE</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>0.5 0.6</cell></row><row><cell>CircE</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>0.4</cell></row><row><cell>CorefE OutE ConE</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>0.2 0.3</cell></row><row><cell>GramE</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>0.1</cell></row><row><cell>OthE</cell><cell>NE</cell><cell>PredE</cell><cell>EntE</cell><cell>CircE</cell><cell>CorefE</cell><cell>ConE</cell><cell>OutE</cell><cell>GramE</cell><cell>OthE</cell><cell>0.0</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_7"><head>Table 3 :</head><label>3</label><figDesc>Proportion of summaries that include factual errors, with breakdown of the categories of errors according to our human study. F8 corresponds to errors that are not captured by our typology. Full specification of categories of errors in Table1.</figDesc><table><row><cell></cell><cell>B</cell><cell cols="2">MET R-1</cell><cell cols="4">R-L BS-P OpIE FEQA QAGS DAE FCC</cell></row><row><cell>BLEU</cell><cell>-</cell><cell cols="5">0.82 0.77 0.85 0.12 0.25</cell><cell>0.03</cell><cell>-0.02</cell><cell>0.05 0.06</cell></row><row><cell cols="2">METEOR 0.82</cell><cell>-</cell><cell cols="4">0.87 0.85 0.17 0.27</cell><cell>0.02</cell><cell>-0.02</cell><cell>0.09 0.07</cell></row><row><cell>Rouge-1</cell><cell cols="2">0.77 0.87</cell><cell>-</cell><cell cols="3">0.89 0.22 0.21</cell><cell>0.01</cell><cell>-0.03</cell><cell>0.09 0.07</cell></row><row><cell>Rouge-L</cell><cell cols="3">0.85 0.85 0.89</cell><cell>-</cell><cell cols="2">0.18 0.21</cell><cell>0.01</cell><cell>-0.04</cell><cell>0.08 0.07</cell></row><row><cell>BERTS P</cell><cell cols="4">0.12 0.17 0.22 0.18</cell><cell>-</cell><cell>0.20</cell><cell>0.01</cell><cell>0.06</cell><cell>0.18 0.27</cell></row><row><cell>OpenIE</cell><cell cols="5">0.25 0.27 0.21 0.21 0.20</cell><cell>-</cell><cell>-0.01</cell><cell>0.09</cell><cell>0.10 0.15</cell></row><row><cell>FEQA</cell><cell cols="6">0.03 0.02 0.01 0.01 0.01 -0.01</cell><cell>-</cell><cell>-0.01</cell><cell>0.03 0.04</cell></row><row><cell>QAGS</cell><cell cols="6">-0.02 -0.02 -0.03 -0.04 0.06 0.09</cell><cell>-0.01</cell><cell>-</cell><cell>0.07 0.10</cell></row><row><cell>DAE</cell><cell cols="6">0.05 0.09 0.09 0.08 0.18 0.10</cell><cell>0.03</cell><cell>0.07</cell><cell>-</cell><cell>0.10</cell></row><row><cell>FactCC</cell><cell cols="6">0.06 0.07 0.07 0.07 0.27 0.15</cell><cell>0.04</cell><cell>0.10</cell><cell>0.10</cell><cell>-</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_8"><head>Table 4 :</head><label>4</label><figDesc>Pearson correlation between metrics. If value is in green, the metrics are not the same significant to the 0.05 threshold with the Hotelling Williams test.</figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0"><p>Code, data, and online leaderboard will be available at https://github.com/artidoro/frank</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1"><p>As we use publicly available model outputs, the summaries across different datasets are from different models owing to their availability.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2"><p>We experimented with Likert scale evaluation of full summaries in a pilot study. Such an annotation would not provide precise information about where in the summary an error appears and also resulted in lower agreement. Hence, we opted for sentence level judgements.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3"><p>We make the interface available for future human annotations that follow our typology</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4"><p>We use the model and implementation from<ref type="bibr" target="#b33">(Stanovsky et al., 2018)</ref> for OpenIE extraction.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5"><p>https://github.com/huggingface/ neuralcoref</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgements</head><p>The authors are grateful to the anonymous reviewers for their feedback, and to <rs type="person">Anjalie Field</rs>, <rs type="person">Rishabh Joshi</rs>, <rs type="person">Alissa Ostapenko</rs>, <rs type="person">Dheeraj Rajagopal</rs>, <rs type="person">Evangelia Spiliopoulou</rs>, <rs type="person">Shuly Wintner</rs>, and the members of the <rs type="institution">Tsvetshop group</rs> for their invaluable feedback and support in various stages of the project. This material is based upon work supported by the <rs type="funder">DARPA CMO</rs> under Contract No. <rs type="grantNumber">HR001120C0124</rs>, and in part by the <rs type="funder">National Science Foundation</rs> under Grants No. <rs type="grantNumber">IIS2040926</rs> and No. <rs type="grantNumber">IIS2007960</rs>. Any opinions, findings and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily state or reflect those of the United States Government or any agency thereof.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_7pUDtyX">
+					<idno type="grant-number">HR001120C0124</idno>
+				</org>
+				<org type="funding" xml:id="_CrnZFMZ">
+					<idno type="grant-number">IIS2040926</idno>
+				</org>
+				<org type="funding" xml:id="_2eCYrth">
+					<idno type="grant-number">IIS2007960</idno>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">The Berkeley FrameNet project</title>
+		<author>
+			<persName><forename type="first">Collin</forename><forename type="middle">F</forename><surname>Baker</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Charles</forename><forename type="middle">J</forename><surname>Fillmore</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">John</forename><forename type="middle">B</forename><surname>Lowe</surname></persName>
+		</author>
+		<idno type="DOI">10.3115/980845.980860</idno>
+	</analytic>
+	<monogr>
+		<title level="m">36th Annual Meeting of the Association for Computational Linguistics and 17th International Conference on Computational Linguistics</title>
+		<meeting><address><addrLine>Montreal, Quebec, Canada</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="86" to="90" />
+		</imprint>
+	</monogr>
+	<note>Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">StructSum: Summarization via structured representations</title>
+		<author>
+			<persName><forename type="first">Artidoro</forename><surname>Vidhisha Balachandran</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jay</forename><surname>Pagnoni</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dheeraj</forename><surname>Yoon Lee</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jaime</forename><surname>Rajagopal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yulia</forename><surname>Carbonell</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Tsvetkov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 16th Conference of the European Chapter</title>
+		<meeting>the 16th Conference of the European Chapter</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="2575" to="2585" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Open information extraction from the web</title>
+		<author>
+			<persName><forename type="first">Michele</forename><surname>Banko</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><forename type="middle">J</forename><surname>Cafarella</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Stephen</forename><surname>Soderland</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matt</forename><surname>Broadhead</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Oren</forename><surname>Etzioni</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 20th International Joint Conference on Artifical Intelligence, IJCAI&apos;07</title>
+		<meeting>the 20th International Joint Conference on Artifical Intelligence, IJCAI&apos;07<address><addrLine>San Francisco, CA, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Morgan Kaufmann Publishers Inc</publisher>
+			<date type="published" when="2007">2007</date>
+			<biblScope unit="page" from="2670" to="2676" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+		<title level="m" type="main">Discourse Analysis. Cambridge Textbooks in Linguistics</title>
+		<author>
+			<persName><forename type="first">Gillian</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">G</forename><surname>Yule</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1983">1983</date>
+			<publisher>Cambridge University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Faithful to the original: Fact aware neural abstractive summarization</title>
+		<author>
+			<persName><forename type="first">Ziqiang</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Furu</forename><surname>Wei</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wenjie</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sujian</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Thirty-Second AAAI Conference on Artificial Intelligence, (AAAI-18), the 30th innovative Applications of Artificial Intelligence (IAAI-18), and the 8th AAAI Symposium on Educational Advances in Artificial Intelligence (EAAI-18)</title>
+		<meeting>the Thirty-Second AAAI Conference on Artificial Intelligence, (AAAI-18), the 30th innovative Applications of Artificial Intelligence (IAAI-18), and the 8th AAAI Symposium on Educational Advances in Artificial Intelligence (EAAI-18)<address><addrLine>New Orleans, Louisiana, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>AAAI Press</publisher>
+			<date type="published" when="2018-02-02">2018. February 2-7, 2018</date>
+			<biblScope unit="page" from="4784" to="4791" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">BERT: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N19-1423</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<title level="s">Long and Short Papers</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>Minneapolis, Minnesota</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="4171" to="4186" />
+		</imprint>
+	</monogr>
+	<note>Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">FEQA: A question answering evaluation framework for faithfulness assessment in abstractive summarization</title>
+		<author>
+			<persName><forename type="first">Esin</forename><surname>Durmus</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">He</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mona</forename><surname>Diab</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.454</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="5055" to="5070" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<author>
+			<persName><forename type="first">Wojciech</forename><surname>Alexander R Fabbri</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bryan</forename><surname>Kryściński</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Caiming</forename><surname>Mccann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Richard</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dragomir</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Radev</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2007.12626</idno>
+		<title level="m">Summeval: Reevaluating summarization evaluation</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Ranking generated summaries by correctness: An interesting but challenging application for natural language inference</title>
+		<author>
+			<persName><forename type="first">Tobias</forename><surname>Falke</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Leonardo</forename><forename type="middle">F R</forename><surname>Ribeiro</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/P19-1213</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 57th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Florence, Italy</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="2214" to="2220" />
+		</imprint>
+	</monogr>
+	<note>Prasetya Ajie Utama, Ido Dagan, and Iryna Gurevych. Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Frame semantics and the nature of language</title>
+		<author>
+			<persName><forename type="first">J</forename><surname>Charles</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Fillmore</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Annals of the New York Academy of Sciences: Conference on the origin and development of language and speech</title>
+		<meeting>the Annals of the New York Academy of Sciences: Conference on the origin and development of language and speech<address><addrLine>New York</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="1976">1976</date>
+			<biblScope unit="volume">280</biblScope>
+			<biblScope unit="page" from="20" to="32" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Measuring nominal scale agreement among many raters</title>
+		<author>
+			<persName><forename type="first">L</forename><surname>Joseph</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Fleiss</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological bulletin</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page">378</biblScope>
+			<date type="published" when="1971">1971</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Bottom-up abstractive summarization</title>
+		<author>
+			<persName><forename type="first">Sebastian</forename><surname>Gehrmann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yuntian</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alexander</forename><surname>Rush</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D18-1443</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2018 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Brussels, Belgium</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="4098" to="4109" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Assessing the factual accuracy of generated text</title>
+		<author>
+			<persName><forename type="first">Ben</forename><surname>Goodrich</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vinay</forename><surname>Rao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mohammad</forename><surname>Saleh</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3292500.3330955</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery &amp; Data Mining</title>
+		<meeting>the 25th ACM SIGKDD International Conference on Knowledge Discovery &amp; Data Mining<address><addrLine>Anchorage, AK, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2019-08-04">2019. 2019. August 4-8, 2019</date>
+			<biblScope unit="page" from="166" to="175" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Evaluating factuality in generation with dependency-level entailment</title>
+		<author>
+			<persName><forename type="first">Tanya</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Greg</forename><surname>Durrett</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.findings-emnlp.322</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Findings of the Association for Computational Linguistics: EMNLP 2020</title>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="3592" to="3603" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Re-evaluating automatic summarization with BLEU and 192 shades of ROUGE</title>
+		<author>
+			<persName><forename type="first">Yvette</forename><surname>Graham</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D15-1013</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2015 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2015 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Lisbon, Portugal</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="128" to="137" />
+		</imprint>
+	</monogr>
+	<note>Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Teaching machines to read and comprehend</title>
+		<author>
+			<persName><forename type="first">Karl</forename><surname>Moritz Hermann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tomás</forename><surname>Kociský</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Edward</forename><surname>Grefenstette</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lasse</forename><surname>Espeholt</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Will</forename><surname>Kay</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mustafa</forename><surname>Suleyman</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Phil</forename><surname>Blunsom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Advances in Neural Information Processing Systems 28: Annual Conference on Neural Information Processing Systems</title>
+		<meeting>the Advances in Neural Information Processing Systems 28: Annual Conference on Neural Information Processing Systems<address><addrLine>Montreal, Quebec, Canada</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015-12-07">2015. 2015. December 7-12, 2015</date>
+			<biblScope unit="page" from="1693" to="1701" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Neural text summarization: A critical evaluation</title>
+		<author>
+			<persName><forename type="first">Wojciech</forename><surname>Kryscinski</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nitish</forename><surname>Shirish Keskar</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bryan</forename><surname>Mc-Cann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Caiming</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Richard</forename><surname>Socher</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D19-1051</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)</title>
+		<meeting>the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)<address><addrLine>Hong Kong, China</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="540" to="551" />
+		</imprint>
+	</monogr>
+	<note>Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Evaluating the factual consistency of abstractive text summarization</title>
+		<author>
+			<persName><forename type="first">Wojciech</forename><surname>Kryscinski</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bryan</forename><surname>Mccann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Caiming</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Richard</forename><surname>Socher</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.emnlp-main.750</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</title>
+		<meeting>the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="9332" to="9346" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">METEOR: An automatic metric for MT evaluation with high levels of correlation with human judgments</title>
+		<author>
+			<persName><forename type="first">Alon</forename><surname>Lavie</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Abhaya</forename><surname>Agarwal</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Second Workshop on Statistical Machine Translation</title>
+		<meeting>the Second Workshop on Statistical Machine Translation<address><addrLine>Prague</addrLine></address></meeting>
+		<imprint>
+			<publisher>Czech Republic. Association for Computational Linguistics</publisher>
+			<date type="published" when="2007">2007</date>
+			<biblScope unit="page" from="228" to="231" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">BART: Denoising sequence-to-sequence pretraining for natural language generation, translation, and comprehension</title>
+		<author>
+			<persName><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yinhan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Naman</forename><surname>Goyal ; Abdelrahman Mohamed</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Omer</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Veselin</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.703</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">Marjan Ghazvininejad,. 2020</date>
+			<biblScope unit="page" from="7871" to="7880" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">ROUGE: A package for automatic evaluation of summaries</title>
+		<author>
+			<persName><forename type="first">Chin-Yew</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Text Summarization Branches Out</title>
+		<meeting><address><addrLine>Barcelona, Spain</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2004">2004</date>
+			<biblScope unit="page" from="74" to="81" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Text summarization with pretrained encoders</title>
+		<author>
+			<persName><forename type="first">Yang</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mirella</forename><surname>Lapata</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D19-1387</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)</title>
+		<meeting>the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)<address><addrLine>Hong Kong, China</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="3730" to="3740" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title level="m" type="main">Rhetorical structure theory: Toward a functional theory of text organization</title>
+		<author>
+			<persName><forename type="first">C</forename><surname>William</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sandra</forename><forename type="middle">A</forename><surname>Mann</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Thompson</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1988">1988</date>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="243" to="281" />
+		</imprint>
+	</monogr>
+	<note>Text-interdisciplinary Journal for the Study of Discourse</note>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">On faithfulness and factuality in abstractive summarization</title>
+		<author>
+			<persName><forename type="first">Joshua</forename><surname>Maynez</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shashi</forename><surname>Narayan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bernd</forename><surname>Bohnet</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ryan</forename><surname>Mcdonald</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.173</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="1906" to="1919" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Don&apos;t give me the details, just the summary! topic-aware convolutional neural networks for extreme summarization</title>
+		<author>
+			<persName><forename type="first">Shashi</forename><surname>Narayan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shay</forename><forename type="middle">B</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mirella</forename><surname>Lapata</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D18-1206</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2018 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Brussels, Belgium</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="1797" to="1807" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">The Proposition Bank: An annotated corpus of semantic roles</title>
+		<author>
+			<persName><forename type="first">Martha</forename><surname>Palmer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Daniel</forename><surname>Gildea</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul</forename><surname>Kingsbury</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/0891201053630264</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="71" to="106" />
+			<date type="published" when="2005">2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Bleu: a method for automatic evaluation of machine translation</title>
+		<author>
+			<persName><forename type="first">Kishore</forename><surname>Papineni</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Salim</forename><surname>Roukos</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Todd</forename><surname>Ward</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wei-Jing</forename><surname>Zhu</surname></persName>
+		</author>
+		<idno type="DOI">10.3115/1073083.1073135</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 40th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 40th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Philadelphia, Pennsylvania, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2002">2002</date>
+			<biblScope unit="page" from="311" to="318" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Sentence-BERT: Sentence embeddings using Siamese BERTnetworks</title>
+		<author>
+			<persName><forename type="first">Nils</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Iryna</forename><surname>Gurevych</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D19-1410</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)</title>
+		<meeting>the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)<address><addrLine>Hong Kong, China</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="3982" to="3992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Leveraging pre-trained checkpoints for sequence generation tasks</title>
+		<author>
+			<persName><forename type="first">Sascha</forename><surname>Rothe</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shashi</forename><surname>Narayan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aliaksei</forename><surname>Severyn</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/tacl_a_00313</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Transactions of the Association for Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="264" to="280" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">A neural attention model for abstractive sentence summarization</title>
+		<author>
+			<persName><forename type="first">Alexander</forename><forename type="middle">M</forename><surname>Rush</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sumit</forename><surname>Chopra</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jason</forename><surname>Weston</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D15-1044</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2015 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2015 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Lisbon, Portugal</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="379" to="389" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+		<title level="m" type="main">A Factuality Profiler for Eventualities in Text</title>
+		<author>
+			<persName><forename type="first">Roser</forename><surname>Sauri</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2008">2008</date>
+			<pubPlace>USA</pubPlace>
+		</imprint>
+		<respStmt>
+			<orgName>Brandeis University</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">Ph.D. thesis</note>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Are you sure that this happened? assessing the factuality degree of events in text</title>
+		<author>
+			<persName><forename type="first">Roser</forename><surname>Saurí</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">James</forename><surname>Pustejovsky</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/COLI_a_00096</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="261" to="299" />
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Get to the point: Summarization with pointergenerator networks</title>
+		<author>
+			<persName><forename type="first">Abigail</forename><surname>See</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Christopher</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/P17-1099</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 55th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Vancouver, Canada</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="1073" to="1083" />
+		</imprint>
+	</monogr>
+	<note>Long Papers)</note>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Supervised open information extraction</title>
+		<author>
+			<persName><forename type="first">Gabriel</forename><surname>Stanovsky</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Julian</forename><surname>Michael</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ido</forename><surname>Dagan</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N18-1081</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<title level="s">Long Papers</title>
+		<meeting>the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>New Orleans, Louisiana</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="885" to="895" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Attention is all you need</title>
+		<author>
+			<persName><forename type="first">Ashish</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Niki</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jakob</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Llion</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aidan</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lukasz</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Illia</forename><surname>Polosukhin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Advances in Neural Information Processing Systems 30: Annual Conference on Neural Information Processing Systems</title>
+		<meeting>the Advances in Neural Information Processing Systems 30: Annual Conference on Neural Information Processing Systems<address><addrLine>Long Beach, CA, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2017-09">2017. 2017. December 4-9, 2017</date>
+			<biblScope unit="page" from="5998" to="6008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Asking and answering questions to evaluate the factual consistency of summaries</title>
+		<author>
+			<persName><forename type="first">Alex</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.450</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="5008" to="5020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Bertscore: Evaluating text generation with BERT</title>
+		<author>
+			<persName><forename type="first">Tianyi</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Varsha</forename><surname>Kishore</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Felix</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kilian</forename><forename type="middle">Q</forename><surname>Weinberger</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yoav</forename><surname>Artzi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 8th International Conference on Learning Representations</title>
+		<meeting>the 8th International Conference on Learning Representations<address><addrLine>Addis Ababa, Ethiopia</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020-04-26">2020. April 26-30, 2020</date>
+			<biblScope unit="volume">2020</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

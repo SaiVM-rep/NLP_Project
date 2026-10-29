@@ -1,0 +1,46 @@
+# Model profiles. PRD §8.1 / §13.
+#
+# effective_context is a CONFIGURABLE EXPERIMENTAL BUDGET, not a claim about the
+# provider's real limit. The sim_* profiles exist so Route B triggers at all
+# (PRD §8.1) — without them E1..E4 have nothing to compare.
+#
+# Every value tagged VERIFY is unconfirmed. See CLAUDE.md §8.
+
+profiles:
+  gemini_full:
+    provider: gemini
+    # CONFIRMED 2026-10-28 by live call on the project key.
+    #   gemini-2.5-flash  -> 404, retired for new users (the PRD's value)
+    #   gemini-3.8/3.7, gemini-flash-latest -> 503 UNAVAILABLE under load
+    #   gemini-3.6-flash  -> 200, this is the pin
+    # Pinned to an AVAILABLE model, not the newest: NFR-2 needs every arm of an
+    # experiment to run on one model, and a 503-prone model breaks long runs.
+    model: gemini-3.6-flash
+    effective_context: 1048576       # CONFIRMED: inputTokenLimit from ListModels
+    limits: { rpm: 10, tpm: 250000, rpd: 250 }   # VERIFY against provider docs
+
+  sim_8k:
+    provider: gemini
+    model: gemini-3.6-flash
+    effective_context: 8000
+    limits: { rpm: 10, tpm: 250000, rpd: 250 }
+
+  sim_16k:
+    provider: gemini
+    model: gemini-3.6-flash
+    effective_context: 16000
+    limits: { rpm: 10, tpm: 250000, rpd: 250 }
+
+  sim_32k:
+    provider: gemini
+    model: gemini-3.6-flash
+    effective_context: 32000
+    limits: { rpm: 10, tpm: 250000, rpd: 250 }
+
+  qwen3_8b_local:
+    provider: ollama
+    model: qwen3:8b                  # VERIFY tag and quantisation
+    # PRD assumed 32000 on a 12 GB card. This machine has 8 GB (DEVIATION-1): 32k of
+    # KV cache (~4.5 GB) + 5.2 GB weights does not fit. Also sent to Ollama as num_ctx.
+    effective_context: 16384
+    limits: { rpm: 600, tpm: 10000000, rpd: 100000 }

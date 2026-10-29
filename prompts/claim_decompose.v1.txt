@@ -1,0 +1,8 @@
+Split the sentence into the smallest independent factual claims.
+Each claim must make sense on its own (replace pronouns with the noun they refer to).
+Do not add information. Return JSON: {"claims": ["...", "..."]}
+
+SENTENCE:
+{sentence}
+CONTEXT (previous sentence, for pronoun resolution only):
+{context}

@@ -1,0 +1,75 @@
+# PRD §14. `docker compose up -d db grobid` is enough for P1.
+# ollama runs on the host here (already installed, 0.40.11) rather than in a
+# container: the containerised route needs the NVIDIA Container Toolkit, and on
+# an 8 GB laptop GPU (CLAUDE.md DEVIATION-1) host-native avoids a second VRAM
+# allocator. Uncomment the ollama service if you want it containerised.
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  grobid:
+    # VERIFY tag before relying on parse output; a version bump changes section
+    # extraction and will break the golden tests in tests/fixtures.
+    # DECISION-10: lightweight CRF-only image. The full grobid/grobid (~6 GB, DL header and
+    # citation models) was impractical on this network and the 7.5 GiB Docker VM. Body
+    # structure is the same model in both. Freeze one image before P8; never mix.
+    image: lfoppiano/grobid:0.8.1
+    ports:
+      - "8070:8070"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8070/api/isalive || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  # ollama:
+  #   image: ollama/ollama
+  #   ports: ["11434:11434"]
+  #   volumes: [ollama:/root/.ollama]
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
+
+  api:
+    build: .
+    command: uvicorn app.api.main:app --host 0.0.0.0 --port 8000
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+      grobid:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    profiles: ["service"]
+
+  worker:
+    build: .
+    command: python -m app.worker
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: ["service"]
+
+volumes:
+  dbdata: {}
+  # ollama: {}

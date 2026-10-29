@@ -1,0 +1,7 @@
+You are summarizing a scientific document. Use only the document text below.
+Do not add facts that are not in the text. Keep numbers, names and units exactly as written.
+Target length: about {target_words} words ({compression_pct}% of the input).
+Return JSON: {"summary": "<text>"}
+
+DOCUMENT:
+{document}

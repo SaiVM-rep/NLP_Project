@@ -1,0 +1,130 @@
+[project]
+name = "semantic-compression"
+version = "0.1.0"
+description = "Transformer-driven semantic text compression and key-point extraction from long-form documents"
+requires-python = ">=3.11,<3.12"
+license = { text = "MIT" }
+
+# P0 core only. Heavy ML deps live in extras so a clean checkout installs fast
+# and CI (no network, no GPU) never pulls torch.
+dependencies = [
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "pyyaml>=6.0",
+    "httpx>=0.27",
+    "python-dotenv>=1.0",
+    # verify/evidence.py imports it at module level; light, CPU-only.
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+ingest = [
+    "trafilatura>=1.8",
+    "lxml>=5.2",
+    "pysbd>=0.3.4",
+]
+ml = [
+    "torch>=2.3",
+    "transformers>=4.42",
+    "sentence-transformers>=6.0",
+    "networkx>=3.3",
+    "scikit-learn>=1.5",
+    "scipy>=1.13",
+]
+eval = [
+    "datasets>=2.20",
+    "rouge-score>=0.1.2",
+    "bert-score>=0.3.13",
+    "pandas>=2.2",
+    "matplotlib>=3.9",
+]
+service = [
+    "fastapi>=0.111",
+    "uvicorn[standard]>=0.30",
+    "sse-starlette>=2.1",
+    "psycopg[binary]>=3.2",
+]
+ui = ["gradio>=4.38"]
+llm = ["google-genai>=0.3"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "hypothesis>=6.100",
+    "ruff>=0.5",
+    "black>=24.4",
+    "mypy>=1.10",
+    "pre-commit>=3.7",
+    "types-pyyaml>=6.0.12.20260906",
+]
+
+# PyPI's Windows torch wheel is CPU-only. CUDA build from the PyTorch index;
+# `explicit` keeps every other package on PyPI. CLAUDE.md DECISION-12.
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128", marker = "sys_platform == 'win32' or sys_platform == 'linux'" }]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/app"]
+
+# ---------------------------------------------------------------- tooling ---
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "eval", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+# UP042 wants StrEnum. PRD §11.1 specifies `class X(str, Enum)` verbatim and
+# §16 makes schemas.py a PR-gated contract file, so it stays as specified.
+# The two forms differ in str() output; not worth a silent behaviour change.
+ignore = ["UP042"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "eval"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["app", "eval"]
+mypy_path = "src"
+strict = true
+warn_unreachable = true
+# Third-party libs without stubs; narrow, not blanket.
+[[tool.mypy.overrides]]
+module = ["trafilatura.*", "pysbd.*", "lxml.*", "networkx.*", "sentence_transformers.*", "google.genai.*", "torch.*", "transformers.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "error",
+    # pysbd 0.3.4 has '\s' in a non-raw string; on a fresh venv (no .pyc yet) the
+    # compile-time warning would become an error at import. Category left open:
+    # DeprecationWarning on 3.11, SyntaxWarning from 3.12.
+    "ignore:invalid escape sequence",
+    # transformers' modeling_deberta_v2 calls torch.jit.script at import; torch 2.11 deprecates it.
+    "ignore:`torch.jit.script` is deprecated:DeprecationWarning",
+]
+addopts = "-q --strict-markers"
+markers = [
+    "integration: needs docker services (db/grobid/ollama)",
+    "gpu: needs a CUDA device",
+    "network: makes real network calls",
+]

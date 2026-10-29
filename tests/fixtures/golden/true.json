@@ -1,0 +1,30 @@
+{
+  "title": "TRUE: Re-evaluating Factual Consistency Evaluation",
+  "structure_ok": true,
+  "headings": [
+    "Abstract",
+    "Introduction",
+    "Standardizing Factual Consistency",
+    "Definitions and Terminology",
+    "Standardization Process",
+    "Abstractive Summarization",
+    "Dialogue Generation",
+    "Fact Verification",
+    "Paraphrase Detection",
+    "PAWS",
+    "Meta-Evaluation",
+    "Evaluation Metrics",
+    "N-Gram Based Metrics",
+    "Model-Based Metrics",
+    "Natural Language Inference Metrics",
+    "Results",
+    "Analysis",
+    "Model",
+    "Related Work",
+    "Discussion and Future Work",
+    "Conclusions",
+    "A Additional Data Statistics",
+    "B Implementation Details",
+    "C ROC Curves"
+  ]
+}
