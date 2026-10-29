@@ -147,6 +147,81 @@ async def test_cache_hit_does_not_consume_rate_limit(tmp_path):
     assert clock.slept == [], "a cache hit waited on the rate limiter"
 
 
+class SpyBucket(TokenBucket):
+    def __init__(self, capacity: float) -> None:
+        clock = FakeClock()
+        super().__init__(capacity / 60, capacity, clock=clock, sleep=clock.sleep)
+        self.costs: list[float] = []
+
+    async def acquire(self, cost: float = 1.0) -> None:
+        self.costs.append(cost)
+        await super().acquire(cost)
+
+
+async def test_tpm_bucket_is_charged_the_prompt_token_estimate(tmp_path):
+    """FR-3.3: TPM, not just RPM. Gemini's TPM counts input tokens."""
+    tpm = SpyBucket(250_000)
+    c = _client(tmp_path, FakeProvider(), tpm_bucket=tpm)
+    await c.generate("x" * 4000, purpose="p")  # chars/4 -> 1000 tokens
+    assert tpm.costs == [1000]
+
+
+async def test_tpm_cost_is_clamped_to_bucket_capacity(tmp_path):
+    """A prompt bigger than one minute's TPM can still go: it waits for a full bucket
+    instead of raising. The provider decides if it is too long."""
+    tpm = SpyBucket(100)
+    c = _client(tmp_path, FakeProvider(), tpm_bucket=tpm)
+    await c.generate("x" * 4000, purpose="p")
+    assert tpm.costs == [100]
+
+
+async def test_cache_hit_does_not_consume_tpm(tmp_path):
+    tpm = SpyBucket(250_000)
+    c = _client(tmp_path, FakeProvider(), tpm_bucket=tpm)
+    await c.generate("doc", purpose="p")
+    await c.generate("doc", purpose="p")
+    assert len(tpm.costs) == 1
+
+
+async def test_every_retry_pays_tpm_again(tmp_path):
+    """A retried request is a new request against the quota (NFR-3)."""
+    tpm = SpyBucket(250_000)
+    clock = FakeClock()
+    c = _client(tmp_path, FakeProvider(fail_times=2), tpm_bucket=tpm, sleep=clock.sleep)
+    await c.generate("x" * 400, purpose="p")
+    assert tpm.costs == [100, 100, 100]
+
+
+async def test_reply_the_caller_rejects_is_not_cached(tmp_path):
+    """A wrong-shape JSON reply was cached, so every retry and rerun replayed it
+    (live Route B run, 2026-10-30)."""
+    p = FakeProvider(text="bad")
+    c = _client(tmp_path, p)
+    await c.generate("doc", purpose="p", accept=lambda t: t != "bad")
+    await c.generate("doc", purpose="p", accept=lambda t: t != "bad")
+    assert len(p.calls) == 2
+
+
+async def test_cached_reply_the_caller_rejects_is_refetched(tmp_path):
+    """Heals entries poisoned before `accept` existed."""
+    p = FakeProvider(text="bad")
+    c = _client(tmp_path, p)
+    await c.generate("doc", purpose="p")  # cached without a check
+    p.text = "good"
+    res = await c.generate("doc", purpose="p", accept=lambda t: t != "bad")
+    assert res.text == "good" and not res.cache_hit and len(p.calls) == 2
+    again = await c.generate("doc", purpose="p", accept=lambda t: t != "bad")
+    assert again.cache_hit and again.text == "good"  # the good reply replaced it
+
+
+async def test_accepted_reply_is_cached_as_usual(tmp_path):
+    p = FakeProvider(text="good")
+    c = _client(tmp_path, p)
+    await c.generate("doc", purpose="p", accept=lambda t: True)
+    res = await c.generate("doc", purpose="p", accept=lambda t: True)
+    assert res.cache_hit and len(p.calls) == 1
+
+
 # ---------------------------------------------------------------- retry ---
 
 

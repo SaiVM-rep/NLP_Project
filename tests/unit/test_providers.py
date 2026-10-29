@@ -214,13 +214,26 @@ async def test_ollama_requests_json_format_when_schema_given():
         seen["body"] = json.loads(request.content)
         return httpx.Response(200, json=OLLAMA_OK)
 
+    schema = {
+        "type": "OBJECT",
+        "properties": {"summary": {"type": "STRING"}},
+        "required": ["summary"],
+    }
     await _ollama(handler).generate(
         "doc",
         model="m",
-        params={"temperature": 0.2, "top_p": 0.9, "json_schema": {"type": "object"}},
+        params={"temperature": 0.2, "top_p": 0.9, "json_schema": schema},
         seed=None,
     )
-    assert seen["body"]["format"] == "json"
+    # The schema itself, not just "json": generic JSON mode let qwen3 swap key and value,
+    # {"<summary text>": "#summary"} (live Route B run, 2026-10-30). Ollama wants
+    # standard JSON Schema type names; ours are Gemini's uppercase ones.
+    assert seen["body"]["format"] == {
+        "type": "object",
+        "properties": {"summary": {"type": "string"}},
+        "required": ["summary"],
+    }
+    assert schema["type"] == "OBJECT"  # caller's dict untouched
 
 
 async def test_ollama_unloads_the_model_when_asked():
@@ -288,3 +301,14 @@ async def test_ollama_sends_think_flag_only_when_set():
     await _ollama(handler).generate("doc", model="m", params=PARAMS, seed=None)
     assert bodies[0]["think"] is False
     assert "think" not in bodies[1]  # server default untouched
+
+
+async def test_providers_close_their_http_client():
+    """An open AsyncClient leaks an asyncio transport (ResourceWarning at teardown)."""
+
+    def handler(request):
+        return httpx.Response(200, json=OLLAMA_OK)
+
+    for p in (_ollama(handler), _gemini(handler)):
+        await p.aclose()
+        assert p._client.is_closed

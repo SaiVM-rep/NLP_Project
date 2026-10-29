@@ -1,0 +1,6 @@
+Summarize this excerpt (section: "{heading}") in about {target_words} words.
+Use only the excerpt. Keep numbers, names and units exactly. Do not speculate.
+Return JSON: {"summary": "<text>"}
+
+EXCERPT:
+{chunk}

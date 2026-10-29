@@ -16,6 +16,10 @@ TEXT = "Intro\n\nSome body text here."
 
 class FakeProvider:
     name = "gemini"
+    closed = False
+
+    async def aclose(self) -> None:
+        self.closed = True
 
     async def generate(self, prompt, *, model, params, seed):  # type: ignore[no-untyped-def]
         return LLMResult(
@@ -43,12 +47,14 @@ def test_summarize_prints_summary_and_writes_json(
     pdf = tmp_path / "p.pdf"
     pdf.write_bytes(b"%PDF")
     monkeypatch.setattr(cli, "ingest_pdf", _fake_ingest)
-    monkeypatch.setattr(cli, "make_provider", lambda profile: FakeProvider())
+    provider = FakeProvider()
+    monkeypatch.setattr(cli, "make_provider", lambda profile: provider)
     monkeypatch.setenv("LLM_CACHE_DIR", str(tmp_path / "cache"))
 
     code = cli.main(["summarize", str(pdf), "--out", str(tmp_path / "out")])
 
     assert code == 0
+    assert provider.closed  # its HTTP client must not leak
     assert "A summary." in capsys.readouterr().out
     saved = json.loads((tmp_path / "out" / "abc.json").read_text(encoding="utf-8"))
     assert saved["summary"] == "A summary." and saved["route"] == "A"
@@ -103,3 +109,25 @@ def test_ingest_failure_is_logged_as_json_with_its_source(
     errors = [r for r in records if r["level"] == "ERROR"]
     assert errors and errors[0]["source"] == str(bad)
     assert "not a PDF" in errors[0]["msg"]
+
+
+def test_summary_failure_log_carries_the_doc_id(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """NFR-5: doc_id on every failure. It was null: logged after the doc context ended."""
+
+    class BadJson(FakeProvider):
+        async def generate(self, prompt, *, model, params, seed):  # type: ignore[no-untyped-def]
+            return LLMResult(text="nope", tokens_in=1, tokens_out=1, provider="gemini", model=model)
+
+    pdf = tmp_path / "p.pdf"
+    pdf.write_bytes(b"%PDF")
+    monkeypatch.setattr(cli, "ingest_pdf", _fake_ingest)
+    monkeypatch.setattr(cli, "make_provider", lambda profile: BadJson())
+    monkeypatch.setenv("LLM_CACHE_DIR", str(tmp_path / "cache"))
+
+    assert cli.main(["summarize", str(pdf), "--out", str(tmp_path / "out")]) == 1
+    errors = [
+        json.loads(line) for line in capsys.readouterr().err.splitlines() if line.startswith("{")
+    ]
+    assert errors and errors[-1]["doc_id"] == "abc"

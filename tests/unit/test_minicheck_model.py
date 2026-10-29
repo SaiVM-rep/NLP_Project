@@ -111,3 +111,26 @@ def test_close_blocks_reuse() -> None:
         mc(CHUNKS[:1], CLAIMS[:1])
     with pytest.raises(RuntimeError, match="closed"):
         mc(CHUNKS[:1], CLAIMS[:1])
+
+
+def test_loading_never_triggers_hub_safetensors_conversion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The checkpoint is .bin-only: transformers then starts a background thread that asks
+    huggingface.co for (and can request) a safetensors conversion PR, ignoring
+    local_files_only. Found by the FR-5.6 network-disabled test, 2026-10-29."""
+    import os
+
+    seen: dict[str, str | None] = {}
+
+    def fake_model(*a: Any, **kw: Any) -> Any:
+        seen["env"] = os.environ.get("DISABLE_SAFETENSORS_CONVERSION")
+        return tiny_model()
+
+    monkeypatch.delenv("DISABLE_SAFETENSORS_CONVERSION", raising=False)
+    monkeypatch.setattr(
+        transformers.AutoTokenizer, "from_pretrained", lambda *a, **k: StubTokenizer()
+    )
+    monkeypatch.setattr(transformers.AutoModelForSeq2SeqLM, "from_pretrained", fake_model)
+    MiniCheckT5.from_pretrained("x", device="cpu", local_files_only=True)
+    assert seen["env"] in ("1", "true")

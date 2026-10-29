@@ -14,6 +14,18 @@ import httpx
 from app.llm.base import LLMResult, ProviderError, RateLimited, TransientError
 
 
+def _json_schema(node: Any) -> Any:
+    """Gemini-style schema (type "OBJECT"/"STRING") -> standard JSON Schema for Ollama."""
+    if isinstance(node, dict):
+        return {
+            k: (v.lower() if k == "type" and isinstance(v, str) else _json_schema(v))
+            for k, v in node.items()
+        }
+    if isinstance(node, list):
+        return [_json_schema(v) for v in node]
+    return node
+
+
 def _raise_for_status(response: httpx.Response) -> None:
     if response.status_code == 429:
         raise RateLimited(f"ollama 429: {response.text[:200]}")
@@ -64,7 +76,9 @@ class OllamaProvider:
             "options": options,
         }
         if params.get("json_schema"):
-            body["format"] = "json"
+            # Constrain decoding to the schema itself. Plain "json" mode let qwen3 return
+            # valid JSON of the wrong shape ({"<summary text>": "#summary"}).
+            body["format"] = _json_schema(params["json_schema"])
         if self.keep_alive is not None:
             body["keep_alive"] = self.keep_alive
         if params.get("think") is not None:
@@ -86,6 +100,9 @@ class OllamaProvider:
             model=model,
             cache_hit=False,
         )
+
+    async def aclose(self) -> None:
+        await self._client.aclose()
 
     async def unload(self, model: str) -> None:
         """Evict the model from VRAM. Required before loading the verifiers."""

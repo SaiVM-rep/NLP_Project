@@ -54,7 +54,10 @@ async def test_returns_summary_with_routing_metadata(tmp_path: Path) -> None:
     res = await _run(p, tmp_path)
     assert res.summary == "Short."
     assert res.route is Route.A and res.tokens > 0 and res.tau == 838860
-    assert res.prompt == "single_pass.v1.txt" and len(res.prompt_hash) == 64
+    # FR-3.5: template hash per run, same sha256 as manifest.prompt_hashes
+    assert list(res.prompt_hashes) == ["single_pass.v1.txt"]
+    assert len(res.prompt_hashes["single_pass.v1.txt"]) == 64
+    assert res.nodes == [] and res.chunks == []
 
 
 async def test_prompt_carries_document_target_length_and_json_mode(tmp_path: Path) -> None:
@@ -83,6 +86,25 @@ async def test_second_invalid_reply_is_an_error(tmp_path: Path) -> None:
         await _run(ScriptedProvider("nope", '{"wrong": 1}'), tmp_path)
 
 
-async def test_route_b_documents_are_refused_until_p4(tmp_path: Path) -> None:
-    with pytest.raises(SummaryError, match="Route B"):
-        await _run(ScriptedProvider(), tmp_path, tau_override=10)
+async def test_route_b_documents_go_to_map_reduce(tmp_path: Path) -> None:
+    from app.ingest.spans import RawSection, build_document
+
+    cfg = load_config(ROOT / "configs")
+    p = ScriptedProvider('{"summary": "chunk summary"}')
+    client = LLMClient(p, cfg.active_profile, DiskCache(tmp_path))
+    doc = build_document(
+        "d1", "pdf", "T", [RawSection("Intro", 1, [" ".join(["word"] * 200) + "."])]
+    )
+    res = await summarize(doc, client, cfg, prompt_dir=ROOT / "prompts", tau_override=10)
+    assert res.route is Route.B and res.summary == "chunk summary"
+    assert len(res.nodes) == 1 and len(res.chunks) == 1  # 200 words: one chunk, no merge
+    assert set(res.prompt_hashes) == {"chunk_summary.v1.txt", "merge.v1.txt"}
+
+
+async def test_malformed_reply_is_not_replayed_from_cache(tmp_path: Path) -> None:
+    """Live Route B: a wrong-shape reply was cached, and every rerun failed on it."""
+    with pytest.raises(SummaryError):
+        await _run(ScriptedProvider('{"x": "summary"}', '{"x": "summary"}'), tmp_path)
+    p = ScriptedProvider('{"summary": "fresh"}')
+    assert (await _run(p, tmp_path)).summary == "fresh"
+    assert len(p.prompts) == 1

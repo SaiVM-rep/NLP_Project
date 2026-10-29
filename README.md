@@ -28,22 +28,24 @@ Team 9 — Sai Vishod Muralidaran, Raahul S Nayar, Rudhayesh Murali, Samay Cheta
 
 ## 1. What works today
 
-The project is built in phases (P0 → P9, defined in `PRD.md`). Status as of 2026-10-29:
+The project is built in phases (P0 → P9, defined in `PRD.md`). Status as of 2026-10-30:
 
 | Phase | What it is | Status |
 | --- | --- | --- |
 | **P0 Foundations** | Config, LLM client, cache, rate limiter, logging, Docker services | ✅ Done |
-| **P1 Ingestion** | Turn a PDF into clean, structured text | 🟡 PDFs work. Web URLs not yet |
+| **P1 Ingestion** | Turn a PDF or web article into clean, structured text | ✅ Done (20 PDFs, 10 URLs) |
 | **P2 Baseline** | One-shot summary from the command line | ✅ Works on real PDFs |
-| P3 Evaluation | Check every summary claim against the source | ⬜ Not started |
-| P4 Route B | Summarize documents too long for one prompt | ⬜ Not started |
+| **P3 Evaluation** | Check every summary claim against the source | 🟡 Done except AggreFact threshold tuning (needs a Hugging Face login) |
+| **P4 Route B** | Summarize documents too long for one prompt | 🟡 Chunking + map-reduce built and unit-tested; first full live run and per-level verification still to do |
 | P5 Key points | Extract ranked key points linked to their source sentence | ⬜ Not started |
 | P6 Service | HTTP API + job queue + database | ⬜ Not started |
 | P7 UI | Two-pane web view with highlighting | ⬜ Not started |
 | P8–P9 | Experiments E1–E5 and the final report | ⬜ Not started |
 
-**So right now you can:** feed in a research-paper PDF and get an abstractive summary, using
-either Google Gemini (cloud) or Qwen3-8B (runs locally on your GPU).
+**So right now you can:** feed in a research-paper PDF or a web-article URL and get an
+abstractive summary, using either Google Gemini (cloud) or Qwen3-8B (runs locally on your GPU).
+Long documents are split into section-aware chunks and merged (Route B). Summary claims can be
+checked against the source with two local verifiers (DeBERTa-v3 NLI and MiniCheck).
 
 ---
 
@@ -56,8 +58,12 @@ You need: **Windows**, **Docker Desktop**, **Ollama**, and **uv** (a fast Python
 ```powershell
 cd C:\NLP_Project
 
-# 1. Install Python 3.11 + all dependencies into .venv
-uv sync --group dev --extra ingest
+# 1. Install Python 3.11 + all dependencies into .venv (torch comes with CUDA 12.8)
+uv sync --group dev --extra ingest --extra ml --extra eval
+
+#    Download the pinned verifier/metric models once (~6 GB). Verification itself never
+#    goes online after this.
+make models
 
 # 2. Secrets: copy the template and add your Gemini key (only needed for Gemini)
 copy .env.example .env
@@ -202,7 +208,8 @@ and compares the count to a threshold **τ (tau)**:
 
 - **Route A:** the document fits in one prompt, so summarize it in one go.
 - **Route B:** it doesn't fit, so split it into chunks, summarize each, then merge the summaries
-  (**map-reduce**). *Built in P4. Until then Route B documents are refused with a clear error.*
+  (**map-reduce**). Chunks follow section boundaries; chunk summaries are merged in groups
+  of 4 until one remains, and every node of that merge tree is kept.
 
 `τ = 80% × the model's effective context`. The remaining 20% is left for the model's answer.
 
@@ -312,20 +319,26 @@ NLP_Project/
 │   ├── default.yaml          ← run settings (tau, chunk size, temperature, seed, …)
 │   └── models.yaml           ← model profiles (gemini_full, sim_*, qwen3_8b_local)
 ├── prompts/
-│   └── single_pass.v1.txt    ← frozen prompt template
+│   ├── single_pass.v1.txt    ← Route A prompt (frozen)
+│   ├── chunk_summary.v1.txt  ← Route B: one chunk
+│   ├── merge.v1.txt          ← Route B: merge partial summaries
+│   └── claim_decompose.v2.txt← verification: summary sentence → atomic claims
 ├── src/app/
 │   ├── cli.py                ← `python -m app.cli summarize …`
 │   ├── core/                 ← config, schemas (Document/Span/Section), logging, run manifest
 │   ├── ingest/               ← grobid.py, tei.py, spans.py
-│   ├── route/                ← tokens.py, router.py
-│   ├── summarize/            ← single_pass.py (map-reduce comes in P4)
+│   ├── route/                ← tokens.py, router.py, chunker.py (section-aware + uniform B2)
+│   ├── summarize/            ← single_pass.py (Route A), map_reduce.py (Route B), common.py
 │   ├── llm/                  ← client, cache, limiter, providers/{gemini,ollama}.py
-│   ├── keypoints/  verify/   ← P5 / P3 (empty for now)
+│   ├── verify/               ← decompose, evidence, embedder, nli (DeBERTa), minicheck, pipeline
+│   ├── keypoints/            ← P5 (empty for now)
 │   └── api/  worker/  db/    ← P6 (empty for now)
 ├── scripts/
 │   ├── doctor.py             ← "is this machine ready?" check
 │   └── smoke_p0.py           ← live Gemini + Ollama call check
+├── eval/                     ← dataset loaders (data.py), metrics, BERTScore, perturbations
 ├── tests/unit/               ← fast tests: no network, no GPU, no Docker
+├── tests/integration/        ← live GROBID / GPU / Ollama tests
 ├── results/summaries/        ← your summary JSON files land here
 ├── docker-compose.yml        ← GROBID + Postgres (+ api/worker later)
 ├── Dockerfile                ← image for the future API/worker
@@ -344,7 +357,9 @@ NLP_Project/
   | `GEMINI_API_KEY` | Your Google AI Studio key |
   | `GROBID_URL` | Default `http://localhost:8070` |
   | `OLLAMA_URL` | Default `http://localhost:11434` |
-  | `LLM_CACHE_DIR`, `HF_HOME` | Caches kept **outside OneDrive** so sync doesn't lock files |
+  | `LLM_CACHE_DIR`, `HF_HOME` | LLM response cache and model weights, kept outside the repo |
+  | `HF_HUB_DISABLE_XET`, `HF_HUB_DISABLE_SYMLINKS_WARNING` | Hugging Face download workarounds for this machine |
+  | `HF_TOKEN` | Only for the gated AggreFact dataset (never commit it) |
 
 - **`configs/default.yaml`** holds tunable settings: `tau_fraction` (0.8), `compression_pct` (10),
   `temperature` (0.2), `seed` (1234), chunk sizes, key-point and verifier thresholds,
@@ -367,6 +382,8 @@ NLP_Project/
 | `make up` / `make down` | Start / stop GROBID + Postgres |
 | `make doctor` | Check Python, `.env`, Ollama model, Docker, GPU |
 | `make smoke` | One live Gemini call + one live Ollama call (uses a little quota) |
+| `make models` | Download the pinned model weights (the only step that downloads models) |
+| `python -m eval.data --check` | Fetch, parse and count every dataset (AggreFact needs `HF_TOKEN`) |
 | `make test` | Unit tests (no network/GPU/Docker needed) |
 | `make check` | Lint (ruff) + format (black) + types (mypy) + unit tests |
 | `make fmt` | Auto-format the code |
@@ -378,8 +395,12 @@ NLP_Project/
 
 - **TDD (test-driven development)** is mandatory: write the failing test first, watch it fail,
   then write the code.
-- **157 unit tests** run in ~2 seconds with **no network, no GPU and no Docker**. Network calls
-  are faked with `httpx.MockTransport`.
+- **391 unit tests** run in about a minute with **no network, no GPU and no Docker**. Network
+  calls are faked with `httpx.MockTransport`; models are tiny random-weight stand-ins.
+- **Integration tests** (`pytest tests/integration`) need GROBID, the GPU and/or Ollama. One of
+  them proves verification runs with the network switched off (FR-5.6).
+- **Memory:** the GPU tests need ~6 GB free RAM (MiniCheck loads 3.1 GB of weights) and up to
+  6.2 GB of GPU memory (Qwen3). Close Docker Desktop when not running the GROBID tests.
 - **ruff** (lint), **black** (formatting) and **mypy --strict** (type checking) all must pass:
   `make check`.
 - **pre-commit** runs all of the above automatically before each git commit.
@@ -393,7 +414,8 @@ NLP_Project/
 | `GROBID unreachable … run docker compose up -d grobid` | Docker Desktop or GROBID isn't running | Start Docker Desktop, then `docker compose up -d grobid` |
 | `ollama 500: token repeat limit reached` | The prompt was cut off and the model looped. **Fixed 2026-10-29** (we now send `num_ctx`) | Make sure you're on the latest code |
 | Any error mentioning `ollama` / port 11434 | Ollama isn't running | `ollama serve` in another window |
-| `needs Route B (map-reduce), not built until P4` | Document longer than τ for that profile | Use Gemini (no `--profile`), or wait for P4 |
+| `model returned invalid JSON twice` | The model ignored the output format twice | Retry; bad replies are never cached, so a rerun asks again |
+| Hugging Face download stuck at 0 bytes | The `hf_xet` backend stalls on this machine | Keep `HF_HUB_DISABLE_XET=1` in `.env` |
 | `GEMINI_API_KEY is empty` | No key in `.env` | Add it, or use `--profile qwen3_8b_local` |
 | `… is not a PDF` / `limit is 25 MB` | Wrong file type / too big | Use a real PDF under 25 MB |
 | `warning: GROBID found no section structure` | Not a paper-style PDF | Not an error; it summarizes the flat text |
@@ -404,13 +426,9 @@ NLP_Project/
 
 ## 11. Roadmap
 
-- **P1 (rest):** web articles via **trafilatura** (strips menus, ads and footers), plus a golden
-  test on 5 real PDFs.
-- **P3 Evaluation:** split summaries into atomic claims, find the best-matching source sentences,
-  and judge each claim with two verifiers, **DeBERTa-v3 NLI** and **MiniCheck**. This produces
-  faithfulness, coverage, ROUGE and BERTScore, all computed locally.
-- **P4 Route B:** section-aware chunking, map-reduce with a stored merge tree, faithfulness
-  measured at every merge level.
+- **P3 (rest):** tune verifier thresholds on AggreFact dev, report verifier F1 on AggreFact test.
+- **P4 (rest):** first full live Route B run, faithfulness measured at every merge level, and a
+  decision on how E4 matches chunk sizes (see `CLAUDE.md` §6).
 - **P5 Key points:** candidate generation, PageRank + centroid scoring, clustering to remove
   duplicates, and each point linked to its evidence span.
 - **P6 Service:** FastAPI + Postgres job queue + live progress (SSE).
@@ -429,12 +447,13 @@ NLP_Project/
 | PDF parsing | **GROBID** 0.8.1 (lightweight image, Docker) |
 | XML parsing | **lxml** |
 | Sentence splitting | **pySBD** |
-| Web extraction (planned) | **trafilatura** |
+| Web extraction | **trafilatura** |
 | Cloud LLM | **Google Gemini** `gemini-3.6-flash` via REST (`httpx`) |
 | Local LLM | **Qwen3-8B** (Q4) via **Ollama** |
 | Config / validation | **pydantic**, **PyYAML**, **python-dotenv** |
 | Containers | **Docker Desktop**, **Docker Compose** |
 | Database (planned) | **PostgreSQL 16** |
-| Verifiers (planned) | **DeBERTa-v3 NLI**, **MiniCheck** (Hugging Face `transformers`) |
+| Verifiers | **DeBERTa-v3 NLI**, **MiniCheck** Flan-T5 (Hugging Face `transformers`, CUDA 12.8 torch) |
+| Embeddings / metrics | **sentence-transformers** (MiniLM), **rouge-score**, **bert-score**, **scipy** |
 | Testing / quality | **pytest**, **ruff**, **black**, **mypy**, **pre-commit** |
 | Build shortcuts | **GNU Make** |

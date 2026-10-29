@@ -236,3 +236,32 @@ async def test_verify_nodes_decomposes_each_node_then_releases_llm_before_gpu(
         ("n1", "The bird is blue."),
     ]
     assert rig.events[:2] == ["release llm", "open embedder"]
+
+
+def test_real_openers_load_from_local_cache_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """FR-5.6: HF loaders phone huggingface.co even for a pinned sha (46 DNS lookups seen
+    2026-10-29). Verification must never touch the network; fetching is `make models`."""
+    from app.verify import embedder, minicheck, nli
+    from app.verify.pipeline import openers_from_config
+
+    seen: dict[str, dict[str, Any]] = {}
+
+    def recorder(name: str) -> Any:
+        def from_pretrained(cls: Any, checkpoint: str, **kw: Any) -> str:
+            seen[name] = kw
+            return name
+
+        return classmethod(from_pretrained)
+
+    monkeypatch.setattr(embedder.SentenceEmbedder, "from_pretrained", recorder("embedder"))
+    monkeypatch.setattr(nli.DebertaNLI, "from_pretrained", recorder("nli"))
+    monkeypatch.setattr(minicheck.MiniCheckT5, "from_pretrained", recorder("minicheck"))
+
+    o = openers_from_config(_cfg(), device="cpu")
+    for open_ in (o.embedder, o.nli, o.minicheck):
+        open_()
+    assert {k: v.get("local_files_only") for k, v in seen.items()} == {
+        "embedder": True,
+        "nli": True,
+        "minicheck": True,
+    }

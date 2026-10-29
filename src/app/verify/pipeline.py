@@ -42,7 +42,11 @@ class Openers:
 
 
 def openers_from_config(cfg: VerifyCfg, *, device: str = "cuda") -> Openers:
-    """Real models, pinned by `configs/default.yaml` `verify.*`. Each loads only when opened."""
+    """Real models, pinned by `configs/default.yaml` `verify.*`. Each loads only when opened.
+
+    Local cache only (FR-5.6): HF loaders otherwise call huggingface.co even for a pinned
+    sha. Missing weights fail here; fetch them first with `make models`.
+    """
     from app.verify.embedder import SentenceEmbedder
     from app.verify.minicheck import MiniCheckT5
     from app.verify.nli import DebertaNLI
@@ -50,13 +54,21 @@ def openers_from_config(cfg: VerifyCfg, *, device: str = "cuda") -> Openers:
     e, n, m = cfg.embedder, cfg.nli, cfg.minicheck
     return Openers(
         embedder=lambda: SentenceEmbedder.from_pretrained(
-            e.checkpoint, revision=e.revision, device=device
+            e.checkpoint, revision=e.revision, device=device, local_files_only=True
         ),
         nli=lambda: DebertaNLI.from_pretrained(
-            n.checkpoint, revision=n.revision, device=device, batch_size=n.batch_size
+            n.checkpoint,
+            revision=n.revision,
+            device=device,
+            batch_size=n.batch_size,
+            local_files_only=True,
         ),
         minicheck=lambda: MiniCheckT5.from_pretrained(
-            m.checkpoint, revision=m.revision, device=device, batch_size=m.batch_size
+            m.checkpoint,
+            revision=m.revision,
+            device=device,
+            batch_size=m.batch_size,
+            local_files_only=True,
         ),
     )
 

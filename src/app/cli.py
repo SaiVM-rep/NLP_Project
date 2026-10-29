@@ -25,7 +25,7 @@ from app.ingest.web import ingest_url
 from app.llm.base import LLMError, Provider
 from app.llm.cache import DiskCache
 from app.llm.client import LLMClient
-from app.llm.limiter import TokenBucket
+from app.llm.limiter import SlidingWindow
 from app.llm.providers.gemini import GeminiProvider
 from app.llm.providers.ollama import OllamaProvider
 from app.summarize.single_pass import SummaryError, summarize
@@ -58,11 +58,14 @@ async def _summarize(args: argparse.Namespace) -> int:
     overrides = {"profile": args.profile} if args.profile else None
     cfg = load_config(ROOT / "configs", overrides)
     profile = cfg.active_profile
+    provider = make_provider(profile)
     client = LLMClient(
-        make_provider(profile),
+        provider,
         profile,
         DiskCache(Path(os.getenv("LLM_CACHE_DIR", ROOT / cfg.cache.dir))),
-        rpm_bucket=TokenBucket(profile.limits.rpm / 60, profile.limits.rpm),
+        # exact per-minute windows: a token bucket admits up to 2x the limit per minute
+        rpm_bucket=SlidingWindow(profile.limits.rpm),
+        tpm_bucket=SlidingWindow(profile.limits.tpm),
         fallback=cfg.fallback,
     )
 
@@ -71,12 +74,19 @@ async def _summarize(args: argparse.Namespace) -> int:
             doc = ingest_url(args.file, http)
     else:
         doc = ingest_pdf(path, GrobidClient(os.getenv("GROBID_URL", "http://localhost:8070")))
-    with doc_context(doc.doc_id):
-        if not doc.structure_ok:
-            print("warning: no section structure found; summarizing flat text", file=sys.stderr)
-        result = await summarize(
-            doc, client, cfg, prompt_dir=ROOT / "prompts", tau_override=args.tau
-        )
+    try:
+        with doc_context(doc.doc_id):
+            if not doc.structure_ok:
+                print("warning: no section structure found; summarizing flat text", file=sys.stderr)
+            result = await summarize(
+                doc, client, cfg, prompt_dir=ROOT / "prompts", tau_override=args.tau
+            )
+    except (LLMError, SummaryError) as e:
+        # main() logs after this context is gone; carry the doc_id out (NFR-5)
+        setattr(e, "doc_id", doc.doc_id)  # noqa: B010
+        raise
+    finally:
+        await provider.aclose()
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -106,7 +116,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         return asyncio.run(_summarize(args))
     except (IngestError, LLMError, SummaryError) as e:
-        logging.getLogger("app.cli").error(str(e), extra={"source": args.file})
+        extra = {"source": args.file, "doc_id": getattr(e, "doc_id", None)}
+        logging.getLogger("app.cli").error(str(e), extra=extra)
         print(f"error: {e}", file=sys.stderr)
         return 1
 

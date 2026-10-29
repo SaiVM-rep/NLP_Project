@@ -13,6 +13,7 @@ max over chunks.
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from typing import Any
 
@@ -70,15 +71,29 @@ class MiniCheckT5(GpuResident):
 
     @classmethod
     def from_pretrained(
-        cls, checkpoint: str, *, revision: str | None = None, device: str = "cuda", **kw: Any
+        cls,
+        checkpoint: str,
+        *,
+        revision: str | None = None,
+        device: str = "cuda",
+        local_files_only: bool = False,
+        **kw: Any,
     ) -> MiniCheckT5:
         import torch
         from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
         # T5 overflows in fp16 (NaN); bf16 keeps fp32's range at half the memory.
         dtype = torch.bfloat16 if device.startswith("cuda") else torch.float32
-        tok = AutoTokenizer.from_pretrained(checkpoint, revision=revision)
-        model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint, revision=revision, dtype=dtype)
+        # The checkpoint is .bin-only: transformers would otherwise start a background
+        # thread asking huggingface.co for a safetensors conversion PR, ignoring
+        # local_files_only (FR-5.6), and possibly requesting one on someone else's repo.
+        os.environ["DISABLE_SAFETENSORS_CONVERSION"] = "1"
+        tok = AutoTokenizer.from_pretrained(
+            checkpoint, revision=revision, local_files_only=local_files_only
+        )
+        model = AutoModelForSeq2SeqLM.from_pretrained(
+            checkpoint, revision=revision, dtype=dtype, local_files_only=local_files_only
+        )
         return cls(model, tok, device=device, **kw)
 
     def __call__(self, chunks: list[str], claims: list[str]) -> NDArray[np.float32]:

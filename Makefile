@@ -5,10 +5,11 @@
 
 PY ?= .venv/Scripts/python.exe
 
-.PHONY: help up down logs migrate test test-all smoke summarize doctor lint fmt typecheck hooks check demo exp report clean
+.PHONY: help up down logs migrate test test-all smoke summarize doctor models lint fmt typecheck hooks check demo exp report clean
 
 help:
 	@echo "up        start db + grobid"
+	@echo "models    download pinned model weights (verification itself is offline, FR-5.6)"
 	@echo "down      stop services"
 	@echo "migrate   apply db migrations"
 	@echo "test      unit tests only (no network, no GPU)"
@@ -48,6 +49,9 @@ summarize:
 # Is this machine set up? Read-only, safe to run any time.
 doctor:
 	$(PY) scripts/doctor.py
+
+models:
+	$(PY) -m app.verify.models --fetch
 
 lint:
 	$(PY) -m ruff check .

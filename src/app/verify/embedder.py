@@ -22,11 +22,19 @@ class SentenceEmbedder(GpuResident):
 
     @classmethod
     def from_pretrained(
-        cls, checkpoint: str, *, revision: str | None = None, device: str = "cuda", **kw: Any
+        cls,
+        checkpoint: str,
+        *,
+        revision: str | None = None,
+        device: str = "cuda",
+        local_files_only: bool = False,
+        **kw: Any,
     ) -> SentenceEmbedder:
         from sentence_transformers import SentenceTransformer
 
-        model = SentenceTransformer(checkpoint, revision=revision, device=device)
+        model = SentenceTransformer(
+            checkpoint, revision=revision, device=device, local_files_only=local_files_only
+        )
         return cls(model, device=device, **kw)
 
     def __call__(self, texts: list[str]) -> NDArray[np.float32]:

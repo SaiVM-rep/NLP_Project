@@ -114,3 +114,13 @@ def test_v1_prompt_is_still_frozen_on_disk() -> None:
     v1 = (ROOT / "prompts" / "claim_decompose.v1.txt").read_text(encoding="utf-8")
     assert v1.startswith("Split the sentence into the smallest independent factual claims.")
     assert v1.rstrip().endswith("{context}")
+
+
+async def test_malformed_reply_is_not_replayed_from_cache(tmp_path: Path) -> None:
+    with pytest.raises(DecomposeError):
+        await decompose(
+            "One sentence.", _client(ScriptedProvider("[1]", "[1]"), tmp_path), ROOT / "prompts"
+        )
+    p = ScriptedProvider('{"claims": ["ok"]}')
+    claims = await decompose("One sentence.", _client(p, tmp_path), ROOT / "prompts")
+    assert [c.text for c in claims] == ["ok"]

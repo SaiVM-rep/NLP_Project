@@ -1,0 +1,7 @@
+Combine the partial summaries below into one coherent summary of about {target_words} words.
+Use only information present in the partial summaries. Do not add or infer new facts.
+Keep numbers, names and units exactly. Remove repetition. Keep the order of the document.
+Return JSON: {"summary": "<text>"}
+
+PARTIAL SUMMARIES:
+{summaries}

@@ -29,7 +29,7 @@ from app.core.config import load_config  # noqa: E402
 from app.llm.base import LLMError  # noqa: E402
 from app.llm.cache import DiskCache  # noqa: E402
 from app.llm.client import LLMClient  # noqa: E402
-from app.llm.limiter import TokenBucket  # noqa: E402
+from app.llm.limiter import SlidingWindow  # noqa: E402
 from app.llm.providers.gemini import GeminiProvider  # noqa: E402
 from app.llm.providers.ollama import OllamaProvider  # noqa: E402
 
@@ -64,7 +64,7 @@ async def check_provider(name: str, provider, profile, cache_dir: Path) -> bool:
         provider=provider,
         profile=profile,
         cache=DiskCache(cache_dir / name),
-        rpm_bucket=TokenBucket(profile.limits.rpm / 60, profile.limits.rpm),
+        rpm_bucket=SlidingWindow(profile.limits.rpm),
         call_log=calls.append,
     )
 

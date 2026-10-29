@@ -58,15 +58,23 @@ class DebertaNLI(GpuResident):
 
     @classmethod
     def from_pretrained(
-        cls, checkpoint: str, *, revision: str | None = None, device: str = "cuda", **kw: Any
+        cls,
+        checkpoint: str,
+        *,
+        revision: str | None = None,
+        device: str = "cuda",
+        local_files_only: bool = False,
+        **kw: Any,
     ) -> DebertaNLI:
         import torch
         from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
         dtype = torch.float16 if device.startswith("cuda") else torch.float32
-        tok = AutoTokenizer.from_pretrained(checkpoint, revision=revision)
+        tok = AutoTokenizer.from_pretrained(
+            checkpoint, revision=revision, local_files_only=local_files_only
+        )
         model = AutoModelForSequenceClassification.from_pretrained(
-            checkpoint, revision=revision, dtype=dtype
+            checkpoint, revision=revision, dtype=dtype, local_files_only=local_files_only
         )
         return cls(model, tok, device=device, **kw)
 

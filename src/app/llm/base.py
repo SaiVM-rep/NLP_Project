@@ -62,3 +62,7 @@ class Provider(Protocol):
         params: dict[str, Any],
         seed: int | None,
     ) -> LLMResult: ...
+
+    async def aclose(self) -> None:
+        """Release the HTTP client; otherwise its asyncio transport leaks."""
+        ...

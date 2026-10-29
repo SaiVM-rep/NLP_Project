@@ -64,6 +64,7 @@ async def decompose(
                 json_schema=SCHEMA,
                 temperature=0.0,
                 think=False,
+                accept=lambda t: _parse(t) is not None,
             )
             if (claims := _parse(res.text)) is not None:
                 break

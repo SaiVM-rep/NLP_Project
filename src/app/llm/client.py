@@ -26,7 +26,8 @@ from app.llm.base import (
     RateLimited,
 )
 from app.llm.cache import DiskCache, cache_key
-from app.llm.limiter import TokenBucket, backoff_delay
+from app.llm.limiter import Limiter, backoff_delay
+from app.route.tokens import estimate_tokens
 
 
 class LLMClient:
@@ -36,7 +37,8 @@ class LLMClient:
         profile: ModelProfile,
         cache: DiskCache,
         *,
-        rpm_bucket: TokenBucket | None = None,
+        rpm_bucket: Limiter | None = None,
+        tpm_bucket: Limiter | None = None,
         max_retries: int = 3,
         fallback: Literal["fail", "ollama"] = "fail",
         fallback_provider: Provider | None = None,
@@ -51,6 +53,7 @@ class LLMClient:
         self.profile = profile
         self.cache = cache
         self.rpm_bucket = rpm_bucket
+        self.tpm_bucket = tpm_bucket
         self.max_retries = max_retries
         self.fallback = fallback
         self.fallback_provider = fallback_provider
@@ -71,7 +74,11 @@ class LLMClient:
         top_p: float = 0.9,
         seed: int | None = None,
         think: bool | None = None,
+        accept: Callable[[str], bool] | None = None,
     ) -> LLMResult:
+        """`accept`: the caller's check on the reply text. Rejected replies are never
+        cached, and a cached reply it rejects is re-requested, so one malformed answer
+        cannot be replayed by every retry and rerun."""
         params: dict[str, Any] = {
             "temperature": temperature,
             "top_p": top_p,
@@ -83,7 +90,7 @@ class LLMClient:
         key = cache_key(self.provider.name, self.profile.model, prompt, params, seed)
 
         cached = self.cache.get(key)
-        if cached is not None:
+        if cached is not None and (accept is None or accept(cached["text"])):
             result = LLMResult(**cached)
             result.cache_hit = True
             self._log(purpose, key, result, latency_ms=0, error=None)
@@ -109,8 +116,9 @@ class LLMClient:
             raise
 
         latency_ms = int((time.monotonic() - started) * 1000)
-        # Only successful responses are cached; a failure must not poison reruns.
-        self.cache.set(key, result.model_dump())
+        # Only successful, accepted responses are cached; a failure must not poison reruns.
+        if accept is None or accept(result.text):
+            self.cache.set(key, result.model_dump())
         self._log(purpose, key, result, latency_ms=latency_ms, error=None)
         return result
 
@@ -130,6 +138,11 @@ class LLMClient:
                 break
             if self.rpm_bucket is not None:
                 await self.rpm_bucket.acquire()
+            if self.tpm_bucket is not None:
+                # Input tokens (what Gemini's TPM counts). Clamped: a prompt over one
+                # minute's budget waits for a full bucket; the provider judges its length.
+                cost = min(estimate_tokens(prompt, 0.0), self.tpm_bucket.capacity)
+                await self.tpm_bucket.acquire(cost)
             self._calls_today += 1
             try:
                 result = await self.provider.generate(

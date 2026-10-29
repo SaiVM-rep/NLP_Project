@@ -8,7 +8,15 @@ from __future__ import annotations
 import asyncio
 import random
 import time
+from collections import deque
 from collections.abc import Awaitable, Callable
+from typing import Protocol
+
+
+class Limiter(Protocol):
+    capacity: float
+
+    async def acquire(self, cost: float = 1.0) -> None: ...
 
 
 class TokenBucket:
@@ -51,6 +59,51 @@ class TokenBucket:
                     self._tokens -= cost
                     return
                 await self._sleep((cost - self._tokens) / self.rate_per_sec)
+
+
+class SlidingWindow:
+    """At most `limit` units of cost in any `window` seconds, exactly.
+
+    Use for RPM (cost 1) and TPM (cost = tokens). A token bucket of capacity C refilling
+    C per window admits up to 2C in one window (burst + refill); providers count per
+    rolling minute, so that overshoot would come back as 429s (NFR-3, FR-3.3).
+    """
+
+    def __init__(
+        self,
+        limit: float,
+        window: float = 60.0,
+        clock: Callable[[], float] = time.monotonic,
+        sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+    ) -> None:
+        if limit <= 0 or window <= 0:
+            raise ValueError("limit and window must be positive")
+        self.capacity = limit
+        self.window = window
+        self._clock = clock
+        self._sleep = sleep
+        self._events: deque[tuple[float, float]] = deque()  # (time, cost)
+        self._lock = asyncio.Lock()
+
+    async def acquire(self, cost: float = 1.0) -> None:
+        if cost > self.capacity:
+            raise ValueError(f"cost {cost} exceeds window limit {self.capacity}")
+        async with self._lock:
+            while True:
+                now = self._clock()
+                while self._events and self._events[0][0] + self.window <= now:
+                    self._events.popleft()
+                used = sum(c for _, c in self._events)
+                if used + cost <= self.capacity:
+                    self._events.append((now, cost))
+                    return
+                # sleep until enough of the oldest events have left the window
+                need, freed = used + cost - self.capacity, 0.0
+                for t, c in self._events:
+                    freed += c
+                    if freed >= need:
+                        await self._sleep(t + self.window - now)
+                        break
 
 
 def backoff_delay(attempt: int, base: float = 1.0, cap: float = 60.0) -> float:

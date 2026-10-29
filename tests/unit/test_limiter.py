@@ -96,3 +96,74 @@ def test_backoff_delay_varies():
     """Full jitter, not deterministic exponential."""
     samples = {backoff_delay(5, base=1.0, cap=60.0) for _ in range(50)}
     assert len(samples) > 1
+
+
+# ------------------------------------------------------- sliding window ---
+# A token bucket (capacity C, refill C/60 per s) admits up to 2C in a 60 s window:
+# a full burst plus a minute of refill. Providers count per rolling minute, so RPM/TPM
+# need an exact window (NFR-3, FR-3.3).
+
+
+class WClock:
+    def __init__(self) -> None:
+        self.now = 0.0
+        self.slept: list[float] = []
+
+    def __call__(self) -> float:
+        return self.now
+
+    async def sleep(self, seconds: float) -> None:
+        self.slept.append(seconds)
+        self.now += seconds
+
+
+async def test_token_bucket_admits_double_the_limit_in_a_minute() -> None:
+    """Documents why SlidingWindow exists."""
+    from app.llm.limiter import TokenBucket
+
+    clock = WClock()
+    b = TokenBucket(10 / 60, 10, clock=clock, sleep=clock.sleep)
+    times = []
+    for _ in range(20):
+        await b.acquire()
+        times.append(clock.now)
+    assert sum(1 for t in times if t < 60) > 10
+
+
+async def test_window_never_exceeds_limit_in_any_60s() -> None:
+    from app.llm.limiter import SlidingWindow
+
+    clock = WClock()
+    w = SlidingWindow(10, clock=clock, sleep=clock.sleep)
+    times = []
+    for _ in range(35):
+        await w.acquire()
+        times.append(clock.now)
+    for t0 in times:
+        assert sum(1 for t in times if t0 <= t < t0 + 60) <= 10
+    assert times[9] == 0.0 and times[10] == 60.0  # full burst, then wait for expiry
+
+
+async def test_window_weighted_cost_for_tpm() -> None:
+    from app.llm.limiter import SlidingWindow
+
+    clock = WClock()
+    w = SlidingWindow(100, clock=clock, sleep=clock.sleep)
+    await w.acquire(60)
+    await w.acquire(30)
+    await w.acquire(30)  # 120 > 100: waits until the first 60 expires
+    assert clock.now == 60.0
+
+
+async def test_window_cost_over_limit_raises() -> None:
+    from app.llm.limiter import SlidingWindow
+
+    w = SlidingWindow(100)
+    with pytest.raises(ValueError):
+        await w.acquire(101)
+
+
+async def test_window_exposes_capacity_like_the_bucket() -> None:
+    from app.llm.limiter import SlidingWindow
+
+    assert SlidingWindow(250_000).capacity == 250_000

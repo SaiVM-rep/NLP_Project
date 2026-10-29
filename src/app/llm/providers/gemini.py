@@ -57,6 +57,9 @@ class GeminiProvider:
         self.base_url = base_url
         self._client = client or httpx.AsyncClient(timeout=timeout)
 
+    async def aclose(self) -> None:
+        await self._client.aclose()
+
     async def generate(
         self,
         prompt: str,
