@@ -1,0 +1,25 @@
+paper,kp,gold_ids,unsupported,annotator,notes
+sbert,1,58,0,claude,
+sbert,2,80;178,0,claude,
+sbert,3,156,0,claude,
+sbert,4,0,0,claude,39 is BERT only
+sbert,5,1,0,claude,
+sbert,6,1;24,0,claude,4 lacks "10000"; 219 is clustering
+sbert,7,4,0,claude,24 lacks "maintaining accuracy"
+sbert,8,1;2,0,claude,
+frank,1,147;149;25,0,claude,
+frank,2,51;56,0,claude,
+frank,3,59,0,claude,key point is an erroneous example from the error table (paper's fact: 2014) - extraction bug; 59 is still its location
+frank,4,76;62,0,claude,
+frank,5,98;197;99;247,0,claude,needs combination: MTurk + interface + instructions
+frank,6,102;254,0,claude,
+frank,7,121,0,claude,vague meta point; 121 nearest real statement
+frank,8,0,0,claude,
+true,1,4,0,claude,vague
+true,2,251;250,0,claude,
+true,3,0;9,0,claude,
+true,4,1,0,claude,
+true,5,2;10,0,claude,found by full-text search; not in MiniLM top-5
+true,6,4;13;24,0,claude,
+true,7,6;237,0,claude,
+true,8,9;0,0,claude,

@@ -8,6 +8,7 @@ resumable and skipped when already done, so starting it again is always safe:
   2. E1 unless a finished results/E1/<run_id> exists (an interrupted run resumes from
      results/E1/_running via the LLM cache and per_doc.jsonl)
   3. E5 on the newest finished E1 run, unless a finished E5 run exists
+  3b. SC4: AggreFact test at the frozen thetas, unless its summary exists
   4. make report
 Waits first while another GPU job (make_demo / eval.run / tune_aggrefact) is running.
 Log: results/overnight.log (one line per step, plus each step's own output).
@@ -99,6 +100,11 @@ def main() -> int:
         run("E5", ["-m", "eval.run", "--experiment", "E5", "--e1-dir", str(e1)])
     elif finished("E5") is not None:
         log(f"E5: finished run {finished('E5')} present, skipped")
+
+    if not (ROOT / "results" / "tuning" / "aggrefact_test.summary.json").exists():
+        run("SC4", ["scripts/tune_aggrefact.py", "--split", "test", "--min-free-gb", "3"])
+    else:
+        log("SC4: test summary present, skipped")
 
     run("report", ["-m", "eval.report"])
     log("overnight chain finished")

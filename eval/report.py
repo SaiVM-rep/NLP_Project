@@ -128,6 +128,24 @@ def verifier_table(summary: dict[str, Any]) -> str:
     )
 
 
+def sc4_table(summary: dict[str, Any]) -> str:
+    """SC4: AggreFact TEST at the frozen thetas ("supported" is the positive class)."""
+    return md_table(
+        ["Verifier", "theta_e", "Precision", "Recall", "F1", "Bal. acc."],
+        [
+            [
+                name,
+                summary[key]["theta_e"],
+                summary[key]["precision"],
+                summary[key]["recall"],
+                summary[key]["f1"],
+                summary[key]["balanced_accuracy"],
+            ]
+            for name, key in (("DeBERTa", "nli"), ("MiniCheck", "minicheck"))
+        ],
+    )
+
+
 def _figures(
     e1: list[dict[str, Any]] | None, e5: list[dict[str, Any]] | None, out: Path
 ) -> list[str]:
@@ -183,6 +201,14 @@ def main() -> int:
         parts += [
             f"## Verifier thresholds (AggreFact dev, {s['n_rows']} rows)\n",
             verifier_table(s),
+            "",
+        ]
+    sc4 = RESULTS / "tuning" / "aggrefact_test.summary.json"
+    if sc4.exists():
+        t = json.loads(sc4.read_text(encoding="utf-8"))
+        parts += [
+            f"## SC4: verifiers on AggreFact test ({t['n_rows']} rows, frozen thetas)\n",
+            sc4_table(t),
             "",
         ]
 

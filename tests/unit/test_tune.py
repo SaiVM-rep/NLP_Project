@@ -145,3 +145,23 @@ def test_score_rows_opens_each_model_once_and_never_two_at_a_time() -> None:
         "open mc",
         "close mc",
     ]
+
+
+# ----------------------------------------------------------- SC4 evaluate ---
+
+from eval.tune import evaluate  # noqa: E402
+
+
+def test_evaluate_reports_f1_for_the_supported_class_at_a_fixed_theta() -> None:
+    # tp=2 (0.9, 0.6), fp=1 (0.7 on a 0), fn=1 (0.2 on a 1), tn=1
+    m = evaluate([0.9, 0.6, 0.7, 0.2, 0.1], [1, 1, 0, 1, 0], theta=0.5)
+    assert m["precision"] == pytest.approx(2 / 3)
+    assert m["recall"] == pytest.approx(2 / 3)
+    assert m["f1"] == pytest.approx(2 / 3)
+    assert m["balanced_accuracy"] == pytest.approx((2 / 3 + 1 / 2) / 2)
+    assert m["n"] == 5
+
+
+def test_evaluate_f1_is_zero_not_a_crash_when_nothing_is_predicted() -> None:
+    m = evaluate([0.1, 0.2], [1, 0], theta=0.9)
+    assert m["precision"] == 0.0 and m["f1"] == 0.0

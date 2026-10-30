@@ -51,6 +51,24 @@ def best_theta(
     return tied[len(tied) // 2]
 
 
+def evaluate(scores: Sequence[float], truth: Sequence[int], *, theta: float) -> dict[str, float]:
+    """SC4 on the test split at a frozen theta: P/R/F1 for "supported", plus balanced accuracy."""
+    pred = [s >= theta for s in scores]
+    tp = sum(p and t == 1 for p, t in zip(pred, truth, strict=True))
+    fp = sum(p and t == 0 for p, t in zip(pred, truth, strict=True))
+    fn = sum(not p and t == 1 for p, t in zip(pred, truth, strict=True))
+    precision = tp / (tp + fp) if tp + fp else 0.0
+    recall = tp / (tp + fn) if tp + fn else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+    return {
+        "n": len(pred),
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+        "balanced_accuracy": balanced_accuracy(truth, pred),
+    }
+
+
 def stratified_sample(
     items: Sequence[AggreFactItem], *, per_dataset: int, seed: int
 ) -> list[AggreFactItem]:

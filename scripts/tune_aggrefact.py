@@ -2,10 +2,12 @@
 
     .venv/Scripts/python.exe scripts/tune_aggrefact.py [--per-dataset 400] [--seed 0]
     .venv/Scripts/python.exe scripts/tune_aggrefact.py --from-scores   # sweep only, no GPU
+    .venv/Scripts/python.exe scripts/tune_aggrefact.py --split test    # SC4, frozen theta
 
 Scores a stratified dev sample once (results/tuning/aggrefact_dev.scores.jsonl), then sweeps
 theta on the stored scores. Prints the proposed thetas; it does NOT edit configs/ (a human
-freezes them, then SC4 is computed once on the TEST split). Test rows are never loaded here.
+freezes them). `--split test` is SC4: the same stratified sample of the TEST split, scored once
+and evaluated at the thetas frozen in configs/ (no sweep: test never influences a threshold).
 Refuses to start below --min-free-gb available RAM.
 """
 
@@ -50,22 +52,62 @@ def available_gb() -> float:
     return s.avail_phys / 2**30
 
 
-def score(per_dataset: int, seed: int) -> None:
+def score(per_dataset: int, seed: int, split: str = "dev") -> Path:
     from app.core.config import load_config
     from app.verify.pipeline import openers_from_config
     from eval.data import load_aggrefact
     from eval.tune import score_rows, stratified_sample
 
     cfg = load_config(ROOT / "configs").verify
-    items = stratified_sample(load_aggrefact("dev"), per_dataset=per_dataset, seed=seed)
-    print(f"scoring {len(items)} dev rows (per_dataset={per_dataset}, seed={seed})", flush=True)
+    items = stratified_sample(load_aggrefact(split), per_dataset=per_dataset, seed=seed)
+    out = OUT / f"aggrefact_{split}.scores.jsonl"
+    print(f"scoring {len(items)} {split} rows (per_dataset={per_dataset}, seed={seed})", flush=True)
     t0 = time.perf_counter()
     rows = score_rows(items, openers_from_config(cfg), cfg)
     OUT.mkdir(parents=True, exist_ok=True)
-    with SCORES.open("w", encoding="utf-8") as f:
+    with out.open("w", encoding="utf-8") as f:
         for r in rows:
             f.write(json.dumps(r._asdict()) + "\n")
-    print(f"scored in {time.perf_counter() - t0:.0f} s -> {SCORES}", flush=True)
+    print(f"scored in {time.perf_counter() - t0:.0f} s -> {out}", flush=True)
+    return out
+
+
+def test_eval() -> dict[str, object]:
+    """SC4: P/R/F1 + balanced accuracy at the frozen thetas, overall and per benchmark."""
+    from app.core.config import load_config
+    from eval.tune import evaluate
+
+    v = load_config(ROOT / "configs").verify
+    path = OUT / "aggrefact_test.scores.jsonl"
+    rows = [json.loads(ln) for ln in path.read_text(encoding="utf-8").splitlines() if ln]
+    truth = [r["label"] for r in rows]
+    per_ds: dict[str, list[int]] = defaultdict(list)
+    for i, r in enumerate(rows):
+        per_ds[r["dataset"]].append(i)
+    report: dict[str, object] = {"n_rows": len(rows), "split": "test"}
+    for name, key, theta in (
+        ("nli", "entail", v.nli.theta_e),
+        ("minicheck", "minicheck", v.minicheck.theta_e),
+    ):
+        sc = [r[key] for r in rows]
+        overall = evaluate(sc, truth, theta=theta)
+        report[name] = {
+            "theta_e": theta,
+            **overall,
+            "per_dataset": {
+                ds: evaluate([sc[i] for i in ix], [truth[i] for i in ix], theta=theta)
+                for ds, ix in sorted(per_ds.items())
+            },
+        }
+        print(
+            f"{name:9s} theta_e={theta:.2f}  F1={overall['f1']:.3f}  P={overall['precision']:.3f}"
+            f"  R={overall['recall']:.3f}  BA={overall['balanced_accuracy']:.3f}",
+            flush=True,
+        )
+    dest = OUT / "aggrefact_test.summary.json"
+    dest.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    print(f"summary -> {dest}", flush=True)
+    return report
 
 
 def sweep() -> dict[str, object]:
@@ -109,6 +151,7 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--min-free-gb", type=float, default=4.0)
     ap.add_argument("--from-scores", action="store_true")
+    ap.add_argument("--split", choices=["dev", "test"], default="dev")
     a = ap.parse_args()
     load_dotenv(ROOT / ".env")  # HF_HOME, HF_TOKEN
     if not a.from_scores:
@@ -116,8 +159,11 @@ def main() -> int:
         if free < a.min_free_gb:
             print(f"only {free:.1f} GB RAM available, need {a.min_free_gb:g}: close apps first")
             return 2
-        score(a.per_dataset, a.seed)
-    sweep()
+        score(a.per_dataset, a.seed, a.split)
+    if a.split == "test":
+        test_eval()
+    else:
+        sweep()
     return 0
 
 

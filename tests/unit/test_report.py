@@ -113,3 +113,30 @@ def test_verifier_table_shows_tuned_theta_and_gain_over_placeholder() -> None:
     )
     assert "| DeBERTa | 0.300 | 0.600 | 0.700 |" in out
     assert "| MiniCheck | 0.600 | 0.740 | 0.750 |" in out
+
+
+def test_sc4_table_reports_test_f1_at_the_frozen_theta() -> None:
+    from eval.report import sc4_table
+
+    out = sc4_table(
+        {
+            "n_rows": 50,
+            "split": "test",
+            "nli": {
+                "theta_e": 0.1,
+                "precision": 0.8,
+                "recall": 0.5,
+                "f1": 0.6,
+                "balanced_accuracy": 0.7,
+            },
+            "minicheck": {
+                "theta_e": 0.5,
+                "precision": 0.85,
+                "recall": 0.75,
+                "f1": 0.8,
+                "balanced_accuracy": 0.77,
+            },
+        }
+    )
+    assert "| DeBERTa | 0.100 | 0.800 | 0.500 | 0.600 | 0.700 |" in out
+    assert "| MiniCheck | 0.500 | 0.850 | 0.750 | 0.800 | 0.770 |" in out
