@@ -293,3 +293,15 @@ async def test_one_failed_chunk_cancels_the_others(tmp_path: Path) -> None:
         await run(sections(4), config(), p, tmp_path)
     await asyncio.sleep(0.3)
     assert p.finished == []
+
+
+async def test_concurrency_defaults_to_the_active_profile(tmp_path: Path) -> None:
+    """Ollama serves one request at a time: queued calls must not pile up past the timeout."""
+    p = EchoProvider(delays={f"H{i}": 0.01 for i in range(8)})
+    cfg = config()
+    cfg.profiles[cfg.profile] = cfg.active_profile.model_copy(update={"max_concurrency": 2})
+    client = LLMClient(p, cfg.active_profile, DiskCache(tmp_path))
+    await summarize_b(
+        sections(8), client, cfg, prompt_dir=ROOT / "prompts", count=lambda t: len(t.split())
+    )
+    assert p.max_in_flight == 2

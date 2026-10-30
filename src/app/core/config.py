@@ -36,6 +36,9 @@ class ModelProfile(_Strict):
     model: str
     effective_context: int = Field(gt=0)
     limits: Limits
+    # Route B map calls in flight. A local model on one GPU serves one request at a time,
+    # so extra in-flight calls only queue (and can outlive the client timeout).
+    max_concurrency: int = Field(default=4, ge=1)
 
 
 class RouteCfg(_Strict):

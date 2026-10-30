@@ -3,18 +3,18 @@
 **Transformer-Driven Framework for Semantic Text Compression and Key-Point Extraction from Long-Form Documents**
 Team 9 — Sai Vishod Muralidaran, Raahul S Nayar, Rudhayesh Murali, Samay Chetan · Guide: Dr./Prof. Priyanka S Shivaramaiah
 
-> **In one sentence:** you give it a long document (a research-paper PDF, later also a web
-> article), and it gives back a short summary, the key points, and, later in the build, a
-> check of whether every claim in that summary is actually backed by the original text.
+> **In one sentence:** you give it a long document (a research-paper PDF or a web article),
+> and it gives back a short summary, the key points, and a check of whether every claim in
+> that summary is actually backed by the original text, each linked to the exact sentence.
 
 ---
 
 ## Contents
 
 1. [What works today](#1-what-works-today)
-2. [Quick start: summarize your own PDF](#2-quick-start-summarize-your-own-pdf)
+2. [Quick start](#2-quick-start)
 3. [How it works, step by step](#3-how-it-works-step-by-step)
-4. [The two models: Gemini and Qwen](#4-the-two-models-gemini-and-qwen)
+4. [The models: Qwen (used) and Gemini (optional)](#4-the-models-qwen-used-and-gemini-optional)
 5. [Key ideas and terminology](#5-key-ideas-and-terminology)
 6. [Project layout](#6-project-layout)
 7. [Configuration](#7-configuration)
@@ -28,28 +28,71 @@ Team 9 — Sai Vishod Muralidaran, Raahul S Nayar, Rudhayesh Murali, Samay Cheta
 
 ## 1. What works today
 
-The project is built in phases (P0 → P9, defined in `PRD.md`). Status as of 2026-10-30:
+The project is built in phases (P0 → P9, defined in `PRD.md`). Status as of **2026-10-31**
+(deadline: report + live demo on **Mon 2026-11-02**):
 
 | Phase | What it is | Status |
 | --- | --- | --- |
 | **P0 Foundations** | Config, LLM client, cache, rate limiter, logging, Docker services | ✅ Done |
 | **P1 Ingestion** | Turn a PDF or web article into clean, structured text | ✅ Done (20 PDFs, 10 URLs) |
-| **P2 Baseline** | One-shot summary from the command line | ✅ Works on real PDFs |
-| **P3 Evaluation** | Check every summary claim against the source | 🟡 Done except AggreFact threshold tuning (needs a Hugging Face login — **before P8**) |
-| **P4 Route B** | Summarize documents too long for one prompt | ✅ Done — first live run 2026-10-30 (SBERT forced to Route B: 19 merge nodes, 291 claims checked, faithfulness per merge level) |
-| **P5 Key points** | Extract ranked key points linked to their source sentence | 🟡 Built, unit-tested, first live run 2026-10-30 (SBERT, 8 key points in ~3 min); thresholds still need tuning on the gold set (2 of 8 linked to the wrong sentence) |
-| **P6 Service** | HTTP API + job queue + database | ✅ Done — upload a PDF or URL over HTTP, watch live progress, fetch summary + key points + checked claims (first live run 2026-10-30, ~7 min on the SBERT paper) |
-| P7 UI | Two-pane web view with highlighting | ⬜ Not started |
-| P8–P9 | Experiments E1–E5 and the final report | ⬜ Not started |
+| **P2 Baseline** | One-shot summary from the command line | ✅ Done |
+| **P3 Evaluation** | Check every summary claim against the source | ✅ Done — verifier thresholds tuned on AggreFact dev (4,349 rows) and frozen |
+| **P4 Route B** | Summarize documents too long for one prompt | ✅ Done — faithfulness per merge level |
+| **P5 Key points** | Ranked key points linked to their source sentence | ✅ Done — attribution precision **0.667** on 24 key points (LLM-labelled reference) |
+| **P6 Service** | HTTP API + job queue + database | ✅ Done — upload over HTTP, live progress, crash-safe worker |
+| **P7 UI** | Two-pane web page with highlighting | ✅ Done — `make demo`, 3 precomputed papers, PDF upload |
+| **P8 Experiments** | E1 (+E3), E5, SC4 — **pilot scope** (5 papers, 1 seed) | 🟡 Running unattended overnight (`scripts/overnight.py`) |
+| P9 Report | Chapter 5 generated from logs (`make report`) | 🟡 Generator built; waits for P8 |
 
-**So right now you can:** feed in a research-paper PDF or a web-article URL and get an
-abstractive summary, using either Google Gemini (cloud) or Qwen3-8B (runs locally on your GPU).
-Long documents are split into section-aware chunks and merged (Route B). Summary claims can be
-checked against the source with two local verifiers (DeBERTa-v3 NLI and MiniCheck).
+**Scope cut for the deadline:** E2, E4, the 50-document gold set and human annotation are
+future work. **Qwen3-8B (local) is the only model used**; Gemini code is kept but unused
+(`CLAUDE.md` DECISION-27). Both need the guide's OK.
+
+**So right now you can:** open the web demo, pick one of three research papers, read its
+summary, key points and every checked claim, and click any of them to jump to the exact
+sentence in the paper that backs it. You can also feed in your own PDF (see §2) — everything
+runs on your own laptop, nothing leaves the machine.
+
+### Results so far
+
+| What | Number | Source |
+| --- | --- | --- |
+| Verifier balanced accuracy, AggreFact dev | DeBERTa **0.675** (θ 0.10) · MiniCheck **0.766** (θ 0.5) | `results/tuning/aggrefact_dev.summary.json` |
+| Demo papers, faithfulness (DeBERTa / MiniCheck) | SBERT 0.60 / 1.00 · FRANK 0.61 / 0.92 · TRUE 0.64 / 0.94 | `demo/*.json` |
+| Key-point attribution precision@1 | **0.667** (16/24) | `results/attribution/summary.json` |
+| Overlap metrics vs human ratings (SummEval, Kendall τ) | ROUGE-1: relevance 0.22, faithfulness 0.14 | `CLAUDE.md` §7 |
+| E1 / E3 / E5 / SC4 | pending (overnight run) | `make report` → `results/report/tables.md` |
 
 ---
 
-## 2. Quick start: summarize your own PDF
+## 2. Quick start
+
+### Open the demo (no GPU, no Docker, no internet)
+
+```powershell
+make demo          # then open http://127.0.0.1:7860
+```
+
+Pick an example → **Open**. Click any key point or claim: the paper on the left scrolls to
+the sentence that backs it and highlights it. Each claim shows two icons, **DeBERTa first,
+MiniCheck second**: 🟢 supported · 🟡 unsupported · 🔴 contradicted.
+
+The examples are files in `demo/`. Build more (real pipeline, needs Ollama + GPU):
+`.venv\Scripts\python.exe scripts\make_demo.py <name>` for a paper in `tests/fixtures/tei/`,
+or save any finished API job with `make demo-export JOB=<job_id>`.
+
+### Upload your own PDF in the web page
+
+The **Upload a PDF** tab needs the full pipeline running behind it:
+
+1. Free RAM: aim for **≥ 8 GB available** (quit games, launchers, extra browser tabs).
+2. Start **Docker Desktop**, then `make up` (GROBID + Postgres) and `make migrate` (once).
+3. `make api` in one terminal, `make worker` in another. **Ollama** must be running.
+4. `make demo`, open the **Upload a PDF** tab, choose the file, **Summarize**.
+
+Works with **text-based** PDFs under 25 MB (scanned images have no text → not supported).
+A ≤ 10-page paper takes **~7 minutes**; papers over ~13k tokens go through Route B and can
+take 30+ minutes.
 
 ### One-time setup
 
@@ -59,15 +102,15 @@ You need: **Windows**, **Docker Desktop**, **Ollama**, and **uv** (a fast Python
 cd C:\NLP_Project
 
 # 1. Install Python 3.11 + all dependencies into .venv (torch comes with CUDA 12.8)
-uv sync --group dev --extra ingest --extra ml --extra eval
+uv sync --group dev --extra ingest --extra ml --extra eval --extra service --extra ui
 
 #    Download the pinned verifier/metric models once (~6 GB). Verification itself never
 #    goes online after this.
 make models
 
-# 2. Secrets: copy the template and add your Gemini key (only needed for Gemini)
+# 2. Secrets: copy the template. Optional keys: HF_TOKEN (gated AggreFact dataset),
+#    GEMINI_API_KEY (only for a gemini_* profile; the default is local Qwen)
 copy .env.example .env
-#    then open .env and fill in GEMINI_API_KEY=...
 
 # 3. Download the local model (~5.2 GB, once)
 ollama pull qwen3:8b
@@ -103,14 +146,14 @@ cleanly after 3 tries.
 
 ### Summarize
 
-**With Qwen (local, offline: the document never leaves your computer):**
-```powershell
-.venv\Scripts\python.exe -m app.cli summarize "C:\path\to\paper.pdf" --profile qwen3_8b_local
-```
-
-**With Gemini (cloud, sends the text to Google):**
+**Default: Qwen (local, offline: the document never leaves your computer):**
 ```powershell
 .venv\Scripts\python.exe -m app.cli summarize "C:\path\to\paper.pdf"
+```
+
+**Optional: Gemini (cloud, sends the text to Google, needs `GEMINI_API_KEY`):**
+```powershell
+.venv\Scripts\python.exe -m app.cli summarize "C:\path\to\paper.pdf" --profile gemini_full
 ```
 
 > **Tip:** in File Explorer, **Shift + right-click** the PDF → **Copy as path**. It copies the
@@ -126,8 +169,8 @@ cleanly after 3 tries.
 
 | Flag | What it does |
 | --- | --- |
-| `--profile qwen3_8b_local` | Use the local Qwen model instead of Gemini |
-| `--profile sim_8k` (or `sim_16k`, `sim_32k`) | Pretend the model has a small context window (for experiments) |
+| `--profile gemini_full` | Use Gemini instead of the local Qwen default |
+| `--profile qwen_sim_8k` (or `_4k`, `_12k`) | Pretend Qwen has a smaller window (forces Route B, for experiments) |
 | `--tau 5000` | Override the Route A/B threshold (see §5) |
 | `--out some\folder` | Save the JSON somewhere else |
 
@@ -255,7 +298,8 @@ One interface for every model. In order, each call goes through:
    so, return the saved answer instantly at zero cost. This makes reruns free and
    reproducible.
 2. **Budget guard.** Stop before the daily free-tier request cap is hit.
-3. **Rate limiter.** A **token bucket** that keeps us under the provider's requests-per-minute.
+3. **Rate limiter.** An exact **sliding window** per minute for requests and for tokens
+   (a token bucket was replaced: it admitted up to 2x the limit in a minute, DECISION-19).
 4. **Provider call.** Gemini (REST API over `httpx`) or Ollama (local REST API).
 5. **Retry with backoff.** On a temporary error (HTTP 429 / 5xx / timeout), wait (exponential
    backoff with jitter) and try again.
@@ -268,9 +312,12 @@ Code: `src/app/llm/`
 
 ---
 
-## 4. The two models: Gemini and Qwen
+## 4. The models: Qwen (used) and Gemini (optional)
 
-| | **Gemini** (`gemini-3.6-flash`) | **Qwen3-8B** (`qwen3:8b` via Ollama) |
+**Qwen3-8B is the default and the only model used in the results** (DECISION-27): no API key,
+no internet, no daily quota. Gemini stays available as an option.
+
+| | **Gemini** (`gemini-3.6-flash`, optional) | **Qwen3-8B** (`qwen3:8b` via Ollama, default) |
 | --- | --- | --- |
 | Where it runs | Google's servers (cloud API) | Your GPU (RTX 4070 Laptop, 8 GB) |
 | Privacy | Text is sent to Google | Nothing leaves your machine |
@@ -285,12 +332,15 @@ working memory for the prompt) grows with context length, and at 32k tokens it n
 more, which doesn't fit in 8 GB. At 16k the measured peak is ~6.2 GB.
 
 **Sequential model residency.** Because the GPU is small, models are loaded one at a time and
-unloaded after use (`keep_alive=0`). Later, the verifier models (DeBERTa, MiniCheck) will need
-the GPU after Qwen is done.
+unloaded after use (`keep_alive=0`), so the verifier models (DeBERTa, MiniCheck) get the GPU
+after Qwen is done.
 
-**Simulated profiles (`sim_8k`, `sim_16k`, `sim_32k`).** Gemini's window is so large that
-Route B would never trigger on a real paper. These profiles use the same Gemini model but
-*pretend* it has a small window, so the experiments can compare Route A against Route B.
+**Simulated profiles.** `qwen_sim_4k/8k/12k` use the same Qwen model but *pretend* it has a
+smaller window, so experiments can force Route B. (`sim_8k/16k/32k` are the Gemini versions.)
+
+**One request at a time on Ollama.** Local profiles set `max_concurrency: 1`: Ollama serves one
+call at a time on this GPU, so sending 4 at once only queued them past the 600 s timeout
+(this killed the first overnight E1 run; DECISION-30).
 
 ---
 
@@ -333,7 +383,7 @@ NLP_Project/
 ├── CLAUDE.md                 ← build ledger: what's done, verified, and decided
 ├── configs/
 │   ├── default.yaml          ← run settings (tau, chunk size, temperature, seed, …)
-│   └── models.yaml           ← model profiles (gemini_full, sim_*, qwen3_8b_local)
+│   └── models.yaml           ← model profiles (qwen3_8b_local default, qwen_sim_*, gemini_*)
 ├── prompts/
 │   ├── single_pass.v1.txt    ← Route A prompt (frozen)
 │   ├── chunk_summary.v1.txt  ← Route B: one chunk
@@ -348,16 +398,23 @@ NLP_Project/
 │   ├── llm/                  ← client, cache, limiter, providers/{gemini,ollama}.py
 │   ├── verify/               ← decompose, evidence, embedder, nli (DeBERTa), minicheck, pipeline
 │   ├── keypoints/            ← candidates, rank (PageRank + centroid), cluster, attribute, pipeline
-│   └── api/  worker/  db/    ← P6 (empty for now)
+│   ├── api/  worker/  db/    ← P6: FastAPI + SSE, lease-based job worker, Postgres/in-memory store
+│   └── ui/                   ← P7: render.py (highlighting), view.py, app.py (Gradio page)
 ├── scripts/
 │   ├── doctor.py             ← "is this machine ready?" check
-│   └── smoke_p0.py           ← live Gemini + Ollama call check
-├── eval/                     ← dataset loaders (data.py), metrics, BERTScore, perturbations
+│   ├── smoke_p0.py           ← live Gemini + Ollama call check
+│   ├── make_demo.py          ← build demo/*.json with the real pipeline (no Docker)
+│   ├── tune_aggrefact.py     ← verifier thresholds on AggreFact dev; --split test = SC4
+│   ├── attr_sheet.py / attr_score.py ← key-point attribution sheets + scoring
+│   └── overnight.py          ← unattended, resumable GPU chain: demo → E1 → E5 → SC4 → report
+├── eval/                     ← data, metrics, BERTScore, perturb, tune, run (E1/E5), report, attribution
+│   └── gold/                 ← attribution_labels.csv (24 key points, LLM-labelled)
+├── demo/                     ← precomputed demo papers for the UI (sbert, frank, true)
 ├── tests/unit/               ← fast tests: no network, no GPU, no Docker
 ├── tests/integration/        ← live GROBID / GPU / Ollama tests
-├── results/summaries/        ← your summary JSON files land here
+├── results/                  ← summaries, tuning, E1/E5 runs, report tables + figures (not in git)
 ├── docker-compose.yml        ← GROBID + Postgres (+ api/worker later)
-├── Dockerfile                ← image for the future API/worker
+├── Dockerfile                ← API/worker image (`docker build` not yet verified)
 ├── Makefile                  ← shortcuts (make test, make summarize, …)
 └── pyproject.toml            ← dependencies + tool settings
 ```
@@ -377,9 +434,10 @@ NLP_Project/
   | `HF_HUB_DISABLE_XET`, `HF_HUB_DISABLE_SYMLINKS_WARNING` | Hugging Face download workarounds for this machine |
   | `HF_TOKEN` | Only for the gated AggreFact dataset (never commit it) |
 
-- **`configs/default.yaml`** holds tunable settings: `tau_fraction` (0.8), `compression_pct` (10),
-  `temperature` (0.2), `seed` (1234), chunk sizes, key-point and verifier thresholds,
-  `fallback` policy. The values are starting points, to be tuned on a gold set and then frozen.
+- **`configs/default.yaml`** holds tunable settings: `profile` (`qwen3_8b_local`), `tau_fraction`
+  (0.8), `compression_pct` (10), `temperature` (0.2), `seed` (1234), chunk sizes, key-point
+  thresholds, `fallback` policy. **Verifier thresholds are frozen** from AggreFact dev
+  (DECISION-28): DeBERTa `theta_e` 0.10, MiniCheck `theta_e` 0.5, `theta_c` 0.5.
 
 - **`configs/models.yaml`** holds model profiles. Unknown keys are rejected (`extra="forbid"`),
   so a typo fails loudly instead of being silently ignored.
@@ -393,8 +451,10 @@ NLP_Project/
 
 | Command | What it does |
 | --- | --- |
-| `make summarize FILE="paper.pdf"` | Summarize with Gemini |
-| `make summarize FILE="paper.pdf" ARGS="--profile qwen3_8b_local"` | Summarize with Qwen |
+| `make demo` | **The web page** on http://127.0.0.1:7860 (demo papers + PDF upload) |
+| `make demo-export JOB=<id>` | Save a finished API job as a demo paper in `demo/` |
+| `make summarize FILE="paper.pdf"` | Summarize with Qwen (local default) |
+| `make summarize FILE="paper.pdf" ARGS="--profile gemini_full"` | Summarize with Gemini |
 | `make up` / `make down` | Start / stop GROBID + Postgres |
 | `make migrate` | Create / update the database tables (run once after `make up`) |
 | `make api` / `make worker` | Run the HTTP API on port 8000 / the job worker — each in its own terminal |
@@ -404,6 +464,10 @@ NLP_Project/
 | `make live-kp` | Live key points on the stored SBERT paper (Qwen3 + MiniLM), each printed next to its source sentence |
 | `make models` | Download the pinned model weights and write a half-size bf16 copy of MiniCheck (the only step that downloads models) |
 | `python -m eval.data --check` | Fetch, parse and count every dataset (AggreFact needs `HF_TOKEN`) |
+| `make exp E=E1` / `make exp E=E5 ARGS="--e1-dir results/E1/<run>"` | Pilot experiments → `results/<E>/<run_id>/` (manifest, per-doc JSONL, aggregate CSV) |
+| `make report` | Chapter-5 tables + figures from the newest runs → `results/report/` |
+| `python scripts/tune_aggrefact.py [--split test]` | Verifier threshold sweep on AggreFact dev / SC4 on test at frozen θ |
+| `python scripts/overnight.py` | Unattended resumable chain (start detached: see the script docstring) |
 | `make test` | Unit tests (no network/GPU/Docker needed) |
 | `make check` | Lint (ruff) + format (black) + types (mypy) + unit tests |
 | `make fmt` | Auto-format the code |
@@ -415,7 +479,7 @@ NLP_Project/
 
 - **TDD (test-driven development)** is mandatory: write the failing test first, watch it fail,
   then write the code.
-- **472 unit tests** run in about a minute with **no network, no GPU and no Docker**. Network
+- **538 unit tests** run in about a minute with **no network, no GPU and no Docker**. Network
   calls are faked with `httpx.MockTransport`; models are tiny random-weight stand-ins.
 - **Integration tests** (`pytest tests/integration`) need GROBID, the GPU and/or Ollama. One of
   them proves verification runs with the network switched off (FR-5.6).
@@ -443,22 +507,23 @@ NLP_Project/
 | `warning: GROBID found no section structure` | Not a paper-style PDF | Not an error; it summarizes the flat text |
 | Title shows the file name | GROBID couldn't find a title block | Cosmetic only |
 | Empty or garbage output | A **scanned** PDF (images, no text layer) | Needs OCR, which isn't supported |
+| `ollama transport:` (empty message) in a long Route B run | Calls queued past the 600 s timeout | Fixed: local profiles use `max_concurrency: 1`; E1 retries itself |
+| Upload tab says the API is not reachable | `make api` / `make worker` / Docker not running | See §2 "Upload your own PDF" |
 
 ---
 
 ## 11. Roadmap
 
-- **P3 (rest):** tune verifier thresholds on AggreFact dev (one pair per verifier — config is
-  ready, values are 0.5 placeholders), report verifier F1 on AggreFact test. **Needs a Hugging
-  Face login (`HF_TOKEN`) — must be done before P8.**
-- **P4 (rest):** the guide confirms the provisional E4 choices (`CLAUDE.md` DECISION-23/24:
-  size-matched uniform chunks, GROBID-parsed papers).
-- **P5 (rest):** tune `theta_attr`, `dup_distance` and `lambda_graph` on the gold set and
-  measure attribution precision.
-- **P7 UI:** Gradio two-pane view; click a key point or claim and the source text is highlighted,
-  with claims coloured by verdict.
-- **P8 Experiments E1–E5**, then **P9 report**. Every table is generated from logs, never typed
-  by hand.
+**Before the deadline (2026-11-02):**
+- Overnight chain finishes E1 (+E3), E5, SC4 → `make report` → report chapter 5.
+- Rehearse the live PDF upload (Docker + API + worker) after the GPU run is done.
+- Team member spot-checks 8 key-point labels (`results/attribution/sbert.sheet.csv`) for an
+  agreement number; the guide confirms the scope cut and Qwen-only setup.
+
+**Future work (reported as limitations):** E2 (τ sweep) and E4 (section-aware vs uniform
+chunks); a human-annotated 50-document gold set and claim-level human labels (Cohen's κ);
+tuning `theta_attr`/`dup_distance` on that gold set; NLI reranking for key-point attribution;
+`theta_c` tuning (needs 3-way labels); OCR for scanned PDFs; `docker build` for API/worker.
 
 ---
 
@@ -471,11 +536,12 @@ NLP_Project/
 | XML parsing | **lxml** |
 | Sentence splitting | **pySBD** |
 | Web extraction | **trafilatura** |
-| Cloud LLM | **Google Gemini** `gemini-3.6-flash` via REST (`httpx`) |
-| Local LLM | **Qwen3-8B** (Q4) via **Ollama** |
+| Cloud LLM (optional) | **Google Gemini** `gemini-3.6-flash` via REST (`httpx`) |
+| Local LLM (default) | **Qwen3-8B** (Q4_K_M) via **Ollama** |
 | Config / validation | **pydantic**, **PyYAML**, **python-dotenv** |
 | Containers | **Docker Desktop**, **Docker Compose** |
-| Database (planned) | **PostgreSQL 16** |
+| Database | **PostgreSQL 16** (psycopg 3), plain SQL migrations |
+| Web API / UI | **FastAPI** + SSE, **Gradio** 6 |
 | Verifiers | **DeBERTa-v3 NLI**, **MiniCheck** Flan-T5 (Hugging Face `transformers`, CUDA 12.8 torch) |
 | Embeddings / metrics | **sentence-transformers** (MiniLM), **rouge-score**, **bert-score**, **scipy** |
 | Testing / quality | **pytest**, **ruff**, **black**, **mypy**, **pre-commit** |

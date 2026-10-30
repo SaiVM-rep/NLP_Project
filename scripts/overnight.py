@@ -90,8 +90,13 @@ def main() -> int:
         log("demo: all bundles present, skipped")
 
     if finished("E1") is None:
-        if not run("E1", ["-m", "eval.run", "--experiment", "E1"]):
-            log("E1 failed; E5 needs it, stopping before E5 (report still runs)")
+        # E1 resumes from results/E1/_running + the LLM cache, so a retry only redoes the
+        # unfinished arm (run 1 died on one transient Ollama timeout after 82 min).
+        for attempt in range(1, 4):
+            if run(f"E1 (attempt {attempt}/3)", ["-m", "eval.run", "--experiment", "E1"]):
+                break
+        else:
+            log("E1 failed 3 times; E5 needs it, stopping before E5 (report still runs)")
     else:
         log(f"E1: finished run {finished('E1')} present, skipped")
 

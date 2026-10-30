@@ -242,3 +242,10 @@ def test_real_thresholds_are_the_frozen_aggrefact_dev_values():
     v = load_config("configs").verify
     assert (v.nli.theta_e, v.nli.theta_c) == (0.10, 0.5)
     assert v.minicheck.theta_e == 0.5
+
+
+def test_real_local_profiles_send_one_request_at_a_time():
+    """E1 run 1 died: 4 queued Route B calls on one GPU waited past Ollama's 600 s timeout."""
+    profiles = load_config("configs").profiles
+    for name, p in profiles.items():
+        assert p.max_concurrency == (1 if p.provider == "ollama" else 4), name

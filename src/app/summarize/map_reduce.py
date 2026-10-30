@@ -58,7 +58,7 @@ async def summarize_b(
     *,
     count: Count | None = None,
     chunker: Callable[..., list[Chunk]] = chunk_sections,
-    max_concurrency: int = 4,
+    max_concurrency: int | None = None,
     tokens: int | None = None,
     tau: int | None = None,
 ) -> SummaryResult:
@@ -69,7 +69,7 @@ async def summarize_b(
     chunk_tpl, chunk_hash = load_prompt(prompt_dir, CHUNK_PROMPT)
     merge_tpl, merge_hash = load_prompt(prompt_dir, MERGE_PROMPT)
     pct = cfg.summary.compression_pct
-    sem = asyncio.Semaphore(max_concurrency)
+    sem = asyncio.Semaphore(max_concurrency or cfg.active_profile.max_concurrency)
     models: list[str] = []
 
     async def limited(make: Callable[[], Awaitable[T]]) -> T:
