@@ -42,17 +42,30 @@ class Openers:
     minicheck: Callable[[], AbstractContextManager[SupportFn]]
 
 
-def openers_from_config(cfg: VerifyCfg, *, device: str = "cuda") -> Openers:
+def openers_from_config(
+    cfg: VerifyCfg, *, device: str = "cuda", minicheck_local: Path | None = None
+) -> Openers:
     """Real models, pinned by `configs/default.yaml` `verify.*`. Each loads only when opened.
 
     Local cache only (FR-5.6): HF loaders otherwise call huggingface.co even for a pinned
-    sha. Missing weights fail here; fetch them first with `make models`.
+    sha. Missing weights fail here; fetch them first with `make models`. MiniCheck loads
+    from the bf16 safetensors copy `make models` writes when it exists (DECISION-22),
+    else from the pinned fp32 `.bin`.
     """
     from app.verify.embedder import SentenceEmbedder
     from app.verify.minicheck import MiniCheckT5
+    from app.verify.models import bf16_dir, default_hf_home
     from app.verify.nli import DebertaNLI
 
     e, n, m = cfg.embedder, cfg.nli, cfg.minicheck
+    local = minicheck_local or bf16_dir(m, default_hf_home())
+
+    def open_minicheck() -> MiniCheckT5:
+        ckpt, rev = (str(local), None) if local.is_dir() else (m.checkpoint, m.revision)
+        return MiniCheckT5.from_pretrained(
+            ckpt, revision=rev, device=device, batch_size=m.batch_size, local_files_only=True
+        )
+
     return Openers(
         embedder=lambda: SentenceEmbedder.from_pretrained(
             e.checkpoint, revision=e.revision, device=device, local_files_only=True
@@ -64,13 +77,7 @@ def openers_from_config(cfg: VerifyCfg, *, device: str = "cuda") -> Openers:
             batch_size=n.batch_size,
             local_files_only=True,
         ),
-        minicheck=lambda: MiniCheckT5.from_pretrained(
-            m.checkpoint,
-            revision=m.revision,
-            device=device,
-            batch_size=m.batch_size,
-            local_files_only=True,
-        ),
+        minicheck=open_minicheck,
     )
 
 

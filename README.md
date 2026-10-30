@@ -37,7 +37,7 @@ The project is built in phases (P0 → P9, defined in `PRD.md`). Status as of 20
 | **P2 Baseline** | One-shot summary from the command line | ✅ Works on real PDFs |
 | **P3 Evaluation** | Check every summary claim against the source | 🟡 Done except AggreFact threshold tuning (needs a Hugging Face login — **before P8**) |
 | **P4 Route B** | Summarize documents too long for one prompt | ✅ Done — first live run 2026-10-30 (SBERT forced to Route B: 19 merge nodes, 291 claims checked, faithfulness per merge level) |
-| **P5 Key points** | Extract ranked key points linked to their source sentence | 🟡 Built and unit-tested (candidates, PageRank + centroid score, duplicate clustering, ranking, attribution); live run and gold-set tuning still to do |
+| **P5 Key points** | Extract ranked key points linked to their source sentence | 🟡 Built, unit-tested, first live run 2026-10-30 (SBERT, 8 key points in ~3 min); thresholds still need tuning on the gold set (2 of 8 linked to the wrong sentence) |
 | P6 Service | HTTP API + job queue + database | ⬜ Not started |
 | P7 UI | Two-pane web view with highlighting | ⬜ Not started |
 | P8–P9 | Experiments E1–E5 and the final report | ⬜ Not started |
@@ -383,7 +383,8 @@ NLP_Project/
 | `make doctor` | Check Python, `.env`, Ollama model, Docker, GPU |
 | `make smoke` | One live Gemini call + one live Ollama call (uses a little quota) |
 | `make live-b` | Live Route B on the stored SBERT paper + faithfulness per merge level, with RAM/GPU peaks (needs free RAM, see §9; `ARGS="--min-free-gb 4"` to lower the guard) |
-| `make models` | Download the pinned model weights (the only step that downloads models) |
+| `make live-kp` | Live key points on the stored SBERT paper (Qwen3 + MiniLM), each printed next to its source sentence |
+| `make models` | Download the pinned model weights and write a half-size bf16 copy of MiniCheck (the only step that downloads models) |
 | `python -m eval.data --check` | Fetch, parse and count every dataset (AggreFact needs `HF_TOKEN`) |
 | `make test` | Unit tests (no network/GPU/Docker needed) |
 | `make check` | Lint (ruff) + format (black) + types (mypy) + unit tests |
@@ -396,11 +397,11 @@ NLP_Project/
 
 - **TDD (test-driven development)** is mandatory: write the failing test first, watch it fail,
   then write the code.
-- **420 unit tests** run in about a minute with **no network, no GPU and no Docker**. Network
+- **426 unit tests** run in about a minute with **no network, no GPU and no Docker**. Network
   calls are faked with `httpx.MockTransport`; models are tiny random-weight stand-ins.
 - **Integration tests** (`pytest tests/integration`) need GROBID, the GPU and/or Ollama. One of
   them proves verification runs with the network switched off (FR-5.6).
-- **Memory:** the GPU tests need ~6 GB free RAM (MiniCheck loads 3.1 GB of weights) and up to
+- **Memory:** the GPU tests need ~4 GB free RAM (MiniCheck now loads a 1.5 GB bf16 copy; the original 3.1 GB file needed ~5 GB) and up to
   6.2 GB of GPU memory (Qwen3). Close Docker Desktop when not running the GROBID tests. The
   first live Route B run (`make live-b`) started with 4.4 GB free and bottomed out at 0.09 GB —
   aim for 8 GB free (close VS Code, browsers, games, background vendor apps).
@@ -432,10 +433,10 @@ NLP_Project/
 - **P3 (rest):** tune verifier thresholds on AggreFact dev (one pair per verifier — config is
   ready, values are 0.5 placeholders), report verifier F1 on AggreFact test. **Needs a Hugging
   Face login (`HF_TOKEN`) — must be done before P8.**
-- **P4 (rest):** a decision on how E4 matches chunk sizes and which data it uses (`CLAUDE.md` §6
-  q #8, #9). Lower the verification RAM peak (MiniCheck bf16 copy).
-- **P5 (rest):** first live key-point run on a real paper; tune `theta_attr`, `dup_distance`
-  and `lambda_graph` on the gold set and measure attribution precision.
+- **P4 (rest):** the guide confirms the provisional E4 choices (`CLAUDE.md` DECISION-23/24:
+  size-matched uniform chunks, GROBID-parsed papers).
+- **P5 (rest):** tune `theta_attr`, `dup_distance` and `lambda_graph` on the gold set and
+  measure attribution precision.
 - **P6 Service:** FastAPI + Postgres job queue + live progress (SSE).
 - **P7 UI:** Gradio two-pane view; click a key point or claim and the source text is highlighted,
   with claims coloured by verdict.

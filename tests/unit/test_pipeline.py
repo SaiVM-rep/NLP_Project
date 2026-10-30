@@ -349,3 +349,28 @@ async def test_verify_summary_gives_faithfulness_per_level_per_verifier(tmp_path
     # cat supported by both; dog contradicted (DeBERTa) / unsupported (MiniCheck)
     for verifier in ("deberta", "minicheck"):
         assert faithfulness_by_level(v.claims, v.nodes, verifier) == {0: 0.5, 1: 1.0}
+
+
+def test_minicheck_opener_prefers_the_local_bf16_copy(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """3.1 GB fp32 .bin -> 1.5 GB mmap'd bf16 safetensors (live RAM low point 0.09 GB)."""
+    from app.verify import minicheck
+    from app.verify.pipeline import openers_from_config
+
+    seen: list[tuple[str, dict[str, Any]]] = []
+
+    def from_pretrained(cls: Any, checkpoint: str, **kw: Any) -> str:
+        seen.append((checkpoint, kw))
+        return "mc"
+
+    monkeypatch.setattr(minicheck.MiniCheckT5, "from_pretrained", classmethod(from_pretrained))
+    local = tmp_path / "mc-bf16"
+    openers_from_config(_cfg(), device="cpu", minicheck_local=local).minicheck()
+    local.mkdir()
+    openers_from_config(_cfg(), device="cpu", minicheck_local=local).minicheck()
+
+    (pinned_ckpt, kw0), (local_ckpt, kw1) = seen
+    assert pinned_ckpt == _cfg().minicheck.checkpoint and kw0["revision"]  # fallback
+    assert local_ckpt == str(local) and kw1["revision"] is None
+    assert kw0["local_files_only"] is kw1["local_files_only"] is True

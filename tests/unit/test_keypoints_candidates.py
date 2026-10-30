@@ -81,6 +81,13 @@ async def test_decoding_comes_from_config_like_the_summaries(tmp_path: Path) -> 
     assert p.params[0]["top_p"] == CFG.decoding.top_p
 
 
+async def test_candidates_disable_model_thinking(tmp_path: Path) -> None:
+    """DECISION-25: Qwen3 thinking made each section call 26-60 s on SBERT (2026-10-30)."""
+    p = ScriptedProvider('{"points": []}', '{"points": []}')
+    await generate_candidates(_doc(), _client(p, tmp_path), CFG, ROOT / "prompts")
+    assert [q["think"] for q in p.params] == [False, False]
+
+
 async def test_more_points_than_asked_are_cut_to_n(tmp_path: Path) -> None:
     n = CFG.keypoints.candidates_per_section
     many = ", ".join(f'"Point {i}."' for i in range(n + 3))

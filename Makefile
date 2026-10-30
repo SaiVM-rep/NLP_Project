@@ -5,10 +5,11 @@
 
 PY ?= .venv/Scripts/python.exe
 
-.PHONY: help up down logs migrate test test-all smoke live-b summarize doctor models lint fmt typecheck hooks check demo exp report clean
+.PHONY: help up down logs migrate test test-all smoke live-b live-kp summarize doctor models lint fmt typecheck hooks check demo exp report clean
 
 help:
 	@echo "up        start db + grobid"
+	@echo "live-kp   P5 live key points on stored TEI (Qwen3 + MiniLM)"
 	@echo "models    download pinned model weights (verification itself is offline, FR-5.6)"
 	@echo "down      stop services"
 	@echo "migrate   apply db migrations"
@@ -44,6 +45,10 @@ smoke:
 # P4 exit: live Route B on stored TEI + per-level verification. Needs >= 8 GB free RAM.
 live-b:
 	$(PY) scripts/live_route_b.py $(ARGS)
+
+# P5: key points on one stored-TEI paper, real Qwen3 + MiniLM
+live-kp:
+	$(PY) scripts/live_keypoints.py $(ARGS)
 
 # P2 exit. make summarize FILE=paper.pdf [ARGS="--profile qwen3_8b_local"]
 summarize:

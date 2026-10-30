@@ -67,6 +67,8 @@ async def generate_candidates(
                 temperature=dec.temperature,
                 top_p=dec.top_p,
                 seed=dec.seed,
+                # Qwen3 thinking: 26-60 s per section on SBERT; off like decomposition.
+                think=False,
                 accept=lambda t: _parse(t) is not None,
             )
             if (points := _parse(res.text)) is not None:
