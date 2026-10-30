@@ -2181,6 +2181,7 @@ ml = [
 service = [
     { name = "fastapi" },
     { name = "psycopg", extra = ["binary"] },
+    { name = "python-multipart" },
     { name = "sse-starlette" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -2220,6 +2221,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.3" },
     { name = "pysbd", marker = "extra == 'ingest'", specifier = ">=0.3.4" },
     { name = "python-dotenv", specifier = ">=1.0" },
+    { name = "python-multipart", marker = "extra == 'service'", specifier = ">=0.0.9" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "rouge-score", marker = "extra == 'eval'", specifier = ">=0.1.2" },
     { name = "scikit-learn", marker = "extra == 'ml'", specifier = ">=1.5" },

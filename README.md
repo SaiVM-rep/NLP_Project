@@ -38,7 +38,7 @@ The project is built in phases (P0 → P9, defined in `PRD.md`). Status as of 20
 | **P3 Evaluation** | Check every summary claim against the source | 🟡 Done except AggreFact threshold tuning (needs a Hugging Face login — **before P8**) |
 | **P4 Route B** | Summarize documents too long for one prompt | ✅ Done — first live run 2026-10-30 (SBERT forced to Route B: 19 merge nodes, 291 claims checked, faithfulness per merge level) |
 | **P5 Key points** | Extract ranked key points linked to their source sentence | 🟡 Built, unit-tested, first live run 2026-10-30 (SBERT, 8 key points in ~3 min); thresholds still need tuning on the gold set (2 of 8 linked to the wrong sentence) |
-| P6 Service | HTTP API + job queue + database | ⬜ Not started |
+| **P6 Service** | HTTP API + job queue + database | ✅ Done — upload a PDF or URL over HTTP, watch live progress, fetch summary + key points + checked claims (first live run 2026-10-30, ~7 min on the SBERT paper) |
 | P7 UI | Two-pane web view with highlighting | ⬜ Not started |
 | P8–P9 | Experiments E1–E5 and the final report | ⬜ Not started |
 
@@ -84,6 +84,22 @@ ollama pull qwen3:8b
    docker compose up -d grobid
    ```
    Wait ~30 seconds for it to load.
+
+### Use it over HTTP (P6)
+
+```powershell
+make up; make migrate          # Postgres + GROBID, then tables
+make api                       # terminal 1: http://localhost:8000/docs
+make worker                    # terminal 2: processes jobs one at a time
+curl -F "file=@paper.pdf;type=application/pdf" -F 'options={"profile":"qwen3_8b_local"}' localhost:8000/v1/jobs
+curl -N localhost:8000/v1/jobs/<job_id>/events    # live progress (SSE)
+curl localhost:8000/v1/jobs/<job_id>/result        # summary, key points, claims, metrics
+```
+
+`options` (all optional): `profile`, `tau`, `keypoints` (true), `verify` (true). A URL job is
+`curl -H "content-type: application/json" -d '{"url": "https://..."}' localhost:8000/v1/jobs`.
+If the worker dies mid-job, the job is picked up again after the lease (2 min) and fails
+cleanly after 3 tries.
 
 ### Summarize
 
@@ -380,6 +396,8 @@ NLP_Project/
 | `make summarize FILE="paper.pdf"` | Summarize with Gemini |
 | `make summarize FILE="paper.pdf" ARGS="--profile qwen3_8b_local"` | Summarize with Qwen |
 | `make up` / `make down` | Start / stop GROBID + Postgres |
+| `make migrate` | Create / update the database tables (run once after `make up`) |
+| `make api` / `make worker` | Run the HTTP API on port 8000 / the job worker — each in its own terminal |
 | `make doctor` | Check Python, `.env`, Ollama model, Docker, GPU |
 | `make smoke` | One live Gemini call + one live Ollama call (uses a little quota) |
 | `make live-b` | Live Route B on the stored SBERT paper + faithfulness per merge level, with RAM/GPU peaks (needs free RAM, see §9; `ARGS="--min-free-gb 4"` to lower the guard) |
@@ -397,7 +415,7 @@ NLP_Project/
 
 - **TDD (test-driven development)** is mandatory: write the failing test first, watch it fail,
   then write the code.
-- **426 unit tests** run in about a minute with **no network, no GPU and no Docker**. Network
+- **472 unit tests** run in about a minute with **no network, no GPU and no Docker**. Network
   calls are faked with `httpx.MockTransport`; models are tiny random-weight stand-ins.
 - **Integration tests** (`pytest tests/integration`) need GROBID, the GPU and/or Ollama. One of
   them proves verification runs with the network switched off (FR-5.6).
@@ -437,7 +455,6 @@ NLP_Project/
   size-matched uniform chunks, GROBID-parsed papers).
 - **P5 (rest):** tune `theta_attr`, `dup_distance` and `lambda_graph` on the gold set and
   measure attribution precision.
-- **P6 Service:** FastAPI + Postgres job queue + live progress (SSE).
 - **P7 UI:** Gradio two-pane view; click a key point or claim and the source text is highlighted,
   with claims coloured by verdict.
 - **P8 Experiments E1–E5**, then **P9 report**. Every table is generated from logs, never typed

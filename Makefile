@@ -5,7 +5,7 @@
 
 PY ?= .venv/Scripts/python.exe
 
-.PHONY: help up down logs migrate test test-all smoke live-b live-kp summarize doctor models lint fmt typecheck hooks check demo exp report clean
+.PHONY: help up down logs migrate test test-all smoke live-b live-kp api worker summarize doctor models lint fmt typecheck hooks check demo exp report clean
 
 help:
 	@echo "up        start db + grobid"
@@ -13,6 +13,8 @@ help:
 	@echo "models    download pinned model weights (verification itself is offline, FR-5.6)"
 	@echo "down      stop services"
 	@echo "migrate   apply db migrations"
+	@echo "api       HTTP API on :8000 (P6)"
+	@echo "worker    job worker: polls the queue, runs the pipeline (P6)"
 	@echo "test      unit tests only (no network, no GPU)"
 	@echo "test-all  unit + integration (needs 'make up')"
 	@echo "check     lint + format check + types + unit tests"
@@ -30,6 +32,13 @@ logs:
 
 migrate:
 	$(PY) -m app.db.migrate
+
+# P6 service: run both (after `make up` + `make migrate`), each in its own terminal
+api:
+	$(PY) -m uvicorn app.api.main:app --port 8000
+
+worker:
+	$(PY) -m app.worker $(ARGS)
 
 # Default suite: no network, no GPU, no docker (NFR-8, and what CI runs).
 test:

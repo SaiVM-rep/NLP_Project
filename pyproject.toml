@@ -45,6 +45,7 @@ service = [
     "uvicorn[standard]>=0.30",
     "sse-starlette>=2.1",
     "psycopg[binary]>=3.2",
+    "python-multipart>=0.0.9",  # FastAPI needs it for the multipart `file` upload (§11.10)
 ]
 ui = ["gradio>=4.38"]
 llm = ["google-genai>=0.3"]
