@@ -35,9 +35,9 @@ The project is built in phases (P0 → P9, defined in `PRD.md`). Status as of 20
 | **P0 Foundations** | Config, LLM client, cache, rate limiter, logging, Docker services | ✅ Done |
 | **P1 Ingestion** | Turn a PDF or web article into clean, structured text | ✅ Done (20 PDFs, 10 URLs) |
 | **P2 Baseline** | One-shot summary from the command line | ✅ Works on real PDFs |
-| **P3 Evaluation** | Check every summary claim against the source | 🟡 Done except AggreFact threshold tuning (needs a Hugging Face login) |
-| **P4 Route B** | Summarize documents too long for one prompt | 🟡 Chunking + map-reduce built and unit-tested; first full live run and per-level verification still to do |
-| P5 Key points | Extract ranked key points linked to their source sentence | ⬜ Not started |
+| **P3 Evaluation** | Check every summary claim against the source | 🟡 Done except AggreFact threshold tuning (needs a Hugging Face login — **before P8**) |
+| **P4 Route B** | Summarize documents too long for one prompt | ✅ Done — first live run 2026-10-30 (SBERT forced to Route B: 19 merge nodes, 291 claims checked, faithfulness per merge level) |
+| **P5 Key points** | Extract ranked key points linked to their source sentence | 🟡 Built and unit-tested (candidates, PageRank + centroid score, duplicate clustering, ranking, attribution); live run and gold-set tuning still to do |
 | P6 Service | HTTP API + job queue + database | ⬜ Not started |
 | P7 UI | Two-pane web view with highlighting | ⬜ Not started |
 | P8–P9 | Experiments E1–E5 and the final report | ⬜ Not started |
@@ -331,7 +331,7 @@ NLP_Project/
 │   ├── summarize/            ← single_pass.py (Route A), map_reduce.py (Route B), common.py
 │   ├── llm/                  ← client, cache, limiter, providers/{gemini,ollama}.py
 │   ├── verify/               ← decompose, evidence, embedder, nli (DeBERTa), minicheck, pipeline
-│   ├── keypoints/            ← P5 (empty for now)
+│   ├── keypoints/            ← candidates, rank (PageRank + centroid), cluster, attribute, pipeline
 │   └── api/  worker/  db/    ← P6 (empty for now)
 ├── scripts/
 │   ├── doctor.py             ← "is this machine ready?" check
@@ -382,6 +382,7 @@ NLP_Project/
 | `make up` / `make down` | Start / stop GROBID + Postgres |
 | `make doctor` | Check Python, `.env`, Ollama model, Docker, GPU |
 | `make smoke` | One live Gemini call + one live Ollama call (uses a little quota) |
+| `make live-b` | Live Route B on the stored SBERT paper + faithfulness per merge level, with RAM/GPU peaks (needs free RAM, see §9; `ARGS="--min-free-gb 4"` to lower the guard) |
 | `make models` | Download the pinned model weights (the only step that downloads models) |
 | `python -m eval.data --check` | Fetch, parse and count every dataset (AggreFact needs `HF_TOKEN`) |
 | `make test` | Unit tests (no network/GPU/Docker needed) |
@@ -395,12 +396,14 @@ NLP_Project/
 
 - **TDD (test-driven development)** is mandatory: write the failing test first, watch it fail,
   then write the code.
-- **391 unit tests** run in about a minute with **no network, no GPU and no Docker**. Network
+- **420 unit tests** run in about a minute with **no network, no GPU and no Docker**. Network
   calls are faked with `httpx.MockTransport`; models are tiny random-weight stand-ins.
 - **Integration tests** (`pytest tests/integration`) need GROBID, the GPU and/or Ollama. One of
   them proves verification runs with the network switched off (FR-5.6).
 - **Memory:** the GPU tests need ~6 GB free RAM (MiniCheck loads 3.1 GB of weights) and up to
-  6.2 GB of GPU memory (Qwen3). Close Docker Desktop when not running the GROBID tests.
+  6.2 GB of GPU memory (Qwen3). Close Docker Desktop when not running the GROBID tests. The
+  first live Route B run (`make live-b`) started with 4.4 GB free and bottomed out at 0.09 GB —
+  aim for 8 GB free (close VS Code, browsers, games, background vendor apps).
 - **ruff** (lint), **black** (formatting) and **mypy --strict** (type checking) all must pass:
   `make check`.
 - **pre-commit** runs all of the above automatically before each git commit.
@@ -426,11 +429,13 @@ NLP_Project/
 
 ## 11. Roadmap
 
-- **P3 (rest):** tune verifier thresholds on AggreFact dev, report verifier F1 on AggreFact test.
-- **P4 (rest):** first full live Route B run, faithfulness measured at every merge level, and a
-  decision on how E4 matches chunk sizes (see `CLAUDE.md` §6).
-- **P5 Key points:** candidate generation, PageRank + centroid scoring, clustering to remove
-  duplicates, and each point linked to its evidence span.
+- **P3 (rest):** tune verifier thresholds on AggreFact dev (one pair per verifier — config is
+  ready, values are 0.5 placeholders), report verifier F1 on AggreFact test. **Needs a Hugging
+  Face login (`HF_TOKEN`) — must be done before P8.**
+- **P4 (rest):** a decision on how E4 matches chunk sizes and which data it uses (`CLAUDE.md` §6
+  q #8, #9). Lower the verification RAM peak (MiniCheck bf16 copy).
+- **P5 (rest):** first live key-point run on a real paper; tune `theta_attr`, `dup_distance`
+  and `lambda_graph` on the gold set and measure attribution precision.
 - **P6 Service:** FastAPI + Postgres job queue + live progress (SSE).
 - **P7 UI:** Gradio two-pane view; click a key point or claim and the source text is highlighted,
   with claims coloured by verdict.

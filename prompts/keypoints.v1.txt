@@ -1,0 +1,6 @@
+List up to {n} key points from this section as short, self-contained statements.
+Use only the section text. Each point must be a single factual statement.
+Return JSON: {"points": ["...", "..."]}
+
+SECTION ({heading}):
+{section_text}

@@ -39,7 +39,9 @@ def _doc() -> Document:
 
 def _cfg(**kw: Any) -> VerifyCfg:
     base = load_config(ROOT / "configs").verify.model_dump()
-    base.update(top_n_evidence=1, theta_e=0.5, theta_c=0.5)
+    base.update(top_n_evidence=1)
+    base["nli"].update(theta_e=0.5, theta_c=0.5)
+    base["minicheck"]["theta_e"] = 0.5
     base["minicheck"]["chunk_words"] = 3  # one sentence per chunk in this toy doc
     base.update(kw)
     return VerifyCfg(**base)
@@ -195,6 +197,18 @@ def test_failure_still_closes_the_model_and_stops() -> None:
     assert rig.events == ["open embedder", "close embedder", "open nli", "close nli"]
 
 
+def test_each_verifier_labels_with_its_own_threshold() -> None:
+    """AggreFact-dev tuning yields one threshold pair per verifier; scores are not on one scale."""
+    cfg = _cfg()
+    cfg.nli.theta_e = 0.95  # cat entail 0.9 -> no longer supported by DeBERTa
+    cfg.minicheck.theta_e = 0.9  # cat support 0.95 -> still supported by MiniCheck
+    cat = verify_claims(_doc(), CLAIMS[:1], Rig().openers, cfg)[0]
+    assert (cat.label_deberta, cat.label_minicheck) == (
+        ClaimLabel.UNSUPPORTED,
+        ClaimLabel.SUPPORTED,
+    )
+
+
 # ------------------------------------------------------- with decomposition ---
 
 
@@ -265,3 +279,73 @@ def test_real_openers_load_from_local_cache_only(monkeypatch: pytest.MonkeyPatch
         "nli": True,
         "minicheck": True,
     }
+
+
+# ------------------------------------------------- whole summary, per level ---
+
+
+def _result(**kw: Any) -> Any:
+    from app.core.schemas import Route
+    from app.summarize.common import SummaryResult
+
+    base: dict[str, Any] = dict(
+        doc_id="d",
+        summary="Cats purr.",
+        route=Route.A,
+        tokens=10,
+        tau=100,
+        prompt_hashes={},
+        model="m",
+    )
+    base.update(kw)
+    return SummaryResult(**base)
+
+
+def test_route_a_summary_is_one_level_zero_node() -> None:
+    from app.verify.pipeline import summary_nodes
+
+    assert summary_nodes(_result()) == [SummaryNode(id="root", level=0, text="Cats purr.")]
+
+
+def test_route_b_verifies_every_node_of_the_merge_tree() -> None:
+    from app.core.schemas import Route
+    from app.verify.pipeline import summary_nodes
+
+    tree = [
+        SummaryNode(id="n0-0", level=0, parent_id="n1-0", text="Cats purr."),
+        SummaryNode(id="n0-1", level=0, parent_id="n1-0", text="Birds are blue."),
+        SummaryNode(id="n1-0", level=1, text="Cats purr; birds are blue."),
+    ]
+    r = _result(route=Route.B, summary=tree[-1].text, nodes=tree, root_id="n1-0")
+    assert summary_nodes(r) == tree
+
+
+async def test_verify_summary_gives_faithfulness_per_level_per_verifier(tmp_path: Path) -> None:
+    """G5/E3: one call verifies a Route B result at every merge level."""
+    from app.core.schemas import Route
+    from app.verify.pipeline import verify_summary
+
+    tree = [
+        SummaryNode(id="n0-0", level=0, parent_id="n1-0", text="Cats purr."),
+        SummaryNode(id="n0-1", level=0, parent_id="n1-0", text="Dogs are quiet."),
+        SummaryNode(id="n1-0", level=1, text="Cats purr; dogs are quiet."),
+    ]
+    r = _result(route=Route.B, summary=tree[-1].text, nodes=tree, root_id="n1-0")
+    cfg = load_config(ROOT / "configs")
+    client = LLMClient(
+        ScriptedProvider(
+            '{"claims": ["A cat purrs."]}',
+            '{"claims": ["The dog is silent."]}',
+            '{"claims": ["A cat purrs."]}',
+        ),
+        cfg.profiles["qwen3_8b_local"],
+        DiskCache(tmp_path),
+    )
+    v = await verify_summary(_doc(), r, client, Rig().openers, _cfg(), prompt_dir=ROOT / "prompts")
+    from eval.metrics import faithfulness_by_level
+
+    assert [c.summary_node_id for c in v.claims] == ["n0-0", "n0-1", "n1-0"]
+    assert v.nodes == tree
+    # cat supported by both; dog contradicted (DeBERTa) / unsupported (MiniCheck)
+    for verifier in ("deberta", "minicheck"):
+        assert faithfulness_by_level(v.claims, v.nodes, verifier) == {0: 0.5, 1: 1.0}

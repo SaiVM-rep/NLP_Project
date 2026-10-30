@@ -23,14 +23,14 @@ summary:
 
 keypoints:
   top_k: 8
+  candidates_per_section: 5   # {n} in prompts/keypoints.v1.txt; PRD leaves it open
   theta_attr: 0.55
   dup_distance: 0.15
   lambda_graph: 0.5
 
 verify:
   top_n_evidence: 5
-  theta_e: 0.5
-  theta_c: 0.5
+  # theta_* are per verifier, placeholders until tuned on AggreFact dev (blocked on M7)
   decomposer: ollama     # local by default; keeps API quota for generation
   # Checkpoints confirmed live 2026-10-29 (CLAUDE.md §8). revision = full commit sha.
   embedder:              # DECISION-14; bge-small-en-v1.5 is the alternative, compare on AggreFact dev
@@ -40,11 +40,14 @@ verify:
     checkpoint: MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli
     revision: "b3546ea6b0346eb6f8d5d68b13c7dc6d0376b3d7"
     batch_size: 32       # peak 947 MiB on the 4070
+    theta_e: 0.5
+    theta_c: 0.5
   minicheck:             # DECISION-13: reimplemented Flan-T5-Large variant
     checkpoint: lytang/MiniCheck-Flan-T5-Large
     revision: "96eafd01cee2d16cf81aaa2fb226b14f422a37b3"
     batch_size: 16       # peak 2684 MiB at 500-word chunks
     chunk_words: 500     # upstream default for flan-t5-large
+    theta_e: 0.5
 
 metrics:
   bertscore:             # bert-score's English default, pinned (PRD §12.5: comparability only)

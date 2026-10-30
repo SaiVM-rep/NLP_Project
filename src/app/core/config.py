@@ -70,6 +70,7 @@ class SummaryCfg(_Strict):
 
 class KeyPointsCfg(_Strict):
     top_k: int = Field(gt=0)
+    candidates_per_section: int = Field(gt=0)  # `{n}` in keypoints.v1
     theta_attr: float = Field(ge=0.0, le=1.0)
     dup_distance: float = Field(ge=0.0, le=1.0)
     lambda_graph: float = Field(ge=0.0, le=1.0)
@@ -82,19 +83,22 @@ class ModelRef(_Strict):
     revision: str = Field(pattern=r"^[0-9a-f]{40}$")
 
 
+# Thresholds are per verifier: DeBERTa and MiniCheck scores are not on one scale, so
+# AggreFact-dev tuning yields one pair each (PRD §11.8 step 6).
 class NliCfg(ModelRef):
     batch_size: int = Field(gt=0)
+    theta_e: float = Field(ge=0.0, le=1.0)
+    theta_c: float = Field(ge=0.0, le=1.0)
 
 
 class MiniCheckCfg(ModelRef):
     batch_size: int = Field(gt=0)
     chunk_words: int = Field(gt=0)
+    theta_e: float = Field(ge=0.0, le=1.0)  # single support score: no contradiction threshold
 
 
 class VerifyCfg(_Strict):
     top_n_evidence: int = Field(gt=0)
-    theta_e: float = Field(ge=0.0, le=1.0)
-    theta_c: float = Field(ge=0.0, le=1.0)
     decomposer: Literal["ollama", "gemini"]
     embedder: ModelRef
     nli: NliCfg

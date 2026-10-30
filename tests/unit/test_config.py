@@ -29,15 +29,20 @@ route: {tau_fraction: 0.8, token_margin: 0.10}
 chunk: {chunk_tokens: 3000, overlap_tokens: 150, fan_in_k: 4}
 decoding: {temperature: 0.2, top_p: 0.9, seed: 1234}
 summary: {compression_pct: 10}
-keypoints: {top_k: 8, theta_attr: 0.55, dup_distance: 0.15, lambda_graph: 0.5}
+keypoints:
+  {top_k: 8, candidates_per_section: 5, theta_attr: 0.55, dup_distance: 0.15, lambda_graph: 0.5}
 verify:
   top_n_evidence: 5
-  theta_e: 0.5
-  theta_c: 0.5
   decomposer: ollama
   embedder: {checkpoint: org/emb, revision: "1111111111111111111111111111111111111111"}
-  nli: {checkpoint: org/nli, revision: "2222222222222222222222222222222222222222", batch_size: 32}
+  nli:
+    checkpoint: org/nli
+    revision: "2222222222222222222222222222222222222222"
+    batch_size: 32
+    theta_e: 0.5
+    theta_c: 0.6
   minicheck:
+    theta_e: 0.7
     checkpoint: org/mc
     revision: "3333333333333333333333333333333333333333"
     batch_size: 16
@@ -98,7 +103,8 @@ def test_loads_default_config(cfg_dir):
     assert cfg.profile == "gemini_full"
     assert cfg.chunk.chunk_tokens == 3000
     assert cfg.chunk.fan_in_k == 4
-    assert cfg.verify.theta_e == 0.5
+    assert (cfg.verify.nli.theta_e, cfg.verify.nli.theta_c) == (0.5, 0.6)
+    assert cfg.verify.minicheck.theta_e == 0.7
     assert cfg.cache.enabled is True
 
 

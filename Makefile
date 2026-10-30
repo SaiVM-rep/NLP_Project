@@ -5,7 +5,7 @@
 
 PY ?= .venv/Scripts/python.exe
 
-.PHONY: help up down logs migrate test test-all smoke summarize doctor models lint fmt typecheck hooks check demo exp report clean
+.PHONY: help up down logs migrate test test-all smoke live-b summarize doctor models lint fmt typecheck hooks check demo exp report clean
 
 help:
 	@echo "up        start db + grobid"
@@ -40,6 +40,10 @@ test-all:
 # P0 exit check. Needs a real API key (.env) and a pulled ollama model.
 smoke:
 	$(PY) scripts/smoke_p0.py $(ARGS)
+
+# P4 exit: live Route B on stored TEI + per-level verification. Needs >= 8 GB free RAM.
+live-b:
+	$(PY) scripts/live_route_b.py $(ARGS)
 
 # P2 exit. make summarize FILE=paper.pdf [ARGS="--profile qwen3_8b_local"]
 summarize:

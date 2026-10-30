@@ -21,6 +21,7 @@ from numpy.typing import NDArray
 from app.core.config import VerifyCfg
 from app.core.schemas import ClaimResult, Document, SummaryNode
 from app.llm.client import LLMClient
+from app.summarize.common import SummaryResult
 from app.verify.decompose import Claim, decompose
 from app.verify.evidence import Embed, retrieve_evidence
 from app.verify.labels import label
@@ -94,6 +95,7 @@ def verify_claims(
     with openers.minicheck() as mc:
         support = [support_score(t, chunks, mc) for t in texts]
 
+    n, m = cfg.nli, cfg.minicheck
     out = []
     for (node_id, c), ev, (entail, contra), sup in zip(
         claims, evidence, nli_scores, support, strict=True
@@ -107,8 +109,9 @@ def verify_claims(
                 deberta_entail=entail,
                 deberta_contra=contra,
                 minicheck_support=sup,
-                label_deberta=label(entail, contra, theta_e=cfg.theta_e, theta_c=cfg.theta_c),
-                label_minicheck=label(sup, None, theta_e=cfg.theta_e, theta_c=cfg.theta_c),
+                label_deberta=label(entail, contra, theta_e=n.theta_e, theta_c=n.theta_c),
+                # theta_c unused: MiniCheck has no contradiction score
+                label_minicheck=label(sup, None, theta_e=m.theta_e, theta_c=1.0),
             )
         )
     return out
@@ -131,3 +134,38 @@ async def verify_nodes(
     if release_llm is not None:
         await release_llm()
     return verify_claims(doc, claims, openers, cfg)
+
+
+ROUTE_A_NODE_ID = "root"
+
+
+def summary_nodes(result: SummaryResult) -> list[SummaryNode]:
+    """What to verify: every merge-tree node for Route B (G5, E3); Route A is one level-0 node."""
+    if result.nodes:
+        return list(result.nodes)
+    return [SummaryNode(id=ROUTE_A_NODE_ID, level=0, text=result.summary)]
+
+
+@dataclass(frozen=True)
+class VerifiedSummary:
+    """Claims point at `nodes` by id, so `eval.metrics.faithfulness_by_level` applies directly."""
+
+    nodes: list[SummaryNode]
+    claims: list[ClaimResult]
+
+
+async def verify_summary(
+    doc: Document,
+    result: SummaryResult,
+    client: LLMClient,
+    openers: Openers,
+    cfg: VerifyCfg,
+    *,
+    release_llm: Callable[[], Awaitable[None]] | None = None,
+    prompt_dir: str | Path = "prompts",
+) -> VerifiedSummary:
+    nodes = summary_nodes(result)
+    claims = await verify_nodes(
+        doc, nodes, client, openers, cfg, release_llm=release_llm, prompt_dir=prompt_dir
+    )
+    return VerifiedSummary(nodes=nodes, claims=claims)
