@@ -212,3 +212,33 @@ def test_real_configs_pin_bertscore():
         "722cf37b1afa9454edce342e7895e588b6ff1d59",
     )
     assert (b.num_layers, b.baseline) == (17, "roberta-large")
+
+
+def test_real_default_profile_is_local_qwen():
+    """DECISION-27: no API key or internet needed for a default run."""
+    cfg = load_config("configs")
+    assert cfg.profile == "qwen3_8b_local"
+    assert cfg.active_profile.provider == "ollama"
+
+
+def test_real_qwen_sim_profiles_fit_inside_the_real_window():
+    """E2 needs budgets that make Route B trigger, below Qwen's real 16k window."""
+    profiles = load_config("configs").profiles
+    real = profiles["qwen3_8b_local"]
+    for name in ("qwen_sim_4k", "qwen_sim_8k", "qwen_sim_12k"):
+        p = profiles[name]
+        assert (p.provider, p.model) == (real.provider, real.model)
+        assert p.effective_context < real.effective_context
+        assert p.limits == real.limits
+
+
+def test_real_thresholds_are_the_frozen_aggrefact_dev_values():
+    """DECISION-28: tuned on AggreFact dev only (results/tuning/aggrefact_dev.summary.json).
+
+    MiniCheck stays at its upstream 0.5: the dev curve is flat from 0.25 to 0.6 and the
+    sweep's best (0.22) beats 0.5 by 0.0005 balanced accuracy, which is noise.
+    theta_c is not tunable from binary labels and stays 0.5.
+    """
+    v = load_config("configs").verify
+    assert (v.nli.theta_e, v.nli.theta_c) == (0.10, 0.5)
+    assert v.minicheck.theta_e == 0.5

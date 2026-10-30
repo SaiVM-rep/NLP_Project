@@ -2,7 +2,7 @@
 # Every number here is a STARTING POINT to be tuned on the gold set (P8), then
 # frozen per experiment. Do not treat as final.
 
-profile: gemini_full
+profile: qwen3_8b_local
 
 route:
   tau_fraction: 0.8      # tau = tau_fraction * effective_context (FR-2.3)
@@ -30,7 +30,8 @@ keypoints:
 
 verify:
   top_n_evidence: 5
-  # theta_* are per verifier, placeholders until tuned on AggreFact dev (blocked on M7)
+  # theta_* are per verifier, FROZEN 2026-10-31 from AggreFact dev, 4349 stratified rows
+  # (DECISION-28, results/tuning/aggrefact_dev.summary.json). Test split untouched.
   decomposer: ollama     # local by default; keeps API quota for generation
   # Checkpoints confirmed live 2026-10-29 (CLAUDE.md §8). revision = full commit sha.
   embedder:              # DECISION-14; bge-small-en-v1.5 is the alternative, compare on AggreFact dev
@@ -40,14 +41,14 @@ verify:
     checkpoint: MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli
     revision: "b3546ea6b0346eb6f8d5d68b13c7dc6d0376b3d7"
     batch_size: 32       # peak 947 MiB on the 4070
-    theta_e: 0.5
-    theta_c: 0.5
+    theta_e: 0.10        # dev bal. acc. 0.675 (0.660 at 0.5)
+    theta_c: 0.5         # not tunable from binary labels
   minicheck:             # DECISION-13: reimplemented Flan-T5-Large variant
     checkpoint: lytang/MiniCheck-Flan-T5-Large
     revision: "96eafd01cee2d16cf81aaa2fb226b14f422a37b3"
     batch_size: 16       # peak 2684 MiB at 500-word chunks
     chunk_words: 500     # upstream default for flan-t5-large
-    theta_e: 0.5
+    theta_e: 0.5         # upstream default; dev curve flat 0.25-0.6 (bal. acc. 0.766)
 
 metrics:
   bertscore:             # bert-score's English default, pinned (PRD §12.5: comparability only)

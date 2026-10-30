@@ -44,3 +44,23 @@ profiles:
     # KV cache (~4.5 GB) + 5.2 GB weights does not fit. Also sent to Ollama as num_ctx.
     effective_context: 16384
     limits: { rpm: 600, tpm: 10000000, rpd: 100000 }
+
+  # DECISION-27: simulated context budgets on the local model, so Route B
+  # triggers and E2 can sweep tau without Gemini. All below the real 16384 window.
+  qwen_sim_4k:
+    provider: ollama
+    model: qwen3:8b
+    effective_context: 4096
+    limits: { rpm: 600, tpm: 10000000, rpd: 100000 }
+
+  qwen_sim_8k:
+    provider: ollama
+    model: qwen3:8b
+    effective_context: 8192
+    limits: { rpm: 600, tpm: 10000000, rpd: 100000 }
+
+  qwen_sim_12k:
+    provider: ollama
+    model: qwen3:8b
+    effective_context: 12288
+    limits: { rpm: 600, tpm: 10000000, rpd: 100000 }

@@ -53,7 +53,8 @@ async def test_returns_summary_with_routing_metadata(tmp_path: Path) -> None:
     p = ScriptedProvider('{"summary": "Short."}')
     res = await _run(p, tmp_path)
     assert res.summary == "Short."
-    assert res.route is Route.A and res.tokens > 0 and res.tau == 838860
+    # tau = 0.8 x qwen3_8b_local effective_context 16384 (DECISION-27)
+    assert res.route is Route.A and res.tokens > 0 and res.tau == 13107
     # FR-3.5: template hash per run, same sha256 as manifest.prompt_hashes
     assert list(res.prompt_hashes) == ["single_pass.v1.txt"]
     assert len(res.prompt_hashes["single_pass.v1.txt"]) == 64

@@ -1,11 +1,11 @@
-# PRD §14. Targets: up down migrate test lint fmt demo exp report
+# PRD §14. Targets: up down migrate test lint fmt demo demo-export exp report
 #
 # Windows note: these call .venv/Scripts/python.exe directly so they work from
 # Git Bash without activating the venv. On Linux/macOS set PY=.venv/bin/python.
 
 PY ?= .venv/Scripts/python.exe
 
-.PHONY: help up down logs migrate test test-all smoke live-b live-kp api worker summarize doctor models lint fmt typecheck hooks check demo exp report clean
+.PHONY: help up down logs migrate test test-all smoke live-b live-kp api worker summarize doctor models lint fmt typecheck hooks check demo demo-export exp report clean
 
 help:
 	@echo "up        start db + grobid"
@@ -15,6 +15,7 @@ help:
 	@echo "migrate   apply db migrations"
 	@echo "api       HTTP API on :8000 (P6)"
 	@echo "worker    job worker: polls the queue, runs the pipeline (P6)"
+	@echo "demo      P7 UI on :7860 (demo examples + PDF upload)"
 	@echo "test      unit tests only (no network, no GPU)"
 	@echo "test-all  unit + integration (needs 'make up')"
 	@echo "check     lint + format check + types + unit tests"
@@ -88,13 +89,18 @@ check: lint typecheck
 	$(PY) -m black --check .
 	$(PY) -m pytest tests/unit
 
+# P7 UI on http://127.0.0.1:7860 (localhost only). Demo examples load from demo/*.json;
+# upload needs `make api` + `make worker`. Save a finished job: make demo-export JOB=<id>
 demo:
-	$(PY) -m ui.gradio_app
+	$(PY) -m app.ui $(ARGS)
+
+demo-export:
+	$(PY) scripts/export_demo.py $(JOB) $(ARGS)
 
 # Usage: make exp E=E1
 exp:
 	@test -n "$(E)" || (echo "usage: make exp E=E1" && exit 1)
-	$(PY) -m eval.run --experiment $(E)
+	$(PY) -m eval.run --experiment $(E) $(ARGS)
 
 report:
 	$(PY) -m eval.report
