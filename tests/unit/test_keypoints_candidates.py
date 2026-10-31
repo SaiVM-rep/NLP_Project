@@ -119,3 +119,10 @@ async def test_invalid_json_gets_one_repair_retry_then_fails_naming_the_section(
     with pytest.raises(CandidateError, match="s1"):
         await generate_candidates(_doc(), _client(p, tmp_path), CFG, ROOT / "prompts")
     assert len(p.prompts) == 4
+
+
+async def test_all_section_calls_share_one_small_window(tmp_path: Path) -> None:
+    # One window for the whole stage: a change between calls would reload the model.
+    p = ScriptedProvider('{"points": ["Cats purr."]}', '{"points": ["Purrs counted."]}')
+    await generate_candidates(_doc(), _client(p, tmp_path), CFG, prompt_dir=ROOT / "prompts")
+    assert [x["num_ctx"] for x in p.params] == [4096, 4096]

@@ -7,6 +7,7 @@ from the job's options, and closed whatever happens.
 
 from __future__ import annotations
 
+import contextlib
 import os
 from collections.abc import Callable
 from pathlib import Path
@@ -180,4 +181,12 @@ class LiveStages:
         )
 
     async def aclose(self) -> None:
-        await self.provider.aclose()
+        from app.llm.base import TransientError
+
+        try:
+            # the model stays loaded between calls (DECISION-35); best effort, so a dead
+            # Ollama at close time never fails a finished job or hides the real error
+            with contextlib.suppress(TransientError):
+                await self._release()
+        finally:
+            await self.provider.aclose()

@@ -123,3 +123,26 @@ def test_bad_options_fail_the_job_cleanly(bad: dict[str, Any]) -> None:
     store = _run(bad, [])
     job = store.get_job(_only_job(store))
     assert job is not None and job.status == "failed" and job.error
+
+
+def test_live_stages_free_the_gpu_when_the_job_ends() -> None:
+    # Ollama now keeps the model loaded between calls; a finished job must not leave
+    # Qwen on the 8 GB GPU for the next job's verifiers (DECISION-3).
+    import asyncio
+
+    from app.worker.pipeline import LiveStages
+
+    log: list[str] = []
+
+    class FakeProvider:
+        async def unload(self, model: str) -> None:
+            log.append(f"unload {model}")
+
+        async def aclose(self) -> None:
+            log.append("aclose")
+
+    st = LiveStages.__new__(LiveStages)
+    st.cfg = load_config(ROOT / "configs")
+    st.provider = FakeProvider()  # type: ignore[assignment]
+    asyncio.run(st.aclose())
+    assert log == [f"unload {st.cfg.active_profile.model}", "aclose"]

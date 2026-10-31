@@ -124,3 +124,9 @@ async def test_malformed_reply_is_not_replayed_from_cache(tmp_path: Path) -> Non
     p = ScriptedProvider('{"claims": ["ok"]}')
     claims = await decompose("One sentence.", _client(p, tmp_path), ROOT / "prompts")
     assert [c.text for c in claims] == ["ok"]
+
+
+async def test_decomposition_runs_in_a_small_window(tmp_path: Path) -> None:
+    p = ScriptedProvider('{"claims": ["Cats purr."]}', '{"claims": ["Dogs bark."]}')
+    await decompose("Cats purr. Dogs bark.", _client(p, tmp_path), prompt_dir=ROOT / "prompts")
+    assert [x["num_ctx"] for x in p.params] == [4096, 4096]

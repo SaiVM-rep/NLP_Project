@@ -312,3 +312,21 @@ async def test_providers_close_their_http_client():
     for p in (_ollama(handler), _gemini(handler)):
         await p.aclose()
         assert p._client.is_closed
+
+
+async def test_ollama_per_call_num_ctx_overrides_the_profile_window():
+    """DECISION-35: short prompts run in a small window that fits fully on the GPU."""
+    seen = {}
+
+    def handler(request):
+        import json
+
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json=OLLAMA_OK)
+
+    p = _ollama(handler, num_ctx=16384)
+    await p.generate("doc", model="qwen3:8b", params={**PARAMS, "num_ctx": 4096}, seed=None)
+    assert seen["body"]["options"]["num_ctx"] == 4096
+    await p.generate("doc", model="qwen3:8b", params=PARAMS, seed=None)
+    assert seen["body"]["options"]["num_ctx"] == 16384
+    assert "num_ctx" not in seen["body"]  # an option, never a top-level field

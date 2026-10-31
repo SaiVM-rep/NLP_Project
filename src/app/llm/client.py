@@ -75,10 +75,12 @@ class LLMClient:
         seed: int | None = None,
         think: bool | None = None,
         accept: Callable[[str], bool] | None = None,
+        num_ctx: int | None = None,
     ) -> LLMResult:
         """`accept`: the caller's check on the reply text. Rejected replies are never
         cached, and a cached reply it rejects is re-requested, so one malformed answer
-        cannot be replayed by every retry and rerun."""
+        cannot be replayed by every retry and rerun. `num_ctx`: context window for this
+        call (Ollama); an execution setting like concurrency, so not part of the cache key."""
         params: dict[str, Any] = {
             "temperature": temperature,
             "top_p": top_p,
@@ -104,7 +106,8 @@ class LLMClient:
 
         started = time.monotonic()
         try:
-            result = await self._call_with_retry(prompt, params, seed)
+            sent = params if num_ctx is None else {**params, "num_ctx": num_ctx}
+            result = await self._call_with_retry(prompt, sent, seed)
         except Exception as exc:
             self._log(
                 purpose,

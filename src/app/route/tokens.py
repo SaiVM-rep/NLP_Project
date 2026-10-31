@@ -10,6 +10,21 @@ from __future__ import annotations
 
 import math
 
+# Room for the reply (+ the one-line JSON repair suffix) on top of the largest prompt.
+REPLY_TOKENS = 1024
+
+
+def small_context(
+    prompts: list[str], choices: list[int], *, ceiling: int, margin: float = 0.10
+) -> int | None:
+    """Smallest window in `choices` (below `ceiling`) that holds every prompt plus a reply;
+    None = use the profile's own window. One value per stage: changing the window between
+    calls makes Ollama reload the model (DECISION-35)."""
+    if not prompts:
+        return None
+    need = max(estimate_tokens(p, margin) for p in prompts) + REPLY_TOKENS
+    return next((c for c in sorted(choices) if need <= c < ceiling), None)
+
 
 def estimate_tokens(text: str, margin: float) -> int:
     # Round up: undercounting could push an over-budget doc into Route A.

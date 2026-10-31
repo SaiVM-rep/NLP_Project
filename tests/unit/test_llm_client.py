@@ -429,3 +429,20 @@ async def test_think_flag_reaches_provider_and_splits_the_cache(tmp_path):
     assert len(p.calls) == 2  # different params -> different cache key, no false hit
     assert "think" not in p.calls[0]["params"]  # unset keeps pre-existing cache keys valid
     assert p.calls[1]["params"]["think"] is False
+
+
+async def test_num_ctx_reaches_the_provider_but_not_the_cache_key(tmp_path):
+    """The window is an execution setting (DECISION-35): a reply cached at 16k is reused
+    when the same prompt is later sent with a small window, and vice versa."""
+    provider = FakeProvider()
+    client = _client(tmp_path, provider)
+    await client.generate("p", purpose="t", num_ctx=4096)
+    assert provider.calls[0]["params"]["num_ctx"] == 4096
+    hit = await client.generate("p", purpose="t")
+    assert hit.cache_hit and len(provider.calls) == 1
+
+
+async def test_no_num_ctx_means_no_key_in_params(tmp_path):
+    provider = FakeProvider()
+    await _client(tmp_path, provider).generate("p", purpose="t")
+    assert "num_ctx" not in provider.calls[0]["params"]

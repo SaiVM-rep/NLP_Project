@@ -33,13 +33,18 @@ from app.summarize.single_pass import SummaryError, summarize
 ROOT = Path(__file__).resolve().parents[2]
 
 
+OLLAMA_KEEP_ALIVE = "2m"
+
+
 def make_provider(profile: ModelProfile) -> Provider:
     if profile.provider == "ollama":
-        # keep_alive=0: DECISION-3, the 8 GB GPU must be free for the verifiers afterwards.
-        # num_ctx: Ollama's default (4096) silently truncates the prompt from the front.
+        # keep_alive: stay loaded between calls (keep_alive=0 reloaded Qwen before every
+        # call, ~9 s each, DECISION-35); the GPU is freed explicitly by `unload` before the
+        # verifiers (DECISION-3). num_ctx: Ollama's default (4096) silently truncates the
+        # prompt from the front.
         return OllamaProvider(
             os.getenv("OLLAMA_URL", "http://localhost:11434"),
-            keep_alive=0,
+            keep_alive=OLLAMA_KEEP_ALIVE,
             num_ctx=profile.effective_context,
         )
     key = os.getenv("GEMINI_API_KEY", "").strip()

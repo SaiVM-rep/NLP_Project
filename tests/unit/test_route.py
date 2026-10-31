@@ -36,3 +36,21 @@ def test_boundary_tokens_equal_tau_is_route_a() -> None:
 
 def test_one_over_tau_is_route_b() -> None:
     assert route(8001, tau=8000) is Route.B
+
+
+def test_small_context_picks_the_smallest_window_that_fits() -> None:
+    from app.route.tokens import small_context
+
+    short, mid = "x" * 4 * 1000, "x" * 4 * 5000  # ~1.1k and ~5.5k tokens with margin
+    assert small_context([short], [8192, 4096], ceiling=16384) == 4096
+    assert small_context([short, mid], [4096, 8192], ceiling=16384) == 8192  # the largest decides
+
+
+def test_small_context_falls_back_to_the_profile_window() -> None:
+    from app.route.tokens import small_context
+
+    big = "x" * 4 * 9000
+    assert small_context([big], [4096, 8192], ceiling=16384) is None  # too big for any choice
+    assert small_context(["hi"], [], ceiling=16384) is None  # feature off for this profile
+    assert small_context(["hi"], [4096], ceiling=4096) is None  # not smaller than the window
+    assert small_context([], [4096], ceiling=16384) is None

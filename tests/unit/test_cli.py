@@ -70,6 +70,14 @@ def test_ollama_gets_the_profile_context_size() -> None:
     assert provider.num_ctx == profile.effective_context  # type: ignore[attr-defined]
 
 
+def test_ollama_keeps_the_model_loaded_between_calls() -> None:
+    # keep_alive=0 reloaded Qwen before every call (~9 s of a 13 s key-point call, server
+    # log 2026-10-31). The GPU is freed explicitly (release_llm / unload) before verifiers.
+    provider = cli.make_provider(cli.load_config(cli.ROOT / "configs").profiles["qwen3_8b_local"])
+    assert provider.keep_alive == cli.OLLAMA_KEEP_ALIVE  # type: ignore[attr-defined]
+    assert cli.OLLAMA_KEEP_ALIVE not in (0, "0", None)
+
+
 def test_url_argument_goes_through_web_ingest(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

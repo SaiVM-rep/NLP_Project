@@ -343,12 +343,16 @@ def cmd_rehearse(a: argparse.Namespace) -> int:
     low = start_mb = avail_mb()
     t0 = time.time()
     stages: dict[str, float] = {}
+    low_by_stage: dict[str, float] = {}
     with httpx.Client(base_url=API, timeout=30) as c:
         jid = submit_job(c, str(path), verify=not a.no_claims)
         say(f"job {jid} submitted ({'claims off' if a.no_claims else 'full pipeline'})")
         while True:
             j = c.get(f"/v1/jobs/{jid}").json()
-            low = min(low, avail_mb())
+            now = avail_mb()
+            low = min(low, now)
+            stage = j.get("stage") or "-"
+            low_by_stage[stage] = min(low_by_stage.get(stage, now), now)
             if j.get("stage") and j["stage"] not in stages:
                 stages[j["stage"]] = round(time.time() - t0, 1)
                 say(f"stage {j['stage']} at {stages[j['stage']]:.0f} s")
@@ -365,6 +369,7 @@ def cmd_rehearse(a: argparse.Namespace) -> int:
             "stages_at_s": stages,
             "free_gb_start": round(start_mb / 1024, 2),
             "free_gb_low": round(low / 1024, 2),
+            "free_gb_low_by_stage": {k: round(v / 1024, 2) for k, v in low_by_stage.items()},
             "claims": not a.no_claims,
         }
         if j["status"] == "done":

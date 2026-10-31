@@ -45,6 +45,7 @@ profiles:
     effective_context: 16384
     limits: { rpm: 600, tpm: 10000000, rpd: 100000 }
     max_concurrency: 1               # one GPU: Ollama serves calls one at a time
+    small_ctx: [4096, 8192]          # key points + decomposition: whole model on the GPU (DECISION-35)
 
   # DECISION-27: simulated context budgets on the local model, so Route B
   # triggers and E2 can sweep tau without Gemini. All below the real 16384 window.

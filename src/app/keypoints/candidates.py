@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from app.core.config import AppConfig
 from app.core.schemas import Document, Span
 from app.llm.client import LLMClient
+from app.route.tokens import small_context
 from app.summarize.common import fill, load_prompt
 
 PROMPT = "keypoints.v1.txt"
@@ -51,13 +52,17 @@ async def generate_candidates(
 ) -> list[Candidate]:
     template, _ = load_prompt(prompt_dir, PROMPT)
     n, dec = cfg.keypoints.candidates_per_section, cfg.decoding
-    out: list[Candidate] = []
+    jobs = []
     for section in doc.sections:
         if not section.paragraphs:
             continue
         # body only: the heading is already in the prompt
         body = doc.text_of(Span(start=section.paragraphs[0].start, end=section.paragraphs[-1].end))
-        prompt = fill(template, n=str(n), heading=section.heading, section_text=body)
+        jobs.append((section, fill(template, n=str(n), heading=section.heading, section_text=body)))
+    p = client.profile
+    ctx = small_context([q for _, q in jobs], p.small_ctx, ceiling=p.effective_context)
+    out: list[Candidate] = []
+    for section, prompt in jobs:
         points = None
         for attempt in (prompt, prompt + REPAIR):
             res = await client.generate(
@@ -70,6 +75,7 @@ async def generate_candidates(
                 # Qwen3 thinking: 26-60 s per section on SBERT; off like decomposition.
                 think=False,
                 accept=lambda t: _parse(t) is not None,
+                num_ctx=ctx,
             )
             if (points := _parse(res.text)) is not None:
                 break

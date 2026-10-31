@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from app.ingest.spans import sentence_spans
 from app.llm.client import LLMClient
+from app.route.tokens import small_context
 
 PROMPT = "claim_decompose.v2.txt"  # DECISION-15; v1 kept frozen
 SCHEMA = {
@@ -49,11 +50,16 @@ async def decompose(
 ) -> list[Claim]:
     template = (Path(prompt_dir) / PROMPT).read_text(encoding="utf-8")
     sentences = [summary[s.start : s.end] for s in sentence_spans(summary, 0)]
-    out: list[Claim] = []
-    for i, sent in enumerate(sentences):
-        prompt = template.replace("{sentence}", sent).replace(
+    prompts = [
+        template.replace("{sentence}", sent).replace(
             "{context}", sentences[i - 1] if i else "(none)"
         )
+        for i, sent in enumerate(sentences)
+    ]
+    p = client.profile
+    ctx = small_context(prompts, p.small_ctx, ceiling=p.effective_context)
+    out: list[Claim] = []
+    for i, (sent, prompt) in enumerate(zip(sentences, prompts, strict=True)):
         claims = None
         for attempt in (prompt, prompt + REPAIR):
             # Greedy and no hidden reasoning: decomposition is measurement, not generation.
@@ -65,6 +71,7 @@ async def decompose(
                 temperature=0.0,
                 think=False,
                 accept=lambda t: _parse(t) is not None,
+                num_ctx=ctx,
             )
             if (claims := _parse(res.text)) is not None:
                 break

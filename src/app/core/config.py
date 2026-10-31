@@ -39,6 +39,10 @@ class ModelProfile(_Strict):
     # Route B map calls in flight. A local model on one GPU serves one request at a time,
     # so extra in-flight calls only queue (and can outlive the client timeout).
     max_concurrency: int = Field(default=4, ge=1)
+    # Smaller windows for stages with short prompts (key points, claim decomposition).
+    # Ollama only: at 16384 qwen3:8b keeps 6 of 37 layers on the CPU (25 tok/s, ~1 GB host
+    # RAM); at 4096/8192 it fits the 8 GB GPU (43 tok/s). DECISION-35.
+    small_ctx: list[int] = Field(default_factory=list)
 
 
 class RouteCfg(_Strict):

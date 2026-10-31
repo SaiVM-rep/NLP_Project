@@ -1,8 +1,9 @@
 """Ollama provider over the local REST API.
 
-`keep_alive=0` matters on this machine: the GPU is 8 GB, not the 12 GB the PRD
-assumed (CLAUDE.md DEVIATION-1), so the generator must be evictable before the
-NLI verifiers load (DECISION-3).
+The GPU is 8 GB, not the 12 GB the PRD assumed (CLAUDE.md DEVIATION-1), so the
+generator must be evictable before the NLI verifiers load (DECISION-3): `unload`.
+`keep_alive` per request controls how long Ollama keeps the model loaded between calls;
+0 would reload it before every call (DECISION-35).
 """
 
 from __future__ import annotations
@@ -66,8 +67,9 @@ class OllamaProvider:
         }
         if seed is not None:
             options["seed"] = seed
-        if self.num_ctx is not None:
-            options["num_ctx"] = self.num_ctx
+        num_ctx = params.get("num_ctx") or self.num_ctx  # per call wins (DECISION-35)
+        if num_ctx is not None:
+            options["num_ctx"] = num_ctx
 
         body: dict[str, Any] = {
             "model": model,

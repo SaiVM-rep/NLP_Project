@@ -249,3 +249,11 @@ def test_real_local_profiles_send_one_request_at_a_time():
     profiles = load_config("configs").profiles
     for name, p in profiles.items():
         assert p.max_concurrency == (1 if p.provider == "ollama" else 4), name
+
+
+def test_local_qwen_profile_has_small_windows_below_its_context() -> None:
+    cfg = load_config("configs")
+    p = cfg.profiles["qwen3_8b_local"]
+    assert p.small_ctx == [4096, 8192]
+    assert all(c < p.effective_context for c in p.small_ctx)
+    assert cfg.profiles["gemini_full"].small_ctx == []
