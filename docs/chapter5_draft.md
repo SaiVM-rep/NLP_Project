@@ -119,7 +119,10 @@ same-entity confusions, not as a validated improvement. It is not used by the de
 - **Thresholds:** θ_c (contradiction) is untuned, because AggreFact labels are binary.
 - **No LLM judge** in E5; perturbations are rule-based except paraphrase.
 - **Attribution reference** is LLM-labelled, 24 items.
-- **Token counts** use a characters/4 estimate (not checked against the tokenizer).
+- **Token counts** use a characters/4 estimate. Checked against the Qwen3 tokenizer it misses
+  the ±5% target (FR-2.1): on our GROBID-parsed papers it overestimates by 3–16% (median 8%),
+  which only errs toward Route B; on preprocessed arXiv/PubMed text the error is −25% to +36%
+  (`scripts/token_check.py`, `results/token_check.json`).
 - **Deviations from the PRD** (guide to confirm): Qwen-only, pilot scope, claim-decomposition
   prompt v2 (DECISION-15).
 

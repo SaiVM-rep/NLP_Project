@@ -1,7 +1,9 @@
 """Token estimate. PRD FR-2.1, §11.5.
 
-shortcut: chars/4 heuristic, not a real tokenizer; FR-2.1's ±5% is unverified.
-Upgrade to the provider's countTokens for docs near tau before E1-E4 (P8).
+shortcut: chars/4 heuristic, not a real tokenizer. Measured against the Qwen3 tokenizer
+(scripts/token_check.py, DECISION-33): FR-2.1's ±5% is NOT met. GROBID papers: always an
+overestimate (+3..+16%, safe: errs toward Route B); ccdv arXiv/PubMed: -25..+36%.
+Future work: the provider's own tokenizer for docs near tau.
 """
 
 from __future__ import annotations
