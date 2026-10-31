@@ -39,3 +39,25 @@ def test_score_with_nothing_attributed_has_nan_precision() -> None:
     m = score_attribution([{"system": None, "gold": [0], "unsupported": False}])
     assert m["precision_at_1"] != m["precision_at_1"]  # NaN
     assert m["accuracy"] == 0.0
+
+
+def test_rerank_picks_the_candidate_the_nli_model_finds_most_entailing() -> None:
+    from eval.attribution import rerank
+
+    assert rerank([7, 3, 9], [0.1, 0.8, 0.5]) == 3
+
+
+def test_rerank_tie_keeps_the_retriever_order() -> None:
+    from eval.attribution import rerank
+
+    # candidates arrive in retriever (cosine) order; equal entailment -> the earlier one
+    assert rerank([7, 3, 9], [0.4, 0.4, 0.1]) == 7
+
+
+def test_rerank_needs_one_score_per_candidate() -> None:
+    from eval.attribution import rerank
+
+    with pytest.raises(ValueError):
+        rerank([1, 2], [0.5])
+    with pytest.raises(ValueError):
+        rerank([], [])

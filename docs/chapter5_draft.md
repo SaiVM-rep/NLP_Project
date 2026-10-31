@@ -98,7 +98,15 @@ to was checked against a reference labelling: **precision@1 = 0.667** (16/24; pe
 0.75, 0.75). The reference was produced **by an LLM annotator (Claude), blind to the system's
 choice, and spot-checked by a team member** — it is not a human gold set (DECISION-29). Most
 misses are sentences about the same entity but a different claim, which embedding similarity
-cannot separate; re-ranking the top candidates with the NLI model is the natural fix.
+cannot separate.
+
+**Exploratory NLI re-ranking.** Re-ranking MiniLM's top-5 candidates by DeBERTa entailment
+(premise = candidate sentence, hypothesis = key point) raises precision@1 to **0.875**
+(21/24, every paper 0.875); one of the three remaining misses has no correct sentence in the
+top 5 at all. This was measured on the same 24 key points, with no held-out set and nothing
+tuned, so it is reported as exploratory evidence that a cross-encoder fixes most
+same-entity confusions, not as a validated improvement. It is not used by the demo system.
+(`scripts/attr_rerank.py`, `results/attribution/summary_rerank.json`.)
 
 ## 5.7 Limitations
 

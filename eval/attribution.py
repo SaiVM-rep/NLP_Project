@@ -36,3 +36,12 @@ def score_attribution(items: Sequence[dict[str, Any]]) -> dict[str, float]:
         "precision_at_1": len(right_pick) / len(attributed) if attributed else math.nan,
         "accuracy": (len(right_pick) + len(right_abstain)) / len(items) if items else math.nan,
     }
+
+
+def rerank(candidates: Sequence[int], entail: Sequence[float]) -> int:
+    """Exploratory NLI rerank: the retrieved candidate (in retriever order) with the highest
+    entailment of the key point; ties keep the retriever's order."""
+    if not candidates or len(candidates) != len(entail):
+        raise ValueError(f"{len(candidates)} candidates vs {len(entail)} scores")
+    best = max(range(len(candidates)), key=lambda i: (entail[i], -i))
+    return candidates[best]

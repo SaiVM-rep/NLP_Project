@@ -1,10 +1,10 @@
 """Score key-point attribution against eval/gold/attribution_labels.csv.
 
-    .venv/Scripts/python.exe scripts/attr_score.py
+    .venv/Scripts/python.exe scripts/attr_score.py [--system rerank]
 
 Reads results/attribution/<paper>.system.json (written by attr_sheet.py) and writes
-results/attribution/summary.json: per paper + overall precision@1 and accuracy, plus each
-miss (system pick vs reference) for error analysis.
+results/attribution/summary.json (summary_<system>.json for another system): per paper
++ overall precision@1 and accuracy, plus each miss (system pick vs reference).
 """
 
 from __future__ import annotations
@@ -26,10 +26,13 @@ OUT = ROOT / "results" / "attribution"
 
 
 def main() -> int:
+    system_name = sys.argv[sys.argv.index("--system") + 1] if "--system" in sys.argv else "system"
     by_paper: dict[str, list[dict[str, Any]]] = defaultdict(list)
     with LABELS.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            system = json.loads((OUT / f"{row['paper']}.system.json").read_text(encoding="utf-8"))
+            system = json.loads(
+                (OUT / f"{row['paper']}.{system_name}.json").read_text(encoding="utf-8")
+            )
             by_paper[row["paper"]].append(
                 {
                     "kp": int(row["kp"]),
@@ -42,6 +45,7 @@ def main() -> int:
     every = [it for items in by_paper.values() for it in items]
     summary = {
         "labels": str(LABELS.relative_to(ROOT)),
+        "system": system_name,
         "annotator": "claude (LLM), not human",
         "overall": score_attribution(every),
         "per_paper": {p: score_attribution(items) for p, items in sorted(by_paper.items())},
@@ -52,7 +56,8 @@ def main() -> int:
             if not (it["system"] in it["gold"] or (it["system"] is None and it["unsupported"]))
         ],
     }
-    (OUT / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    out = "summary.json" if system_name == "system" else f"summary_{system_name}.json"
+    (OUT / out).write_text(json.dumps(summary, indent=2), encoding="utf-8")
     o = summary["overall"]
     print(f"overall: n={o['n']} precision@1={o['precision_at_1']:.3f} accuracy={o['accuracy']:.3f}")
     for p, m in summary["per_paper"].items():
