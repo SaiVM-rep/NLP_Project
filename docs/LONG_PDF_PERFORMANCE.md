@@ -82,8 +82,16 @@ the section *"I Example Model Outputs"* (sample news summaries the model generat
 "This is the first time a bee species has been listed as endangered in Hawaii."). The same
 class of error as FRANK key point 3 (an example row from an error table). Key-point
 candidates are generated per section with no notion of appendix or example sections.
-Candidate fix: skip appendix / example-output sections when generating candidates; needs a
-test and a re-check of the attribution numbers. **Not fixed yet.** For the live demo, prefer
+Why they win: GROBID does not mark these as an annex (the parser already drops `<back>`
+annexes); they arrive as body sections headed just *"Gold"* / *"Model"* (PEGASUS) or
+*"Original input:"*, *"D.14 CNN/Daily Mail"* (T5). Each Gold/Model pair states the same facts
+twice, so their candidates form the **largest near-duplicate clusters**, and FR-4.4 ranks by
+cluster size first. Candidate fixes, each needing a test and a re-check of the attribution
+numbers: (a) drop sections after the first appendix-like heading (`Appendix`, `D.14`-style
+numbering, "Example … Outputs") — heading heuristics, brittle; (b) count a cluster's size by
+distinct *sections* far apart in the paper only once per section pair, or weight by the
+document-centroid score (FR-4.2) so off-topic example text ranks low — principled, changes
+the ranking rule. **Not fixed yet.** For the live demo, prefer
 papers without long example appendices, or check the key points after the rehearsal.
 
 ## Where the remaining 20 minutes go
