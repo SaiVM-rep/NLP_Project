@@ -73,6 +73,11 @@ class DecodingCfg(_Strict):
 
 class SummaryCfg(_Strict):
     compression_pct: float = Field(gt=0.0, le=100.0)
+    # Qwen3 hidden reasoning for summary calls (Ollama `think`); None = model default.
+    # Off since DECISION-37: thinking cost ~13.7 tokens per summary word on this GPU.
+    think: bool | None = None
+    # Upper bound on any summary target (single pass, chunk, merge); None = PRD 10% rule.
+    max_words: int | None = Field(default=None, gt=0)
 
 
 class KeyPointsCfg(_Strict):

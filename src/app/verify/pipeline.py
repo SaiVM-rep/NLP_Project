@@ -170,9 +170,13 @@ async def verify_summary(
     *,
     release_llm: Callable[[], Awaitable[None]] | None = None,
     prompt_dir: str | Path = "prompts",
+    final_only: bool = False,
 ) -> VerifiedSummary:
+    """`final_only`: claims of the root summary only (uploads, DECISION-37); the default
+    verifies every merge-tree node (G5, E3). The whole tree is returned either way."""
     nodes = summary_nodes(result)
+    checked = ([n for n in nodes if n.id == result.root_id] or nodes[-1:]) if final_only else nodes
     claims = await verify_nodes(
-        doc, nodes, client, openers, cfg, release_llm=release_llm, prompt_dir=prompt_dir
+        doc, checked, client, openers, cfg, release_llm=release_llm, prompt_dir=prompt_dir
     )
     return VerifiedSummary(nodes=nodes, claims=claims)

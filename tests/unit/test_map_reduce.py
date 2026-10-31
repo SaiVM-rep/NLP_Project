@@ -305,3 +305,17 @@ async def test_concurrency_defaults_to_the_active_profile(tmp_path: Path) -> Non
         sections(8), client, cfg, prompt_dir=ROOT / "prompts", count=lambda t: len(t.split())
     )
     assert p.max_in_flight == 2
+
+
+async def test_word_cap_limits_merge_targets(tmp_path: Path) -> None:
+    p = EchoProvider()
+    cfg = load_config(
+        ROOT / "configs",
+        {
+            "chunk": {"chunk_tokens": 500, "overlap_tokens": 0, "fan_in_k": 2},
+            "summary": {"max_words": 25},
+        },
+    )
+    await run(sections(2, words_each=200), cfg, p, tmp_path)
+    merges = [q for q in p.prompts if "PARTIAL SUMMARIES:" in q]
+    assert _target(merges[0]) == 25  # sum of children would be 40

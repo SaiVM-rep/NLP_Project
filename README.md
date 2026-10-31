@@ -99,8 +99,11 @@ make rehearse FILE="paper.pdf"         # full run through the API, saved as a de
 ticked, and a RAM guard fails a job cleanly ("untick Check claims") instead of freezing the
 laptop. Works with **text-based** PDFs under 25 MB (scans have no text layer). A ≤ ~12-page
 paper (Route A) takes **~4–7 min** the first time and **under a minute** when repeated,
-because every LLM call is cached — so rehearse the PDF you will show. Papers over ~13k
-tokens go through Route B and take 30+ minutes the first time. Demo-day checklist:
+because every LLM call is cached — so rehearse the PDF you will show. Longer papers go
+through Route B: a 55-page paper took **23 min** the first time (summaries without Qwen
+"thinking", whole model on the GPU, claims checked on the final ≤ 500-word summary;
+DECISION-37). Ollama needs `OLLAMA_FLASH_ATTENTION=1` and `OLLAMA_KV_CACHE_TYPE=q8_0`
+(Windows user variables; `make showcase` sets them when it starts Ollama). Demo-day checklist:
 `docs/DEMO_DAY.md`. Manual alternative: `make up`, `make migrate`, then `make api`,
 `make worker` and `make demo` in three terminals.
 

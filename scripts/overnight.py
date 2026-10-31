@@ -2,6 +2,10 @@
 
     Start-Process -WindowStyle Hidden .venv\\Scripts\\python.exe scripts\\overnight.py
 
+Rerun after a method change (DECISION-37: summaries without thinking), keeping the old runs:
+
+    ... scripts\\overnight.py --since 20261031T1800 --rebuild-demo
+
 Runs detached from Claude Code so it survives the session ending. Every step is
 resumable and skipped when already done, so starting it again is always safe:
   1. demo/<name>.json for each demo paper that is missing
@@ -59,11 +63,15 @@ def other_gpu_job() -> str | None:
     return None
 
 
-def finished(exp: str) -> Path | None:
-    base = ROOT / "results" / exp
+def finished(exp: str, since: str | None = None, root: Path = ROOT) -> Path | None:
+    """Newest finished run of `exp`; with `since` (a run-id prefix such as 20261031T1200),
+    only runs started at or after it count, so a rerun ignores older results."""
+    base = root / "results" / exp
     if not base.is_dir():
         return None
     runs = sorted(p for p in base.iterdir() if p.is_dir() and not p.name.startswith("_"))
+    if since is not None:
+        runs = [p for p in runs if p.name >= since]
     return runs[-1] if runs else None
 
 
@@ -77,19 +85,26 @@ def run(step: str, args: list[str]) -> bool:
 
 
 def main() -> int:
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--since", help="rerun: only E1/E5 runs with id >= this count as done")
+    ap.add_argument("--rebuild-demo", action="store_true", help="rebuild every demo bundle")
+    a = ap.parse_args()
+    since = a.since
     LOG.parent.mkdir(parents=True, exist_ok=True)
-    log("overnight chain started")
+    log("overnight chain started" + (f" (rerun since {since})" if since else ""))
     while (job := other_gpu_job()) is not None:
         log(f"waiting for running GPU job: {job[:120]}")
         time.sleep(60)
 
-    missing = [n for n in DEMO if not (ROOT / "demo" / f"{n}.json").exists()]
+    missing = [n for n in DEMO if a.rebuild_demo or not (ROOT / "demo" / f"{n}.json").exists()]
     if missing:
         run("demo", ["scripts/make_demo.py", *missing, "--min-free-gb", "4"])
     else:
         log("demo: all bundles present, skipped")
 
-    if finished("E1") is None:
+    if finished("E1", since) is None:
         # E1 resumes from results/E1/_running + the LLM cache, so a retry only redoes the
         # unfinished arm (run 1 died on one transient Ollama timeout after 82 min).
         for attempt in range(1, 4):
@@ -98,13 +113,13 @@ def main() -> int:
         else:
             log("E1 failed 3 times; E5 needs it, stopping before E5 (report still runs)")
     else:
-        log(f"E1: finished run {finished('E1')} present, skipped")
+        log(f"E1: finished run {finished('E1', since)} present, skipped")
 
-    e1 = finished("E1")
-    if e1 is not None and finished("E5") is None:
+    e1 = finished("E1", since)
+    if e1 is not None and finished("E5", since) is None:
         run("E5", ["-m", "eval.run", "--experiment", "E5", "--e1-dir", str(e1)])
-    elif finished("E5") is not None:
-        log(f"E5: finished run {finished('E5')} present, skipped")
+    elif finished("E5", since) is not None:
+        log(f"E5: finished run {finished('E5', since)} present, skipped")
 
     if not (ROOT / "results" / "tuning" / "aggrefact_test.summary.json").exists():
         run("SC4", ["scripts/tune_aggrefact.py", "--split", "test", "--min-free-gb", "3"])
@@ -112,6 +127,7 @@ def main() -> int:
         log("SC4: test summary present, skipped")
 
     run("report", ["-m", "eval.report"])
+    run("chapter5", ["scripts/build_chapter5.py"])
     log("overnight chain finished")
     return 0
 

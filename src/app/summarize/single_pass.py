@@ -12,7 +12,14 @@ from app.core.schemas import Document, Route
 from app.llm.client import LLMClient
 from app.route.router import route, tau_for
 from app.route.tokens import estimate_tokens
-from app.summarize.common import SummaryError, SummaryResult, ask_summary, fill, load_prompt
+from app.summarize.common import (
+    SummaryError,
+    SummaryResult,
+    ask_summary,
+    capped,
+    fill,
+    load_prompt,
+)
 from app.summarize.map_reduce import summarize_b
 
 PROMPT = "single_pass.v1.txt"
@@ -34,9 +41,13 @@ async def summarize(
 
     template, digest = load_prompt(prompt_dir, PROMPT)
     pct = cfg.summary.compression_pct
+    words = len(doc.full_text.split())
+    target = capped(round(words * pct / 100), cfg)
+    if target < round(words * pct / 100):  # capped: state the share actually asked for
+        pct = round(100 * target / max(1, words), 1)
     prompt = fill(
         template,
-        target_words=str(round(len(doc.full_text.split()) * pct / 100)),
+        target_words=str(target),
         compression_pct=f"{pct:g}",
         document=doc.full_text,
     )

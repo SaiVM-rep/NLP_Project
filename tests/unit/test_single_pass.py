@@ -109,3 +109,20 @@ async def test_malformed_reply_is_not_replayed_from_cache(tmp_path: Path) -> Non
     p = ScriptedProvider('{"summary": "fresh"}')
     assert (await _run(p, tmp_path)).summary == "fresh"
     assert len(p.prompts) == 1
+
+
+async def test_summary_call_sends_the_configured_think_flag(tmp_path: Path) -> None:
+    p = ScriptedProvider('{"summary": "Short."}')
+    await _run(p, tmp_path)
+    assert p.params[0]["think"] is False  # configs/default.yaml summary.think
+
+
+async def test_word_cap_limits_the_route_a_target(tmp_path: Path) -> None:
+    import re
+
+    p = ScriptedProvider('{"summary": "Short."}')
+    cfg = load_config(ROOT / "configs", {"summary": {"max_words": 3}})
+    client = LLMClient(p, cfg.active_profile, DiskCache(tmp_path))
+    await summarize(_doc(), client, cfg, prompt_dir=ROOT / "prompts")
+    m = re.search(r"about (\d+) words", p.prompts[0])
+    assert m and int(m.group(1)) <= 3

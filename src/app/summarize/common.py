@@ -59,6 +59,12 @@ def _parse(text: str) -> str | None:
     return summary.strip() if isinstance(summary, str) and summary.strip() else None
 
 
+def capped(target: int, cfg: AppConfig) -> int:
+    """`summary.max_words` bounds every target word count (DECISION-37)."""
+    cap = cfg.summary.max_words
+    return target if cap is None else min(target, cap)
+
+
 async def ask_summary(
     client: LLMClient, prompt: str, *, purpose: str, cfg: AppConfig, what: str
 ) -> tuple[str, str]:
@@ -72,6 +78,7 @@ async def ask_summary(
             temperature=dec.temperature,
             top_p=dec.top_p,
             seed=dec.seed,
+            think=cfg.summary.think,
             accept=lambda t: _parse(t) is not None,
         )
         if (summary := _parse(res.text)) is not None:

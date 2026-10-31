@@ -26,7 +26,14 @@ from app.llm.client import LLMClient
 from app.route.chunker import Chunk, Count, chunk_sections
 from app.route.router import tau_for
 from app.route.tokens import estimate_tokens
-from app.summarize.common import SummaryError, SummaryResult, ask_summary, fill, load_prompt
+from app.summarize.common import (
+    SummaryError,
+    SummaryResult,
+    ask_summary,
+    capped,
+    fill,
+    load_prompt,
+)
 
 CHUNK_PROMPT = "chunk_summary.v1.txt"
 MERGE_PROMPT = "merge.v1.txt"
@@ -78,7 +85,7 @@ async def summarize_b(
 
     async def leaf(c: Chunk) -> tuple[str, int]:
         text = doc.text_of(c.span)
-        target = max(MIN_TARGET_WORDS, round(len(text.split()) * pct / 100))
+        target = capped(max(MIN_TARGET_WORDS, round(len(text.split()) * pct / 100)), cfg)
         prompt = fill(chunk_tpl, heading=_heading(doc, c), target_words=str(target), chunk=text)
         summary, model = await ask_summary(
             client, prompt, purpose="chunk_summary", cfg=cfg, what=f"{doc.doc_id}/{c.id}"
@@ -87,7 +94,7 @@ async def summarize_b(
         return summary, target
 
     async def merge(group: list[tuple[SummaryNode, int]], node_id: str) -> tuple[str, int]:
-        target = sum(t for _, t in group)
+        target = capped(sum(t for _, t in group), cfg)  # DECISION-37
         prompt = fill(
             merge_tpl,
             target_words=str(target),

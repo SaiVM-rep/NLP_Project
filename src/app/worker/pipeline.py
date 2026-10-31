@@ -11,7 +11,7 @@ import contextlib
 import os
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 
 import httpx
 from pydantic import BaseModel, ConfigDict, Field
@@ -37,13 +37,19 @@ class JobOptions(BaseModel):
     tau: int | None = Field(default=None, gt=0)
     keypoints: bool = True
     verify: bool = True
+    # DECISION-37, uploads: verify the summary the user reads (not every merge node) and
+    # cap its length; `"all"` / null restore the experiment behaviour (per level, PRD 10%).
+    verify_scope: Literal["final", "all"] = "final"
+    max_summary_words: int | None = Field(default=500, gt=0)
 
 
 class Stages(Protocol):
     def ingest(self, input: dict[str, Any]) -> Document: ...
     async def summarize(self, doc: Document, tau: int | None) -> SummaryResult: ...
     async def keypoints(self, doc: Document) -> list[KeyPoint]: ...
-    async def verify(self, doc: Document, result: SummaryResult) -> VerifiedSummary: ...
+    async def verify(
+        self, doc: Document, result: SummaryResult, *, final_only: bool = False
+    ) -> VerifiedSummary: ...
     async def aclose(self) -> None: ...
 
 
@@ -73,7 +79,10 @@ def make_pipeline(
 ) -> Pipeline:
     async def run(job: Job, ctx: JobContext) -> JobOutput:
         opts = JobOptions(**job.config)
-        cfg = load_cfg({"profile": opts.profile} if opts.profile else {})
+        overrides: dict[str, Any] = {"summary": {"max_words": opts.max_summary_words}}
+        if opts.profile:
+            overrides["profile"] = opts.profile
+        cfg = load_cfg(overrides)
         cfg.active_profile  # unknown profile fails here, before any work  # noqa: B018
         st = stages(cfg)
         try:
@@ -94,7 +103,7 @@ def make_pipeline(
                     ctx.progress(
                         "verify", 0.65, f"route {result.route.value}, {len(kps)} key points"
                     )
-                    verified = await st.verify(doc, result)
+                    verified = await st.verify(doc, result, final_only=opts.verify_scope == "final")
         finally:
             await st.aclose()
         return JobOutput(
@@ -167,7 +176,9 @@ class LiveStages:
             prompt_dir=ROOT / "prompts",
         )
 
-    async def verify(self, doc: Document, result: SummaryResult) -> VerifiedSummary:
+    async def verify(
+        self, doc: Document, result: SummaryResult, *, final_only: bool = False
+    ) -> VerifiedSummary:
         from app.verify.pipeline import openers_from_config, verify_summary
 
         return await verify_summary(
@@ -178,6 +189,7 @@ class LiveStages:
             self.cfg.verify,
             release_llm=self._release,
             prompt_dir=ROOT / "prompts",
+            final_only=final_only,
         )
 
     async def aclose(self) -> None:

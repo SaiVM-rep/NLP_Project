@@ -20,6 +20,8 @@ decoding:
 
 summary:
   compression_pct: 10
+  think: false           # DECISION-37: Qwen3 thinking was ~90% of summary tokens
+  max_words: null        # uploads cap it per job (JobOptions.max_summary_words)
 
 keypoints:
   top_k: 8

@@ -19,10 +19,14 @@ from tests.store_contract import make_doc, make_output
 ROOT = Path(__file__).resolve().parents[2]
 
 
+MAX_WORDS: list[int | None] = []  # cfg.summary.max_words each job was opened with
+
+
 class FakeStages:
     def __init__(self, cfg: AppConfig, log: list[Any]) -> None:
         self.log = log
         log.append(("open", cfg.profile))
+        MAX_WORDS.append(cfg.summary.max_words)
         self.out = make_output()
 
     def ingest(self, input: dict[str, Any]) -> Document:
@@ -37,8 +41,10 @@ class FakeStages:
         self.log.append(("keypoints",))
         return self.out.key_points
 
-    async def verify(self, doc: Document, result: SummaryResult) -> VerifiedSummary:
-        self.log.append(("verify",))
+    async def verify(
+        self, doc: Document, result: SummaryResult, *, final_only: bool = False
+    ) -> VerifiedSummary:
+        self.log.append(("verify",) if not final_only else ("verify", "final"))
         return VerifiedSummary(nodes=self.out.nodes, claims=self.out.claims)
 
     async def aclose(self) -> None:
@@ -69,7 +75,7 @@ def test_stages_run_in_order_with_progress_and_close() -> None:
         ("ingest", {"url": "https://x"}),
         ("summarize", None),
         ("keypoints",),
-        ("verify",),
+        ("verify", "final"),  # job default: the summary the user reads (DECISION-37)
         ("close",),
     ]
     ev = store.events(jid, 0)
@@ -98,7 +104,7 @@ def test_options_pick_profile_and_tau() -> None:
 def test_verify_and_keypoints_can_be_switched_off() -> None:
     log: list[Any] = []
     store = _run({"verify": False, "keypoints": False}, log)
-    assert ("verify",) not in log and ("keypoints",) not in log
+    assert not any(e[0] in ("verify", "keypoints") for e in log)
     r = store.result(_only_job(store))
     assert r is not None and r["claims"] == [] and r["key_points"] == []
     assert "faithfulness_minicheck" not in r["metrics"]  # no claims: no number, not NaN
@@ -146,3 +152,15 @@ def test_live_stages_free_the_gpu_when_the_job_ends() -> None:
     st.provider = FakeProvider()  # type: ignore[assignment]
     asyncio.run(st.aclose())
     assert log == [f"unload {st.cfg.active_profile.model}", "aclose"]
+
+
+def test_uploads_cap_the_summary_and_verify_only_the_final_summary() -> None:
+    # DECISION-37: job defaults are the fast product path; experiments call LiveStages
+    # directly and keep the 10% rule and per-level verification.
+    log: list[Any] = []
+    MAX_WORDS.clear()
+    _run({}, log)
+    assert MAX_WORDS == [500] and ("verify", "final") in log
+    log = []
+    _run({"max_summary_words": None, "verify_scope": "all"}, log)
+    assert MAX_WORDS == [500, None] and ("verify",) in log

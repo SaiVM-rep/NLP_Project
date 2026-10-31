@@ -9,8 +9,9 @@ Commands run in PowerShell in `C:\NLP_Project` (make is on PATH, see CLAUDE.md �
    ```powershell
    make showcase-check FILE="C:\path\to\my_paper.pdf"
    ```
-   `OK Route A` → good. `WARN Route B` → a first run takes 30–60+ min on this GPU: either
-   rehearse it well ahead (the cache then makes it fast) or pick a shorter paper.
+   `OK Route A` → good. `WARN Route B` → longer paper: a first run takes ~20–25 min
+   (measured: 55-page PEGASUS 23 min, DECISION-37). Rehearse it ahead; the cache makes the
+   live repeat fast.
 2. Start everything (terminal 1, leave it open):
    ```powershell
    make showcase

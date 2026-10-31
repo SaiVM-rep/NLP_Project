@@ -374,3 +374,25 @@ def test_minicheck_opener_prefers_the_local_bf16_copy(
     assert pinned_ckpt == _cfg().minicheck.checkpoint and kw0["revision"]  # fallback
     assert local_ckpt == str(local) and kw1["revision"] is None
     assert kw0["local_files_only"] is kw1["local_files_only"] is True
+
+
+async def test_verify_summary_final_only_checks_just_the_root(tmp_path: Path) -> None:
+    """Uploads (DECISION-37): the user reads the root; E3 keeps every level."""
+    from app.core.schemas import Route
+    from app.verify.pipeline import verify_summary
+
+    tree = [
+        SummaryNode(id="n0-0", level=0, parent_id="n1-0", text="Cats purr."),
+        SummaryNode(id="n0-1", level=0, parent_id="n1-0", text="Dogs are quiet."),
+        SummaryNode(id="n1-0", level=1, text="Cats purr; dogs are quiet."),
+    ]
+    r = _result(route=Route.B, summary=tree[-1].text, nodes=tree, root_id="n1-0")
+    cfg = load_config(ROOT / "configs")
+    p = ScriptedProvider('{"claims": ["A cat purrs."]}')
+    client = LLMClient(p, cfg.profiles["qwen3_8b_local"], DiskCache(tmp_path))
+    v = await verify_summary(
+        _doc(), r, client, Rig().openers, _cfg(), prompt_dir=ROOT / "prompts", final_only=True
+    )
+    assert [c.summary_node_id for c in v.claims] == ["n1-0"]
+    assert v.nodes == tree  # the tree is still stored and shown
+    assert p.replies == []  # one scripted reply: a second decomposition would raise

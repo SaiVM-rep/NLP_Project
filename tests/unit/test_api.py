@@ -49,7 +49,14 @@ def test_create_from_url_queues_a_job(client: TestClient, store: MemoryStore) ->
     job = store.get_job(jid)
     assert job is not None and job.status == "queued"
     assert job.input == {"url": "https://example.org/a"}
-    assert job.config == {"profile": None, "tau": 900, "keypoints": True, "verify": True}
+    assert job.config == {
+        "profile": None,
+        "tau": 900,
+        "keypoints": True,
+        "verify": True,
+        "verify_scope": "final",
+        "max_summary_words": 500,
+    }
 
 
 def test_create_from_pdf_upload_stores_the_file(

@@ -257,3 +257,16 @@ def test_local_qwen_profile_has_small_windows_below_its_context() -> None:
     assert p.small_ctx == [4096, 8192]
     assert all(c < p.effective_context for c in p.small_ctx)
     assert cfg.profiles["gemini_full"].small_ctx == []
+
+
+def test_summaries_run_without_thinking_and_uncapped_by_default() -> None:
+    # DECISION-37: Qwen3 thinking cost 13.7 tokens per summary word and one runaway
+    # 15-min call; key points and decomposition were already think-off.
+    s = load_config("configs").summary
+    assert s.think is False
+    assert s.max_words is None  # experiments keep the PRD 10% rule; uploads cap per job
+
+
+def test_summary_word_cap_must_be_positive(cfg_dir):
+    with pytest.raises(ValidationError):
+        load_config(cfg_dir, overrides={"summary": {"max_words": 0}})

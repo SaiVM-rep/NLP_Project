@@ -46,6 +46,9 @@ DOCKER_EXE = Path(r"C:\Program Files\Docker\Docker\Docker Desktop.exe")
 # ~0.7 GB margin.
 CLAIMS_MIN_GB = 3.0
 GUARD_FLOOR_MB = 400
+# Whole qwen3:8b on the 8 GB GPU even at 16k: 13 -> 33 tok/s (DECISION-37). Also set as
+# Windows user variables; these are used when this launcher has to start Ollama itself.
+OLLAMA_ENV = {"OLLAMA_FLASH_ATTENTION": "1", "OLLAMA_KV_CACHE_TYPE": "q8_0"}
 OOM_ERROR = (
     "Stopped: the laptop ran out of RAM. Untick 'Check claims' and upload again, "
     "or close other programs first."
@@ -106,8 +109,10 @@ def pdf_verdict(tokens: int, tau: int) -> PdfVerdict:
     return PdfVerdict(
         "B",
         False,
-        f"Route B (map-reduce, {tokens} > {tau} tokens): first run takes 30-60+ min on this "
-        "GPU. Prewarm it the day before (make rehearse) or pick a shorter paper (~10 pages).",
+        # scale: PEGASUS 49,720 tokens took 23 min end to end (DECISION-37)
+        f"Route B (map-reduce, {tokens} > {tau} tokens): first run about "
+        f"{max(10, round(tokens / 2200))} min with claim checking. Prewarm it ahead "
+        "(make rehearse): the live repeat is then a few minutes.",
     )
 
 
@@ -186,6 +191,7 @@ def ensure_ollama() -> None:
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             creationflags=flags,
+            env={**os.environ, **OLLAMA_ENV},
         )
         wait_for("Ollama", lambda: ok(f"{url}/api/tags"), 60)
     tags = httpx.get(f"{url}/api/tags", timeout=5).json()
