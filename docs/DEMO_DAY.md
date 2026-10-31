@@ -10,7 +10,7 @@ Commands run in PowerShell in `C:\NLP_Project` (make is on PATH, see CLAUDE.md �
    make showcase-check FILE="C:\path\to\my_paper.pdf"
    ```
    `OK Route A` → good. `WARN Route B` → longer paper: a first run takes ~20–25 min
-   (measured: 55-page PEGASUS 23 min, DECISION-37). Rehearse it ahead; the cache makes the
+   (measured: 55-page PEGASUS 20.7 min from cold, `docs/LONG_PDF_PERFORMANCE.md`). Rehearse it ahead; the cache makes the
    live repeat fast.
 2. Start everything (terminal 1, leave it open):
    ```powershell

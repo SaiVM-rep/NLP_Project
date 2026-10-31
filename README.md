@@ -102,7 +102,7 @@ paper (Route A) takes **~4–7 min** the first time and **under a minute** when 
 because every LLM call is cached — so rehearse the PDF you will show. Longer papers go
 through Route B: a 55-page paper took **23 min** the first time (summaries without Qwen
 "thinking", whole model on the GPU, claims checked on the final ≤ 500-word summary;
-DECISION-37). Ollama needs `OLLAMA_FLASH_ATTENTION=1` and `OLLAMA_KV_CACHE_TYPE=q8_0`
+DECISION-37; full measurements in `docs/LONG_PDF_PERFORMANCE.md`). Ollama needs `OLLAMA_FLASH_ATTENTION=1` and `OLLAMA_KV_CACHE_TYPE=q8_0`
 (Windows user variables; `make showcase` sets them when it starts Ollama). Demo-day checklist:
 `docs/DEMO_DAY.md`. Manual alternative: `make up`, `make migrate`, then `make api`,
 `make worker` and `make demo` in three terminals.
