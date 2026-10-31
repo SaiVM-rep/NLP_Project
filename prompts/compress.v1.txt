@@ -1,0 +1,6 @@
+Compress the summary below into a shorter summary of at most {max_sentences} sentences (about {target_words} words).
+Keep the main contribution, method, data and key results; drop details. Do not copy it unchanged.
+Return JSON: {"sentences": ["...", "..."]}
+
+SUMMARY:
+{summary}

@@ -16,6 +16,10 @@ from app.route.chunker import Chunk
 
 SCHEMA = {"type": "OBJECT", "properties": {"summary": {"type": "STRING"}}, "required": ["summary"]}
 REPAIR = '\n\nYour previous reply was not valid JSON. Reply with only: {"summary": "<text>"}'
+# DECISION-38: with a word cap, a final summary over LENGTH_SLACK x cap is compressed once.
+LENGTH_SLACK = 1.25
+COMPRESS_PROMPT = "compress.v1.txt"
+WORDS_PER_SENTENCE = 27  # measured: Qwen summary sentences run ~20-28 words
 
 
 class SummaryError(RuntimeError):
@@ -63,6 +67,53 @@ def capped(target: int, cfg: AppConfig) -> int:
     """`summary.max_words` bounds every target word count (DECISION-37)."""
     cap = cfg.summary.max_words
     return target if cap is None else min(target, cap)
+
+
+def _parse_sentences(text: str) -> list[str] | None:
+    try:
+        out = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    items = out.get("sentences") if isinstance(out, dict) else None
+    if not isinstance(items, list) or not all(isinstance(x, str) for x in items):
+        return None
+    kept = [x.strip() for x in items if x.strip()]
+    return kept or None
+
+
+async def compress_if_long(
+    text: str, client: LLMClient, cfg: AppConfig, *, prompt_dir: str | Path, what: str
+) -> tuple[str, str] | None:
+    """(shorter summary, compress-prompt sha256), or None when no cap applies or `text` is
+    within LENGTH_SLACK of it. DECISION-38: Qwen copies its input when asked for fewer words
+    (T5 root 2,100 words for 500, unchanged when re-asked or re-summarized), so the limit is a
+    sentence count enforced by the output schema (`maxItems`) while decoding."""
+    cap = cfg.summary.max_words
+    if cap is None or len(text.split()) <= LENGTH_SLACK * cap:
+        return None
+    template, digest = load_prompt(prompt_dir, COMPRESS_PROMPT)
+    k = max(3, round(cap / WORDS_PER_SENTENCE))
+    schema = {
+        "type": "OBJECT",
+        "properties": {"sentences": {"type": "ARRAY", "items": {"type": "STRING"}, "maxItems": k}},
+        "required": ["sentences"],
+    }
+    prompt = fill(template, max_sentences=str(k), target_words=str(cap), summary=text)
+    dec = cfg.decoding
+    for attempt in (prompt, prompt + '\n\nReply with only: {"sentences": ["...", "..."]}'):
+        res = await client.generate(
+            attempt,
+            purpose="compress",
+            json_schema=schema,
+            temperature=dec.temperature,
+            top_p=dec.top_p,
+            seed=dec.seed,
+            think=cfg.summary.think,
+            accept=lambda t: _parse_sentences(t) is not None,
+        )
+        if (sentences := _parse_sentences(res.text)) is not None:
+            return " ".join(sentences[:k]), digest
+    raise SummaryError(f"model returned invalid JSON twice compressing {what}")
 
 
 async def ask_summary(

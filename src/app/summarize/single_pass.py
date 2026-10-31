@@ -13,10 +13,12 @@ from app.llm.client import LLMClient
 from app.route.router import route, tau_for
 from app.route.tokens import estimate_tokens
 from app.summarize.common import (
+    COMPRESS_PROMPT,
     SummaryError,
     SummaryResult,
     ask_summary,
     capped,
+    compress_if_long,
     fill,
     load_prompt,
 )
@@ -54,12 +56,17 @@ async def summarize(
     summary, model = await ask_summary(
         client, prompt, purpose="single_pass", cfg=cfg, what=doc.doc_id
     )
+    hashes = {PROMPT: digest}
+    if comp := await compress_if_long(
+        summary, client, cfg, prompt_dir=prompt_dir, what=doc.doc_id
+    ):  # DECISION-38, capped uploads only
+        summary, hashes[COMPRESS_PROMPT] = comp
     return SummaryResult(
         doc_id=doc.doc_id,
         summary=summary,
         route=Route.A,
         tokens=tokens,
         tau=tau,
-        prompt_hashes={PROMPT: digest},
+        prompt_hashes=hashes,
         model=model,
     )

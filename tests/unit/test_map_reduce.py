@@ -7,6 +7,7 @@ root summary: E[...] = chunk summary, M[a+b] = merge of a and b.
 from __future__ import annotations
 
 import asyncio
+import json
 import re
 from pathlib import Path
 
@@ -319,3 +320,43 @@ async def test_word_cap_limits_merge_targets(tmp_path: Path) -> None:
     await run(sections(2, words_each=200), cfg, p, tmp_path)
     merges = [q for q in p.prompts if "PARTIAL SUMMARIES:" in q]
     assert _target(merges[0]) == 25  # sum of children would be 40
+
+
+async def test_capped_route_b_adds_a_compressed_final_node_above_the_root(
+    tmp_path: Path,
+) -> None:
+    class LongMerges(EchoProvider):
+        async def generate(self, prompt, *, model, params, seed):  # type: ignore[no-untyped-def]
+            if "SUMMARY:" in prompt:  # compress.v1
+                self.prompts.append(prompt)
+                return LLMResult(
+                    text='{"sentences": ["Short final."]}',
+                    tokens_in=1,
+                    tokens_out=1,
+                    provider="x",
+                    model=model,
+                )
+            res = await super().generate(prompt, model=model, params=params, seed=seed)
+            words = " ".join(["w"] * 80)  # every summary far over the 20-word cap
+            return LLMResult(
+                text=json.dumps({"summary": words}),
+                tokens_in=1,
+                tokens_out=1,
+                provider=res.provider,
+                model=model,
+            )
+
+    p = LongMerges()
+    cfg = load_config(
+        ROOT / "configs",
+        {
+            "chunk": {"chunk_tokens": 500, "overlap_tokens": 0, "fan_in_k": 2},
+            "summary": {"max_words": 20},
+        },
+    )
+    res = await run(sections(2, words_each=200), cfg, p, tmp_path)
+    assert res.summary == "Short final." and res.root_id == "final"
+    final = next(n for n in res.nodes if n.id == "final")
+    old_root = next(n for n in res.nodes if n.parent_id == "final")
+    assert final.level == old_root.level + 1 and old_root.level == 1
+    assert "compress.v1.txt" in res.prompt_hashes

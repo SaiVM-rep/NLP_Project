@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -126,3 +127,33 @@ async def test_word_cap_limits_the_route_a_target(tmp_path: Path) -> None:
     await summarize(_doc(), client, cfg, prompt_dir=ROOT / "prompts")
     m = re.search(r"about (\d+) words", p.prompts[0])
     assert m and int(m.group(1)) <= 3
+
+
+async def test_capped_summary_far_over_the_cap_is_compressed(tmp_path: Path) -> None:
+    # DECISION-38: Qwen copies its input when asked for fewer words (T5: 2,100 words for a
+    # 500-word target, even when re-asked), but a sentence-capped schema is enforced.
+    long = " ".join(["x"] * 40)
+    p = ScriptedProvider(json.dumps({"summary": long}), '{"sentences": ["One.", "Two."]}')
+    cfg = load_config(ROOT / "configs", {"summary": {"max_words": 10}})
+    client = LLMClient(p, cfg.active_profile, DiskCache(tmp_path))
+    res = await summarize(_doc(), client, cfg, prompt_dir=ROOT / "prompts")
+    assert res.summary == "One. Two."
+    assert len(p.prompts) == 2 and "at most 3 sentences" in p.prompts[1] and long in p.prompts[1]
+    schema = p.params[1]["json_schema"]
+    assert schema["properties"]["sentences"]["maxItems"] == 3  # enforced while decoding
+    assert "compress.v1.txt" in res.prompt_hashes
+
+
+async def test_capped_summary_within_slack_is_not_compressed(tmp_path: Path) -> None:
+    p = ScriptedProvider(json.dumps({"summary": " ".join(["x"] * 12)}))  # 12 <= 1.25 x 10
+    cfg = load_config(ROOT / "configs", {"summary": {"max_words": 10}})
+    client = LLMClient(p, cfg.active_profile, DiskCache(tmp_path))
+    res = await summarize(_doc(), client, cfg, prompt_dir=ROOT / "prompts")
+    assert len(p.prompts) == 1 and "compress.v1.txt" not in res.prompt_hashes
+
+
+async def test_uncapped_runs_are_never_compressed(tmp_path: Path) -> None:
+    long = " ".join(["x"] * 400)  # far over the 10% target of a 201-word doc
+    p = ScriptedProvider(json.dumps({"summary": long}))
+    res = await _run(p, tmp_path)
+    assert res.summary == long and len(p.prompts) == 1  # experiments: PRD behaviour

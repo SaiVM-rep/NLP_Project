@@ -27,16 +27,19 @@ from app.route.chunker import Chunk, Count, chunk_sections
 from app.route.router import tau_for
 from app.route.tokens import estimate_tokens
 from app.summarize.common import (
+    COMPRESS_PROMPT,
     SummaryError,
     SummaryResult,
     ask_summary,
     capped,
+    compress_if_long,
     fill,
     load_prompt,
 )
 
 CHUNK_PROMPT = "chunk_summary.v1.txt"
 MERGE_PROMPT = "merge.v1.txt"
+FINAL_NODE_ID = "final"  # compressed summary above the root (DECISION-38)
 MIN_TARGET_WORDS = 10  # a heading-sized chunk would otherwise ask for 0-1 words
 
 T = TypeVar("T")
@@ -88,7 +91,11 @@ async def summarize_b(
         target = capped(max(MIN_TARGET_WORDS, round(len(text.split()) * pct / 100)), cfg)
         prompt = fill(chunk_tpl, heading=_heading(doc, c), target_words=str(target), chunk=text)
         summary, model = await ask_summary(
-            client, prompt, purpose="chunk_summary", cfg=cfg, what=f"{doc.doc_id}/{c.id}"
+            client,
+            prompt,
+            purpose="chunk_summary",
+            cfg=cfg,
+            what=f"{doc.doc_id}/{c.id}",
         )
         models.append(model)
         return summary, target
@@ -146,6 +153,20 @@ async def summarize_b(
         current = nxt
 
     root = current[0][0]
+    hashes = {CHUNK_PROMPT: chunk_hash, MERGE_PROMPT: merge_hash}
+    if comp := await compress_if_long(
+        root.text, client, cfg, prompt_dir=prompt_dir, what=f"{doc.doc_id}/{root.id}"
+    ):  # DECISION-38: capped uploads only; the tree below stays as generated
+        final = SummaryNode(
+            id=FINAL_NODE_ID,
+            level=root.level + 1,
+            text=comp[0],
+            source_chunk_ids=list(root.source_chunk_ids),
+        )
+        root.parent_id = final.id
+        nodes.append(final)
+        hashes[COMPRESS_PROMPT] = comp[1]
+        root = final
     return SummaryResult(
         doc_id=doc.doc_id,
         summary=root.text,
@@ -154,7 +175,7 @@ async def summarize_b(
             tokens if tokens is not None else estimate_tokens(doc.full_text, cfg.route.token_margin)
         ),
         tau=tau if tau is not None else tau_for(cfg.active_profile, cfg.route.tau_fraction),
-        prompt_hashes={CHUNK_PROMPT: chunk_hash, MERGE_PROMPT: merge_hash},
+        prompt_hashes=hashes,
         model=models[-1],
         nodes=nodes,
         chunks=chunks,
