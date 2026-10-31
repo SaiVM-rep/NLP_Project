@@ -6,7 +6,12 @@ Everything runs on the laptop. No internet is needed during the demo.
 
 1. **Plug in the laptop.** Windows power settings: sleep = never, lid close = do nothing.
 2. **Free RAM** (aim for ≥ 8 GB available — Task Manager → Performance → Memory):
-   quit games/launchers, Spotify, WhatsApp, Creative Cloud, extra browser windows.
+   quit games/launchers, Spotify, WhatsApp, Creative Cloud, extra browser windows,
+   **VS Code and Claude Code** (together ~3 GB). Measured in the 2026-10-31 rehearsal:
+   Docker VM 4 GB (capped by `C:\Users\saivi\.wslconfig`), UI 0.8, API 0.7, worker ~3 GB
+   before the verifiers, MiniCheck +2.3 GB. With VS Code + Claude Code open, the full
+   pipeline did **not** fit (RAM watchdog stopped the worker); with "Check claims" off it
+   did (low point 1.5 GB free).
 3. **Start Ollama** (tray icon, or `ollama serve`). Check: `ollama list` shows `qwen3:8b`.
 4. **Start Docker Desktop**, wait for *Engine running*. Then, in `C:\NLP_Project`:
    ```powershell
@@ -31,6 +36,8 @@ Everything runs on the laptop. No internet is needed during the demo.
      the verifiers disagree, which is exactly what E5 measures.
 2. **Live upload** (~7 min for ≤ 10 pages): *Upload a PDF* tab → choose file → Summarize.
    Start it early and come back to it, or show a finished one.
+   **Under ~8 GB free: untick "Check claims"** → summary + key points only (no verifier
+   load). Claim checking is then shown on the demo examples. `sbert.pdf` is cached: ~20 s.
 3. **Results**: open `results/report/tables.md` and the two figures in `results/report/`.
 
 ## Talking points
@@ -47,6 +54,7 @@ Everything runs on the laptop. No internet is needed during the demo.
 | Upload tab: "API not reachable" | `make api` not running (terminal 1) |
 | Upload stays at "ingest" | Docker/GROBID not up: `make up`, wait 30 s |
 | Job fails mentioning ollama | Ollama not running, or RAM too low — close apps, retry |
+| Upload hangs at "verify" / laptop crawls | RAM exhausted — untick "Check claims" and retry |
 | Page won't load | `make demo` not running (terminal 3) |
 | Anything else | Fall back to the demo examples — they need nothing but `make demo` |
 

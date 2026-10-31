@@ -6,6 +6,7 @@ turned into, so both modes render through the same code.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -111,3 +112,17 @@ def bundle_from_api(client: httpx.Client, job_id: str) -> Bundle:
     doc.raise_for_status()
     document = doc.json()
     return Bundle(title=document["title"], document=document, result=result)
+
+
+def submit_job(client: httpx.Client, path: str, *, verify: bool) -> str:
+    """POST /v1/jobs with the PDF; `verify=False` skips claim checking (low-RAM live demo)."""
+    with open(path, "rb") as f:
+        r = client.post(
+            "/v1/jobs",
+            files={"file": (Path(path).name, f, "application/pdf")},
+            data={"options": json.dumps({"verify": verify})},
+        )
+    if r.status_code != 202:
+        body = r.json()
+        raise RuntimeError(f"{body.get('title', 'Upload failed')}: {body.get('detail')}")
+    return str(r.json()["job_id"])

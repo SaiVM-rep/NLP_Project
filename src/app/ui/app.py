@@ -16,7 +16,7 @@ import gradio as gr
 import httpx
 
 from app.ui.render import render_source
-from app.ui.view import View, bundle_from_api, load_bundles, make_view
+from app.ui.view import View, bundle_from_api, load_bundles, make_view, submit_job
 
 CSS = """
 .src { white-space: pre-wrap; line-height: 1.5; font-size: 14px; max-height: 78vh;
@@ -63,21 +63,17 @@ def build_app(demo_dir: Path, api_url: str) -> gr.Blocks:
             raise gr.Error("Pick an example first.")
         return _show(make_view(bundles[title]))
 
-    def upload(path: str | None) -> Iterator[tuple[Any, ...]]:
+    def upload(path: str | None, verify: bool) -> Iterator[tuple[Any, ...]]:
         if not path:
             raise gr.Error("Choose a PDF first.")
         blank = (gr.update(),) * 6
         with httpx.Client(base_url=api_url, timeout=30) as c:
             try:
-                with open(path, "rb") as f:
-                    r = c.post("/v1/jobs", files={"file": (Path(path).name, f, "application/pdf")})
+                jid = submit_job(c, path, verify=verify)
             except httpx.ConnectError as e:
                 raise gr.Error(f"API not reachable at {api_url}: run `make api`.") from e
-            if r.status_code != 202:
-                raise gr.Error(
-                    f"{r.json().get('title', 'Upload failed')}: {r.json().get('detail')}"
-                )
-            jid = r.json()["job_id"]
+            except RuntimeError as e:
+                raise gr.Error(str(e)) from e
             while True:
                 j = c.get(f"/v1/jobs/{jid}").json()
                 pct = f"{(j.get('progress') or 0):.0%}"
@@ -99,6 +95,9 @@ def build_app(demo_dir: Path, api_url: str) -> gr.Blocks:
                 open_btn = gr.Button("Open", variant="primary")
             with gr.Tab("Upload a PDF"):
                 pdf = gr.File(file_types=[".pdf"], type="filepath", label="PDF")
+                verify_box = gr.Checkbox(
+                    value=True, label="Check claims (DeBERTa + MiniCheck, needs ~2.5 GB more RAM)"
+                )
                 run_btn = gr.Button("Summarize", variant="primary")
         head = gr.Markdown()
         with gr.Row():
@@ -112,7 +111,7 @@ def build_app(demo_dir: Path, api_url: str) -> gr.Blocks:
 
         outs = [state, head, summary, source, kps, claims]
         open_btn.click(open_demo, pick, outs)
-        run_btn.click(upload, pdf, outs)
+        run_btn.click(upload, [pdf, verify_box], outs)
         kps.input(lambda v, p: _highlight(v, "kp", p), [state, kps], source).then(
             None, js=SCROLL_JS
         )

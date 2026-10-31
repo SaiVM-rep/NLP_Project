@@ -140,3 +140,39 @@ def test_bundle_from_api_raises_on_a_failed_job() -> None:
 def test_bundle_round_trips_through_json() -> None:
     b = _bundle()
     assert Bundle.model_validate(json.loads(b.model_dump_json())) == b
+
+
+@pytest.mark.parametrize("verify", [True, False])
+def test_submit_job_posts_the_pdf_with_the_verify_option(tmp_path: Path, verify: bool) -> None:
+    # verify=False is the low-RAM live-demo path: no MiniCheck/DeBERTa load in the worker.
+    from app.ui.view import submit_job
+
+    pdf = tmp_path / "paper.pdf"
+    pdf.write_bytes(b"%PDF-1.4 x")
+    seen: dict[str, bytes] = {}
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        seen["body"] = req.read()
+        return httpx.Response(202, json={"job_id": "j9"})
+
+    with httpx.Client(base_url="http://api", transport=httpx.MockTransport(handler)) as c:
+        assert submit_job(c, str(pdf), verify=verify) == "j9"
+    body = seen["body"]
+    assert b'filename="paper.pdf"' in body and b"%PDF-1.4 x" in body
+    assert json.dumps({"verify": verify}).encode() in body
+
+
+def test_submit_job_raises_the_problem_detail_on_rejection(tmp_path: Path) -> None:
+    from app.ui.view import submit_job
+
+    pdf = tmp_path / "big.pdf"
+    pdf.write_bytes(b"%PDF")
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        return httpx.Response(413, json={"title": "Too large", "detail": "over 20 MB"})
+
+    with (
+        httpx.Client(base_url="http://api", transport=httpx.MockTransport(handler)) as c,
+        pytest.raises(RuntimeError, match="Too large: over 20 MB"),
+    ):
+        submit_job(c, str(pdf), verify=True)
