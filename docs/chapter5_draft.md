@@ -1,8 +1,8 @@
-# Chapter 5 — Results and Discussion (draft)
+# Chapter 5 — Results and Discussion
 
-> Draft text for the team report. **Tables and figures are not typed here** (SC5): paste them
-> from `results/report/tables.md`, `results/report/e3_levels.png` and
-> `results/report/e5_perturbations.png`, all produced by `make report` from the run logs.
+> Draft text for the team report. **Tables and figures are not typed here** (SC5): the
+> `<!-- table: … -->` / `<!-- figure: … -->` markers are filled from `results/report/` by
+> `make chapter5`, which writes `docs/chapter5.md` (the file to paste into the report).
 > Run ids: E1 `20261030T215019-e30656`, E5 `20261031T004522-290644`.
 > Numbers quoted in the prose below were copied from those files on 2026-10-31; if a run is
 > repeated, re-check them.
@@ -10,7 +10,7 @@
 ## 5.1 Experimental setup actually run
 
 The PRD planned five experiments on a 50-document gold set with human annotation. Because of
-the deadline, a **pilot** was run instead (scope agreed with the team; guide confirmation
+the deadline, a **pilot** was run instead (scope decided for the deadline; guide confirmation
 pending):
 
 - **Documents:** 5 CC-licensed arXiv papers parsed by GROBID (Sentence-BERT, DeBERTaV3, FRANK,
@@ -39,6 +39,8 @@ Entailment thresholds were tuned on a stratified sample of the **LLM-AggreFact d
 - **MiniCheck** is flat between 0.25 and 0.6 (0.765–0.766). The sweep's best value (0.22) beats
   0.5 by less than 0.001, so the published default **0.5 was kept**. Table 5.1 shows both.
 
+<!-- table: Verifier thresholds -->
+
 **SC4 — held-out test split** (4358 claims, thresholds frozen): MiniCheck reaches **F1 0.809,
 balanced accuracy 0.771**; DeBERTa F1 0.648, balanced accuracy 0.666. Test accuracy is within
 0.01 of dev for both verifiers, so the thresholds did not overfit the dev sample. MiniCheck's
@@ -47,10 +49,14 @@ re-implementation. DeBERTa's recall is low (0.54) even at θ_e = 0.10: it misses
 claims, and MiniCheck is better on precision too (0.845 vs 0.810). Both verifiers are weakest on AggreFact-CNN and
 ExpertQA (MiniCheck 0.55 on ExpertQA).
 
+<!-- table: SC4 -->
+
 ## 5.3 E1 — single pass (Route A) vs map-reduce (Route B) (Table 5.3)
 
 All five papers fit the 13,107-token window, so Route A is a single prompt; Route B is forced
 with a 4,000-token budget (17–46 merge-tree nodes per paper).
+
+<!-- table: E1 -->
 
 | Finding | Evidence |
 | --- | --- |
@@ -73,11 +79,19 @@ unfaithfulness; the drop seen in E1 is already present in the level-0 chunk summ
 papers and trees at most 4 levels deep, this cannot rule out degradation in much longer
 documents.
 
+<!-- table: E3 -->
+
+<!-- figure: e3_levels.png | Faithfulness per merge level (Route B arm of E1) -->
+
 ## 5.5 E5 — verifier behaviour under perturbation (Figure 5.2, Table 5.5)
 
 Claims from the E1 summaries were perturbed by rule (negation, number/entity corruption, an
 inserted assertion) or paraphrased by the LLM; a correct verifier rejects the first three
 and still supports paraphrases.
+
+<!-- table: E5 -->
+
+<!-- figure: e5_perturbations.png | Share of perturbed claims judged correctly, per verifier -->
 
 - **Negation** (28 items): DeBERTa 0.75 correct, MiniCheck 0.64.
 - **Corruption** (25): DeBERTa 0.92, MiniCheck 0.80.
@@ -96,7 +110,8 @@ facts. Reporting both, as the system does, is more informative than either alone
 For the 24 key points of the three demo papers, the sentence the system links each key point
 to was checked against a reference labelling: **precision@1 = 0.667** (16/24; per paper 0.50,
 0.75, 0.75). The reference was produced **by an LLM annotator (Claude), blind to the system's
-choice, and spot-checked by a team member** — it is not a human gold set (DECISION-29). Most
+choice** — it is not a human gold set, and no human agreement check was completed before
+submission (DECISION-29). Most
 misses are sentences about the same entity but a different claim, which embedding similarity
 cannot separate.
 

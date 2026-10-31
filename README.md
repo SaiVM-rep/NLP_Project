@@ -41,17 +41,17 @@ The project is built in phases (P0 → P9, defined in `PRD.md`). Status as of **
 | **P5 Key points** | Ranked key points linked to their source sentence | ✅ Done — attribution precision **0.667** on 24 key points (LLM-labelled reference) |
 | **P6 Service** | HTTP API + job queue + database | ✅ Done — upload over HTTP, live progress, crash-safe worker |
 | **P7 UI** | Two-pane web page with highlighting | ✅ Done — `make demo`, 3 precomputed papers, PDF upload |
-| **P8 Experiments** | E1 (+E3), E5, SC4 — **pilot scope** (5 papers, 1 seed) | 🟡 Running unattended overnight (`scripts/overnight.py`) |
-| P9 Report | Chapter 5 generated from logs (`make report`) | 🟡 Generator built; waits for P8 |
+| **P8 Experiments** | E1 (+E3), E5, SC4 — **pilot scope** (5 papers, 1 seed) | ✅ Done 2026-10-31 (`scripts/overnight.py`) |
+| P9 Report | Chapter 5 generated from logs (`make report` → `make chapter5`) | 🟡 `docs/chapter5.md` ready to paste; conclusion + bibliography open |
 
 **Scope cut for the deadline:** E2, E4, the 50-document gold set and human annotation are
 future work. **Qwen3-8B (local) is the only model used**; Gemini code is kept but unused
 (`CLAUDE.md` DECISION-27). Both need the guide's OK.
 
-**So right now you can:** open the web demo, pick one of three research papers, read its
+**So right now you can:** open the web demo, pick one of seven research papers, read its
 summary, key points and every checked claim, and click any of them to jump to the exact
-sentence in the paper that backs it. You can also feed in your own PDF (see §2) — everything
-runs on your own laptop, nothing leaves the machine.
+sentence in the paper that backs it. You can also upload your own PDF with one command,
+`make showcase` (see §2) — everything runs on your own laptop, nothing leaves the machine.
 
 ### Results so far
 
@@ -61,7 +61,10 @@ runs on your own laptop, nothing leaves the machine.
 | Demo papers, faithfulness (DeBERTa / MiniCheck) | SBERT 0.60 / 1.00 · FRANK 0.61 / 0.92 · TRUE 0.64 / 0.94 | `demo/*.json` |
 | Key-point attribution precision@1 | **0.667** (16/24) | `results/attribution/summary.json` |
 | Overlap metrics vs human ratings (SummEval, Kendall τ) | ROUGE-1: relevance 0.22, faithfulness 0.14 | `CLAUDE.md` §7 |
-| E1 / E3 / E5 / SC4 | pending (overnight run) | `make report` → `results/report/tables.md` |
+| SC4: verifiers on held-out AggreFact test (4358 rows, frozen θ) | MiniCheck F1 **0.809** / BA 0.771 · DeBERTa F1 0.648 / BA 0.666 | `results/report/tables.md` |
+| E1: Route A vs forced Route B (5 papers) | faithfulness A ≥ B (DeBERTa 0.684 vs 0.611, MiniCheck 0.988 vs 0.944); B ~9× slower, 2.5× longer summaries | `results/report/tables.md` |
+| E3: faithfulness per merge level | flat (DeBERTa 0.60–0.63, MiniCheck 0.94–0.95) | `results/report/e3_levels.png` |
+| E5: perturbations, share correct | DeBERTa stricter on negation/corruption, MiniCheck better on paraphrase; MiniCheck accepts a content-free claim | `results/report/e5_perturbations.png` |
 
 ---
 
@@ -83,16 +86,23 @@ or save any finished API job with `make demo-export JOB=<job_id>`.
 
 ### Upload your own PDF in the web page
 
-The **Upload a PDF** tab needs the full pipeline running behind it:
+One command starts and supervises everything the **Upload a PDF** tab needs (Ollama, Docker
+with GROBID + Postgres, migrations, API, worker, UI):
 
-1. Free RAM: aim for **≥ 8 GB available** (quit games, launchers, extra browser tabs).
-2. Start **Docker Desktop**, then `make up` (GROBID + Postgres) and `make migrate` (once).
-3. `make api` in one terminal, `make worker` in another. **Ollama** must be running.
-4. `make demo`, open the **Upload a PDF** tab, choose the file, **Summarize**.
+```powershell
+make showcase                          # Ctrl+C stops everything
+make showcase-check FILE="paper.pdf"   # size + route before a run (seconds)
+make rehearse FILE="paper.pdf"         # full run through the API, saved as a demo paper
+```
 
-Works with **text-based** PDFs under 25 MB (scanned images have no text → not supported).
-A ≤ 10-page paper takes **~7 minutes**; papers over ~13k tokens go through Route B and can
-take 30+ minutes.
+`make showcase` prints whether there is enough free RAM (≥ 3 GB) to leave **Check claims**
+ticked, and a RAM guard fails a job cleanly ("untick Check claims") instead of freezing the
+laptop. Works with **text-based** PDFs under 25 MB (scans have no text layer). A ≤ ~12-page
+paper (Route A) takes **~4–7 min** the first time and **under a minute** when repeated,
+because every LLM call is cached — so rehearse the PDF you will show. Papers over ~13k
+tokens go through Route B and take 30+ minutes the first time. Demo-day checklist:
+`docs/DEMO_DAY.md`. Manual alternative: `make up`, `make migrate`, then `make api`,
+`make worker` and `make demo` in three terminals.
 
 ### One-time setup
 
@@ -331,9 +341,13 @@ no internet, no daily quota. Gemini stays available as an option.
 working memory for the prompt) grows with context length, and at 32k tokens it needs ~4.5 GB
 more, which doesn't fit in 8 GB. At 16k the measured peak is ~6.2 GB.
 
-**Sequential model residency.** Because the GPU is small, models are loaded one at a time and
-unloaded after use (`keep_alive=0`), so the verifier models (DeBERTa, MiniCheck) get the GPU
-after Qwen is done.
+**Sequential model residency.** Because the GPU is small, models are loaded one at a time:
+Qwen stays loaded between its calls and is unloaded explicitly before the verifier models
+(DeBERTa, MiniCheck) take the GPU, and at the end of every job.
+
+**Small windows for short prompts.** At 16k Qwen keeps 6 of 37 layers on the CPU. Key points
+and claim decomposition send short prompts, so they run with a 4k/8k window that fits the
+whole model on the GPU: ~3 s per key-point call instead of ~13 s (DECISION-35).
 
 **Simulated profiles.** `qwen_sim_4k/8k/12k` use the same Qwen model but *pretend* it has a
 smaller window, so experiments can force Route B. (`sim_8k/16k/32k` are the Gemini versions.)
@@ -451,6 +465,8 @@ NLP_Project/
 
 | Command | What it does |
 | --- | --- |
+| `make showcase` | **Live showcase**: start + supervise Ollama, Docker, API, worker and UI in one terminal, RAM guard (Ctrl+C stops all) |
+| `make showcase-check FILE="paper.pdf"` / `make rehearse FILE="paper.pdf"` | Route + size of a PDF / full run through the API, saved as a demo paper |
 | `make demo` | **The web page** on http://127.0.0.1:7860 (demo papers + PDF upload) |
 | `make demo-export JOB=<id>` | Save a finished API job as a demo paper in `demo/` |
 | `make summarize FILE="paper.pdf"` | Summarize with Qwen (local default) |
@@ -466,6 +482,7 @@ NLP_Project/
 | `python -m eval.data --check` | Fetch, parse and count every dataset (AggreFact needs `HF_TOKEN`) |
 | `make exp E=E1` / `make exp E=E5 ARGS="--e1-dir results/E1/<run>"` | Pilot experiments → `results/<E>/<run_id>/` (manifest, per-doc JSONL, aggregate CSV) |
 | `make report` | Chapter-5 tables + figures from the newest runs → `results/report/` |
+| `make chapter5` | `docs/chapter5.md` = chapter-5 text (`docs/chapter5_draft.md`) + the generated tables/figures, ready to paste |
 | `python scripts/tune_aggrefact.py [--split test]` | Verifier threshold sweep on AggreFact dev / SC4 on test at frozen θ |
 | `python scripts/overnight.py` | Unattended resumable chain (start detached: see the script docstring) |
 | `make test` | Unit tests (no network/GPU/Docker needed) |
@@ -479,7 +496,7 @@ NLP_Project/
 
 - **TDD (test-driven development)** is mandatory: write the failing test first, watch it fail,
   then write the code.
-- **538 unit tests** run in about a minute with **no network, no GPU and no Docker**. Network
+- **566 unit tests** run in about a minute with **no network, no GPU and no Docker**. Network
   calls are faked with `httpx.MockTransport`; models are tiny random-weight stand-ins.
 - **Integration tests** (`pytest tests/integration`) need GROBID, the GPU and/or Ollama. One of
   them proves verification runs with the network switched off (FR-5.6).
@@ -515,14 +532,16 @@ NLP_Project/
 ## 11. Roadmap
 
 **Before the deadline (2026-11-02):**
-- Overnight chain finishes E1 (+E3), E5, SC4 → `make report` → report chapter 5.
-- Rehearse the live PDF upload (Docker + API + worker) after the GPU run is done.
-- Team member spot-checks 8 key-point labels (`results/attribution/sbert.sheet.csv`) for an
-  agreement number; the guide confirms the scope cut and Qwen-only setup.
+- Paste `docs/chapter5.md` (`make chapter5`) into the report; write the conclusion and check the
+  bibliography.
+- `make rehearse FILE=...` on the PDF for the live demo (`docs/DEMO_DAY.md`).
+- The guide confirms the scope cut and Qwen-only setup. Optional: a human spot-check of 8
+  key-point labels (`results/attribution/sbert.sheet.csv`) for an agreement number.
 
 **Future work (reported as limitations):** E2 (τ sweep) and E4 (section-aware vs uniform
 chunks); a human-annotated 50-document gold set and claim-level human labels (Cohen's κ);
-tuning `theta_attr`/`dup_distance` on that gold set; NLI reranking for key-point attribution;
+tuning `theta_attr`/`dup_distance` on that gold set; NLI reranking for key-point attribution
+(exploratory P@1 0.667 → 0.875, DECISION-32); a length-matched Route B rerun for E1;
 `theta_c` tuning (needs 3-way labels); OCR for scanned PDFs; `docker build` for API/worker.
 
 ---

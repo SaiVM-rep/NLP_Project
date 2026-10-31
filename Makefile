@@ -5,7 +5,7 @@
 
 PY ?= .venv/Scripts/python.exe
 
-.PHONY: help up down logs migrate test test-all smoke live-b live-kp api worker summarize doctor models lint fmt typecheck hooks check demo showcase showcase-check rehearse demo-export exp report clean
+.PHONY: help up down logs migrate test test-all smoke live-b live-kp api worker summarize doctor models lint fmt typecheck hooks check demo showcase showcase-check rehearse demo-export exp report chapter5 clean
 
 help:
 	@echo "up        start db + grobid"
@@ -22,6 +22,7 @@ help:
 	@echo "check     lint + format check + types + unit tests"
 	@echo "exp E=E1  run one experiment"
 	@echo "report    regenerate every table and figure from results/"
+	@echo "chapter5  docs/chapter5.md = draft text + generated tables (paste into the report)"
 
 up:
 	docker compose up -d db grobid
@@ -118,6 +119,10 @@ exp:
 
 report:
 	$(PY) -m eval.report
+
+# Report chapter 5: docs/chapter5_draft.md + results/report/ tables -> docs/chapter5.md (SC5)
+chapter5:
+	$(PY) scripts/build_chapter5.py
 
 clean:
 	rm -rf .pytest_cache .mypy_cache .ruff_cache
