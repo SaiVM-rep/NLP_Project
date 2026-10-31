@@ -16,11 +16,14 @@ pending):
 - **Verifiers:** DeBERTa-v3-large NLI and MiniCheck (Flan-T5-Large), both run locally and
   offline, one model on the GPU at a time.
 - **One seed** (1234), temperature 0.2, all LLM calls cached and logged.
+- **No hidden reasoning:** Qwen3's "thinking" mode is switched off for every call (summaries,
+  key points, claim decomposition). An earlier E1 run with thinking on for summaries is
+  compared in §5.4.
 
 Experiments run: **E1** (Route A vs forced Route B), **E3** (faithfulness per merge level,
 from the E1 Route B runs), **E5** (verifiers under controlled perturbations), **SC4**
 (verifier accuracy on the AggreFact test split). E2 (context-budget sweep) and E4
-(section-aware vs uniform chunking) were not run (§5.7).
+(section-aware vs uniform chunking) were not run (§5.8).
 
 ## 5.2 Verifier calibration (Table 5.1, Table 5.2)
 
@@ -56,70 +59,104 @@ ExpertQA (MiniCheck 0.55 on ExpertQA).
 | DeBERTa | 0.100 | 0.810 | 0.541 | 0.648 | 0.666 |
 | MiniCheck | 0.500 | 0.845 | 0.775 | 0.809 | 0.771 |
 
-## 5.3 E1 — single pass (Route A) vs map-reduce (Route B) (Table 5.3)
+## 5.3 E1 — single pass (Route A) vs map-reduce (Route B) (Tables 5.3, 5.4)
 
 All five papers fit the 13,107-token window, so Route A is a single prompt; Route B is forced
 with a 4,000-token budget (17–46 merge-tree nodes per paper).
 
-**Table 5.3 — E1: Route A vs forced Route B (run `20261030T215019-e30656`)**
+**Table 5.3 — E1: Route A vs forced Route B (run `20261031T121144-afa706`)**
 
 | Arm | Docs | Faith. DeBERTa | Faith. MiniCheck | ROUGE-1 | ROUGE-2 | ROUGE-L | Seconds/doc | Words/summary |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| A | 5 | 0.684 | 0.988 | 0.436 | 0.131 | 0.196 | 255.921 | 234.200 |
-| B | 5 | 0.611 | 0.944 | 0.273 | 0.071 | 0.112 | 2323.972 | 576.000 |
+| A | 5 | 0.813 | 0.979 | 0.485 | 0.170 | 0.238 | 81.087 | 235.200 |
+| B | 5 | 0.700 | 0.959 | 0.307 | 0.092 | 0.129 | 570.881 | 582.000 |
 
 | Finding | Evidence |
 | --- | --- |
-| Route A is at least as faithful as Route B | mean faithfulness A 0.684 vs B 0.611 (DeBERTa), 0.988 vs 0.944 (MiniCheck). MiniCheck prefers A on 5/5 papers; DeBERTa on 3/5 (B is higher on Sentence-BERT and TRUE) |
-| Route A has higher ROUGE | ROUGE-1 0.436 vs 0.273, on 5/5 papers |
-| **But the ROUGE gap is mostly length** | B summaries are 2.5× longer (576 vs 234 words, column *Words/summary*): the merge target is the sum of the children's targets, so the final summary grows with the number of chunks. A longer summary against a ~150-word abstract lowers ROUGE precision and F1 regardless of quality |
-| Route B costs ~9× more time | 2324 vs 256 s per paper (more LLM calls, run one at a time on one GPU) |
+| Route A is more faithful than Route B | mean faithfulness A 0.813 vs B 0.700 (DeBERTa), 0.979 vs 0.959 (MiniCheck). Each verifier prefers A on 4/5 papers (DeBERTa: B higher on Sentence-BERT; MiniCheck: B higher on TRUE), Table 5.4 |
+| Route A has higher ROUGE | ROUGE-1 0.485 vs 0.307, on 5/5 papers |
+| **But the ROUGE gap is mostly length** | B summaries are 2.5× longer (582 vs 235 words, column *Words/summary*): the merge target is the sum of the children's targets, so the final summary grows with the number of chunks. A longer summary against a ~150-word abstract lowers ROUGE precision and F1 regardless of quality |
+| Route B costs ~7× more time | 571 vs 81 s per paper (more LLM calls, run one at a time on one GPU) |
 
-**Reading:** when a paper fits the context window, sending it whole is cheaper and no less
+**Table 5.4 — E1 per paper (same run)**
+
+| Paper | DeBERTa A | DeBERTa B | MiniCheck A | MiniCheck B | ROUGE-1 A | ROUGE-1 B |
+| --- | --- | --- | --- | --- | --- | --- |
+| sbert | 0.581 | 0.636 | 1.000 | 0.990 | 0.460 | 0.342 |
+| frank | 0.781 | 0.685 | 1.000 | 0.937 | 0.421 | 0.211 |
+| true | 0.862 | 0.766 | 0.897 | 0.964 | 0.445 | 0.232 |
+| debertav3 | 0.969 | 0.615 | 1.000 | 0.948 | 0.549 | 0.395 |
+| chatgpt_factuality | 0.872 | 0.798 | 1.000 | 0.957 | 0.550 | 0.354 |
+
+| A better on | DeBERTa | MiniCheck | ROUGE-1 |
+| --- | --- | --- | --- |
+| papers | 4/5 | 4/5 | 5/5 |
+
+**Reading:** when a paper fits the context window, sending it whole is cheaper and more
 faithful. The ROUGE comparison should not be read as a quality ranking because the two
 routes produce summaries of different length; faithfulness is a per-claim rate and is less
 sensitive to length. A length-matched Route B run (≈4 GPU hours) is the main follow-up.
 
-## 5.4 E3 — does faithfulness degrade up the merge tree? (Figure 5.1, Table 5.4)
+## 5.4 Summary thinking on vs off (Table 5.5)
 
-Faithfulness is essentially **flat** across merge levels: DeBERTa 0.63 / 0.60 / 0.61 / 0.62
-and MiniCheck 0.94 / 0.94 / 0.94 / 0.95 for levels 0–3 (level 3 exists for only 3 of the 5
-papers). On these papers, recursive merging did **not** introduce measurable extra
-unfaithfulness; the drop seen in E1 is already present in the level-0 chunk summaries. With 5
+The first E1 run used Qwen3's default "thinking" for summary calls; the final run switched it
+off (DECISION-37) after profiling showed it generated about 14 tokens of hidden reasoning per
+summary word. Turning it off made summarization **3× (Route A) to 4× (Route B) faster** (256 →
+81 s and 2324 → 571 s per paper) and did **not** reduce faithfulness: DeBERTa rose from 0.684 to
+0.813 (A) and from 0.611 to 0.700 (B); MiniCheck moved from 0.988 to 0.979 (A) and from 0.944 to
+0.959 (B); ROUGE-1 rose on both routes. Summary length was unchanged (~235 / ~580 words). The
+direction of every E1 finding is the same in both runs.
+
+**Table 5.5 — E1 thinking: summaries with thinking on vs off (runs `20261030T215019-e30656`, `20261031T121144-afa706`)**
+
+| Summary thinking | Arm | Docs | Faith. DeBERTa | Faith. MiniCheck | ROUGE-1 | Seconds/doc | Words/summary |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| on (model default) | A | 5 | 0.684 | 0.988 | 0.436 | 255.921 | 234.200 |
+| on (model default) | B | 5 | 0.611 | 0.944 | 0.273 | 2323.972 | 576.000 |
+| off | A | 5 | 0.813 | 0.979 | 0.485 | 81.087 | 235.200 |
+| off | B | 5 | 0.700 | 0.959 | 0.307 | 570.881 | 582.000 |
+
+## 5.5 E3 — does faithfulness degrade up the merge tree? (Figure 5.1, Table 5.6)
+
+Faithfulness is close to **flat** across merge levels: DeBERTa 0.71 / 0.71 / 0.70 / 0.69 and
+MiniCheck 0.96 / 0.96 / 0.96 / 0.95 for levels 0–3 (level 3 exists for only 3 of the 5 papers),
+a decline of at most 0.02 per verifier. On these papers, recursive merging did **not** introduce
+substantial extra unfaithfulness; most of the A–B gap in E1 is already present in the level-0
+chunk summaries. With 5
 papers and trees at most 4 levels deep, this cannot rule out degradation in much longer
 documents.
 
-**Table 5.4 — E3: faithfulness per merge level (Route B arm of E1)**
+**Table 5.6 — E3: faithfulness per merge level (Route B arm of E1)**
 
 | Merge level | Docs | Faith. DeBERTa | Faith. MiniCheck |
 | --- | --- | --- | --- |
-| 0 | 5 | 0.628 | 0.937 |
-| 1 | 5 | 0.600 | 0.940 |
-| 2 | 5 | 0.611 | 0.942 |
-| 3 | 3 | 0.624 | 0.954 |
+| 0 | 5 | 0.712 | 0.963 |
+| 1 | 5 | 0.712 | 0.961 |
+| 2 | 5 | 0.698 | 0.961 |
+| 3 | 3 | 0.689 | 0.949 |
 
 ![Figure 5.1 — Faithfulness per merge level (Route B arm of E1)](../results/report/e3_levels.png)
 
-## 5.5 E5 — verifier behaviour under perturbation (Figure 5.2, Table 5.5)
+## 5.6 E5 — verifier behaviour under perturbation (Figure 5.2, Table 5.7)
 
 Claims from the E1 summaries were perturbed by rule (negation, number/entity corruption, an
 inserted assertion) or paraphrased by the LLM; a correct verifier rejects the first three
 and still supports paraphrases.
 
-**Table 5.5 — E5: perturbations (run `20261031T004522-290644`)**
+**Table 5.7 — E5: perturbations (run `20261031T130616-ae3547`)**
 
 | Perturbation | Items | DeBERTa correct | MiniCheck correct |
 | --- | --- | --- | --- |
 | assertion | 5 | 0.600 | 0.000 |
-| corruption | 25 | 0.920 | 0.800 |
-| negation | 28 | 0.750 | 0.643 |
-| paraphrase | 50 | 0.900 | 0.980 |
+| corruption | 19 | 0.895 | 0.737 |
+| negation | 41 | 0.756 | 0.732 |
+| paraphrase | 50 | 0.880 | 1.000 |
 
 ![Figure 5.2 — Share of perturbed claims judged correctly, per verifier](../results/report/e5_perturbations.png)
 
-- **Negation** (28 items): DeBERTa 0.75 correct, MiniCheck 0.64.
-- **Corruption** (25): DeBERTa 0.92, MiniCheck 0.80.
-- **Paraphrase** (50): MiniCheck 0.98, DeBERTa 0.90.
+- **Negation** (41 items): DeBERTa 0.76 correct, MiniCheck 0.73.
+- **Corruption** (19): DeBERTa 0.89, MiniCheck 0.74.
+- **Paraphrase** (50): MiniCheck 1.00, DeBERTa 0.88.
 - **Assertion** (5): DeBERTa 0.60, MiniCheck **0.00**. The inserted sentence is the fixed
   meta-claim *"The summary is fully supported by the document."*; MiniCheck accepted it for
   every paper. Only 5 items, but it shows MiniCheck can label a content-free claim as
@@ -129,7 +166,7 @@ and still supports paraphrases.
 and better calibrated overall (SC4), while DeBERTa is stricter about negations and changed
 facts. Reporting both, as the system does, is more informative than either alone.
 
-## 5.6 Key-point attribution
+## 5.7 Key-point attribution
 
 For the 24 key points of the three demo papers, the sentence the system links each key point
 to was checked against a reference labelling: **precision@1 = 0.667** (16/24; per paper 0.50,
@@ -147,7 +184,7 @@ tuned, so it is reported as exploratory evidence that a cross-encoder fixes most
 same-entity confusions, not as a validated improvement. It is not used by the demo system.
 (`scripts/attr_rerank.py`, `results/attribution/summary_rerank.json`.)
 
-## 5.7 Limitations
+## 5.8 Limitations
 
 - **Pilot scale:** 5 papers, 1 seed, no confidence intervals; differences of a few points are
   within noise.
@@ -158,6 +195,10 @@ same-entity confusions, not as a validated improvement. It is not used by the de
 - **Thresholds:** θ_c (contradiction) is untuned, because AggreFact labels are binary.
 - **No LLM judge** in E5; perturbations are rule-based except paraphrase.
 - **Attribution reference** is LLM-labelled, 24 items.
+- **Upload settings differ from the experiments:** for live uploads the system verifies only
+  the final summary and caps it at 500 words, to keep long papers interactive (a 55-page
+  paper in 23 min, DECISION-37); the experiments verify every merge level and use the PRD's
+  10% length rule.
 - **Token counts** use a characters/4 estimate. Checked against the Qwen3 tokenizer it misses
   the ±5% target (FR-2.1): on our GROBID-parsed papers it overestimates by 3–16% (median 8%),
   which only errs toward Route B; on preprocessed arXiv/PubMed text the error is −25% to +36%
@@ -165,11 +206,13 @@ same-entity confusions, not as a validated improvement. It is not used by the de
 - **Deviations from the PRD** (guide to confirm): Qwen-only, pilot scope, claim-decomposition
   prompt v2 (DECISION-15).
 
-## 5.8 Summary of answers to the research questions
+## 5.9 Summary of answers to the research questions
 
-1. *Does map-reduce hurt faithfulness when the document fits?* Not significantly with
-   DeBERTa (mixed per paper); slightly by MiniCheck. It is much slower and, as built, longer.
-2. *Does faithfulness decay with merge depth?* Not on these papers (flat across levels 0–3).
+1. *Does map-reduce hurt faithfulness when the document fits?* Yes, moderately: both
+   verifiers rate Route A higher on average and on 4 of 5 papers (DeBERTa 0.81 vs 0.70,
+   MiniCheck 0.98 vs 0.96). Map-reduce is also ~7× slower and, as built, 2.5× longer.
+2. *Does faithfulness decay with merge depth?* Only marginally on these papers (≤ 0.02 from
+   level 0 to level 3); the gap is already present in the chunk summaries.
 3. *Can local verifiers be trusted?* MiniCheck reaches F1 0.81 on held-out AggreFact and
    transfers from dev to test; both verifiers have known blind spots (E5), so their labels
    are a screening signal, not ground truth.

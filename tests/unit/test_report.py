@@ -153,3 +153,35 @@ def test_sc4_table_reports_test_f1_at_the_frozen_theta() -> None:
     )
     assert "| DeBERTa | 0.100 | 0.800 | 0.500 | 0.600 | 0.700 |" in out
     assert "| MiniCheck | 0.500 | 0.850 | 0.750 | 0.800 | 0.770 |" in out
+
+
+def test_e1_per_paper_table_shows_both_arms_and_which_wins() -> None:
+    from eval.report import e1_per_paper_table
+
+    out = e1_per_paper_table(ROWS)
+    # paper p has both arms: A wins on every measure; q has only B -> no winner column value
+    assert "| p | 0.800 | 0.600 | 0.900 | 0.700 | 0.400 | 0.300 |" in out
+    assert "| q | n/a | 0.400 | n/a | 0.500 | n/a | 0.300 |" in out
+    assert "A better on" in out and "| 1/1 | 1/1 | 1/1 |" in out
+
+
+def test_thinking_comparison_puts_each_setting_next_to_each_other() -> None:
+    from eval.report import thinking_table
+
+    off = [dict(r, seconds=r["seconds"] / 4) for r in ROWS]
+    out = thinking_table({"on (model default)": ROWS, "off": off})
+    lines = out.splitlines()
+    assert lines[0].startswith("| Summary thinking | Arm |")
+    assert "| on (model default) | A | 1 | 0.800 | 0.900 | 0.400 | 100.000 | 200.000 |" in out
+    assert "| off | A | 1 | 0.800 | 0.900 | 0.400 | 25.000 | 200.000 |" in out
+
+
+def test_thinking_of_reads_the_run_manifest(tmp_path: Path) -> None:
+    import json
+
+    from eval.report import thinking_of
+
+    (tmp_path / "manifest.json").write_text(json.dumps({"config": {"summary": {}}}))
+    assert thinking_of(tmp_path) == "on (model default)"  # runs before DECISION-37
+    (tmp_path / "manifest.json").write_text(json.dumps({"config": {"summary": {"think": False}}}))
+    assert thinking_of(tmp_path) == "off"

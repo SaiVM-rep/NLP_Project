@@ -74,6 +74,63 @@ def e1_table(rows: Sequence[dict[str, Any]]) -> str:
     )
 
 
+def e1_per_paper_table(rows: Sequence[dict[str, Any]]) -> str:
+    """Per paper, both arms side by side, then on how many papers A beats B per measure."""
+    by: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
+    for r in rows:
+        by[r["doc_id"]][r["arm"]] = r
+    keys = ("faith_deberta", "faith_minicheck", "rouge1")
+    nan = float("nan")
+    table = md_table(
+        ["Paper", "DeBERTa A", "DeBERTa B", "MiniCheck A", "MiniCheck B", "ROUGE-1 A", "ROUGE-1 B"],
+        [
+            [doc, *(arms.get(a, {}).get(k, nan) for k in keys for a in ("A", "B"))]
+            for doc, arms in by.items()
+        ],
+    )
+    both = [arms for arms in by.values() if {"A", "B"} <= arms.keys()]
+    wins = [f"{sum(a['A'][k] > a['B'][k] for a in both)}/{len(both)}" for k in keys]
+    wins_table = md_table(["A better on", "DeBERTa", "MiniCheck", "ROUGE-1"], [["papers", *wins]])
+    return f"{table}\n\n{wins_table}"
+
+
+def thinking_of(run_dir: Path) -> str:
+    """Summary thinking setting of a run, from its manifest (absent before DECISION-37)."""
+    m = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+    think = m.get("config", {}).get("summary", {}).get("think")
+    return "on (model default)" if think is None else ("on" if think else "off")
+
+
+def thinking_table(runs: dict[str, Sequence[dict[str, Any]]]) -> str:
+    """E1 aggregates per summary-thinking setting (DECISION-37: thinking on vs off)."""
+    return md_table(
+        [
+            "Summary thinking",
+            "Arm",
+            "Docs",
+            "Faith. DeBERTa",
+            "Faith. MiniCheck",
+            "ROUGE-1",
+            "Seconds/doc",
+            "Words/summary",
+        ],
+        [
+            [
+                label,
+                a["arm"],
+                a["n_docs"],
+                a["faith_deberta"],
+                a["faith_minicheck"],
+                a["rouge1"],
+                a["seconds"],
+                a["summary_words"],
+            ]
+            for label, rows in runs.items()
+            for a in aggregate_e1(rows)
+        ],
+    )
+
+
 def e3_levels(rows: Sequence[dict[str, Any]]) -> dict[str, dict[int, tuple[float, int]]]:
     """Route B docs only: verifier -> level -> (mean faithfulness, docs reaching that level)."""
     out: dict[str, dict[int, tuple[float, int]]] = {}
@@ -234,7 +291,18 @@ def main() -> int:
     if (e1_dir := latest_run(RESULTS / "E1")) is not None:
         e1 = _jsonl(e1_dir / "per_doc.jsonl")
         parts += [f"## E1: Route A vs forced Route B (run `{e1_dir.name}`)\n", e1_table(e1), ""]
+        parts += ["## E1 per paper (same run)\n", e1_per_paper_table(e1), ""]
         parts += ["## E3: faithfulness per merge level (Route B arm of E1)\n", e3_table(e1), ""]
+        newest: dict[str, Path] = {}  # newest finished E1 run per summary-thinking setting
+        for d in sorted(p for p in (RESULTS / "E1").iterdir() if p.is_dir() and p.name[0] != "_"):
+            newest[thinking_of(d)] = d
+        if len(newest) > 1:
+            ids = ", ".join(f"`{d.name}`" for d in newest.values())
+            parts += [
+                f"## E1 thinking: summaries with thinking on vs off (runs {ids})\n",
+                thinking_table({k: _jsonl(d / "per_doc.jsonl") for k, d in newest.items()}),
+                "",
+            ]
     if (e5_dir := latest_run(RESULTS / "E5")) is not None:
         e5 = _jsonl(e5_dir / "per_item.jsonl")
         parts += [f"## E5: perturbations (run `{e5_dir.name}`)\n", e5_table(e5), ""]
