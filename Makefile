@@ -5,7 +5,7 @@
 
 PY ?= .venv/Scripts/python.exe
 
-.PHONY: help up down logs migrate test test-all smoke live-b live-kp api worker summarize doctor models lint fmt typecheck hooks check demo demo-export exp report clean
+.PHONY: help up down logs migrate test test-all smoke live-b live-kp api worker summarize doctor models lint fmt typecheck hooks check demo showcase showcase-check rehearse demo-export exp report clean
 
 help:
 	@echo "up        start db + grobid"
@@ -16,6 +16,7 @@ help:
 	@echo "api       HTTP API on :8000 (P6)"
 	@echo "worker    job worker: polls the queue, runs the pipeline (P6)"
 	@echo "demo      P7 UI on :7860 (demo examples + PDF upload)"
+	@echo "showcase  live showcase: start + supervise everything (Ctrl+C stops); see docs/DEMO_DAY.md"
 	@echo "test      unit tests only (no network, no GPU)"
 	@echo "test-all  unit + integration (needs 'make up')"
 	@echo "check     lint + format check + types + unit tests"
@@ -93,6 +94,19 @@ check: lint typecheck
 # upload needs `make api` + `make worker`. Save a finished job: make demo-export JOB=<id>
 demo:
 	$(PY) -m app.ui $(ARGS)
+
+# Live showcase, one terminal: Ollama + Docker + migrate + api + worker + UI, supervised.
+# make showcase-check FILE=x.pdf (size/route) · make rehearse FILE=x.pdf (full run -> demo/)
+showcase:
+	$(PY) scripts/showcase.py start $(ARGS)
+
+showcase-check:
+	@test -n "$(FILE)" || (echo "usage: make showcase-check FILE=paper.pdf" && exit 1)
+	$(PY) scripts/showcase.py check "$(FILE)"
+
+rehearse:
+	@test -n "$(FILE)" || (echo "usage: make rehearse FILE=paper.pdf" && exit 1)
+	$(PY) scripts/showcase.py rehearse "$(FILE)" $(ARGS)
 
 demo-export:
 	$(PY) scripts/export_demo.py $(JOB) $(ARGS)
