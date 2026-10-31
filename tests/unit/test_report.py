@@ -37,6 +37,7 @@ ROWS = [
         "rouge2": 0.1,
         "rougeL": 0.2,
         "seconds": 100.0,
+        "summary_words": 200,
         "levels_deberta": {"0": 0.8},
         "levels_minicheck": {"0": 0.9},
     },
@@ -49,6 +50,7 @@ ROWS = [
         "rouge2": 0.1,
         "rougeL": 0.2,
         "seconds": 900.0,
+        "summary_words": 500,
         "levels_deberta": {"0": 0.7, "1": 0.6},
         "levels_minicheck": {"0": 0.8, "1": 0.7},
     },
@@ -61,6 +63,7 @@ ROWS = [
         "rouge2": 0.1,
         "rougeL": 0.2,
         "seconds": 700.0,
+        "summary_words": 700,
         "levels_deberta": {"0": 0.5, "1": 0.4, "2": 0.4},
         "levels_minicheck": {"0": 0.6, "1": 0.5, "2": 0.5},
     },
@@ -71,6 +74,14 @@ def test_e1_table_has_one_row_per_arm_with_means() -> None:
     out = e1_table(ROWS)
     assert "| A | 1 | 0.800 | 0.900 |" in out
     assert "| B | 2 | 0.500 | 0.600 |" in out
+
+
+def test_e1_table_reports_mean_summary_length_per_arm() -> None:
+    # Route B finals run 2-3x longer than A; ROUGE must be read next to length.
+    lines = e1_table(ROWS).splitlines()
+    assert "Words/summary" in lines[0]
+    assert lines[2].endswith("| 200.000 |")
+    assert lines[3].endswith("| 600.000 |")
 
 
 def test_e3_levels_averages_route_b_docs_per_level() -> None:
@@ -109,10 +120,12 @@ def test_verifier_table_shows_tuned_theta_and_gain_over_placeholder() -> None:
                 "balanced_accuracy": 0.75,
                 "balanced_accuracy_at_0.5": 0.74,
             },
-        }
+        },
+        frozen={"nli": 0.3, "minicheck": 0.5},
     )
-    assert "| DeBERTa | 0.300 | 0.600 | 0.700 |" in out
-    assert "| MiniCheck | 0.600 | 0.740 | 0.750 |" in out
+    # sweep best, bal. acc. at best, bal. acc. at 0.5, frozen theta (DECISION-28)
+    assert "| DeBERTa | 0.300 | 0.700 | 0.600 | 0.300 |" in out
+    assert "| MiniCheck | 0.600 | 0.750 | 0.740 | 0.500 |" in out
 
 
 def test_sc4_table_reports_test_f1_at_the_frozen_theta() -> None:

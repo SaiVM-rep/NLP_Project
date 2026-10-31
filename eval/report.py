@@ -13,6 +13,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+from app.core.config import load_config
 from eval.run import aggregate_e1, aggregate_e5
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,6 +55,7 @@ def e1_table(rows: Sequence[dict[str, Any]]) -> str:
             "ROUGE-2",
             "ROUGE-L",
             "Seconds/doc",
+            "Words/summary",
         ],
         [
             [
@@ -65,6 +67,7 @@ def e1_table(rows: Sequence[dict[str, Any]]) -> str:
                 a["rouge2"],
                 a["rougeL"],
                 a["seconds"],
+                a["summary_words"],
             ]
             for a in aggregate_e1(rows)
         ],
@@ -113,15 +116,23 @@ def e5_table(rows: Sequence[dict[str, Any]]) -> str:
     )
 
 
-def verifier_table(summary: dict[str, Any]) -> str:
+def verifier_table(summary: dict[str, Any], frozen: dict[str, float]) -> str:
+    """Dev sweep next to the theta actually frozen in configs/ (they differ for MiniCheck)."""
     return md_table(
-        ["Verifier", "Tuned theta_e", "Bal. acc. at 0.5", "Bal. acc. tuned"],
+        [
+            "Verifier",
+            "Sweep-best theta_e",
+            "Bal. acc. at best",
+            "Bal. acc. at 0.5",
+            "Frozen theta_e",
+        ],
         [
             [
                 name,
                 summary[key]["theta_e"],
-                summary[key]["balanced_accuracy_at_0.5"],
                 summary[key]["balanced_accuracy"],
+                summary[key]["balanced_accuracy_at_0.5"],
+                frozen[key],
             ]
             for name, key in (("DeBERTa", "nli"), ("MiniCheck", "minicheck"))
         ],
@@ -161,6 +172,7 @@ def _figures(
         for v, name in (("deberta", "DeBERTa"), ("minicheck", "MiniCheck")):
             xs = sorted(lv[v])
             ax.plot(xs, [lv[v][x][0] for x in xs], marker="o", label=name)
+        ax.set_xticks(sorted(lv["deberta"]))
         ax.set_xlabel("Merge level (0 = chunk summaries)")
         ax.set_ylabel("Faithfulness")
         ax.set_ylim(0, 1)
@@ -190,6 +202,11 @@ def _figures(
     return made
 
 
+def _frozen_thetas() -> dict[str, float]:
+    v = load_config(ROOT / "configs").verify
+    return {"nli": v.nli.theta_e, "minicheck": v.minicheck.theta_e}
+
+
 def main() -> int:
     out = RESULTS / "report"
     out.mkdir(parents=True, exist_ok=True)
@@ -200,7 +217,7 @@ def main() -> int:
         s = json.loads(tuning.read_text(encoding="utf-8"))
         parts += [
             f"## Verifier thresholds (AggreFact dev, {s['n_rows']} rows)\n",
-            verifier_table(s),
+            verifier_table(s, _frozen_thetas()),
             "",
         ]
     sc4 = RESULTS / "tuning" / "aggrefact_test.summary.json"

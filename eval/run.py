@@ -133,7 +133,15 @@ async def run_e1(
     return rows
 
 
-E1_METRICS = ("faith_deberta", "faith_minicheck", "rouge1", "rouge2", "rougeL", "seconds")
+E1_METRICS = (
+    "faith_deberta",
+    "faith_minicheck",
+    "rouge1",
+    "rouge2",
+    "rougeL",
+    "seconds",
+    "summary_words",
+)
 
 
 def _mean(xs: Sequence[float]) -> float:
