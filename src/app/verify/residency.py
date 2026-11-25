@@ -21,15 +21,19 @@ class GpuResident:
             raise RuntimeError(f"{type(self).__name__} is closed")
         return self._model
 
+    def trim(self) -> None:
+        """Hand cached-but-free GPU blocks back to the driver."""
+        if self._device.startswith("cuda"):
+            import torch
+
+            torch.cuda.empty_cache()
+
     def close(self) -> None:
         if self._model is None:
             return
         self._model = None
         gc.collect()
-        if self._device.startswith("cuda"):
-            import torch
-
-            torch.cuda.empty_cache()
+        self.trim()
 
     def __enter__(self) -> Self:
         return self

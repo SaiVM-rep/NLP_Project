@@ -51,6 +51,7 @@ verify:
     batch_size: 16       # peak 2684 MiB at 500-word chunks
     chunk_words: 500     # upstream default for flan-t5-large
     theta_e: 0.5         # upstream default; dev curve flat 0.25-0.6 (bal. acc. 0.766)
+    top_k_chunks: null   # every chunk (upstream, experiments); uploads use 5 (DECISION-39)
 
 metrics:
   bertscore:             # bert-score's English default, pinned (PRD §12.5: comparability only)

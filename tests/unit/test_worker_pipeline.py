@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 MAX_WORDS: list[int | None] = []  # cfg.summary.max_words each job was opened with
+TOP_K: list[int | None] = []  # cfg.verify.minicheck.top_k_chunks per job
 
 
 class FakeStages:
@@ -27,6 +28,7 @@ class FakeStages:
         self.log = log
         log.append(("open", cfg.profile))
         MAX_WORDS.append(cfg.summary.max_words)
+        TOP_K.append(cfg.verify.minicheck.top_k_chunks)
         self.out = make_output()
 
     def ingest(self, input: dict[str, Any]) -> Document:
@@ -164,3 +166,11 @@ def test_uploads_cap_the_summary_and_verify_only_the_final_summary() -> None:
     log = []
     _run({"max_summary_words": None, "verify_scope": "all"}, log)
     assert MAX_WORDS == [500, None] and ("verify",) in log
+
+
+def test_uploads_check_each_claim_against_its_top_5_chunks() -> None:
+    TOP_K.clear()
+    _run({}, [])
+    _run({"minicheck_top_k": None}, [])
+    _run({"minicheck_top_k": 2}, [])
+    assert TOP_K == [5, None, 2]

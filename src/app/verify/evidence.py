@@ -23,14 +23,27 @@ def _unit(m: NDArray[np.float32]) -> NDArray[np.float32]:
     return (m / np.where(norms == 0, 1, norms)).astype(np.float32)
 
 
+def _top(scores: NDArray[np.float32], n: int) -> list[list[int]]:
+    # Stable sort on the negated score: equal scores keep document order.
+    order = np.argsort(-scores, axis=1, kind="stable")[:, :n]
+    return [[int(i) for i in row] for row in order]
+
+
 def top_n(
     claim_vecs: NDArray[np.float32], sent_vecs: NDArray[np.float32], n: int
 ) -> list[list[int]]:
     """Indices of the n most cosine-similar sentences per claim, best first."""
-    scores = _unit(claim_vecs) @ _unit(sent_vecs).T
-    # Stable sort on the negated score: equal scores keep document order.
-    order = np.argsort(-scores, axis=1, kind="stable")[:, :n]
-    return [[int(i) for i in row] for row in order]
+    return _top(_unit(claim_vecs) @ _unit(sent_vecs).T, n)
+
+
+def sentence_similarity(claims: list[str], doc: Document, embed: Embed) -> NDArray[np.float32]:
+    """claims x doc.sentences cosine similarity."""
+    sents = [doc.full_text[s.start : s.end] for s in doc.sentences]
+    return _unit(embed(claims)) @ _unit(embed(sents)).T
+
+
+def evidence_from(sim: NDArray[np.float32], doc: Document, n: int) -> list[list[Span]]:
+    return [[doc.sentences[i] for i in row] for row in _top(sim, n)]
 
 
 def retrieve_evidence(claims: list[str], doc: Document, embed: Embed, n: int) -> list[list[Span]]:
@@ -38,6 +51,4 @@ def retrieve_evidence(claims: list[str], doc: Document, embed: Embed, n: int) ->
         return []
     if not doc.sentences:
         return [[] for _ in claims]
-    sents = [doc.full_text[s.start : s.end] for s in doc.sentences]
-    idx = top_n(embed(claims), embed(sents), n)
-    return [[doc.sentences[i] for i in row] for row in idx]
+    return evidence_from(sentence_similarity(claims, doc, embed), doc, n)

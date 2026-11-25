@@ -53,6 +53,22 @@ def chunk_spans(doc: Document, max_words: int = CHUNK_WORDS) -> list[Span]:
     return chunks
 
 
+def pick_chunks(
+    sim: NDArray[np.float32], doc: Document, chunks: list[Span], k: int
+) -> list[list[int]]:
+    """Per claim, the k chunks holding its most similar sentence, best first.
+
+    `sim` is claims x doc.sentences cosine similarity; ties keep document order.
+    """
+    starts = np.array([c.start for c in chunks])
+    owner = np.searchsorted(starts, [s.start for s in doc.sentences], side="right") - 1
+    best = np.full((sim.shape[0], len(chunks)), -np.inf)
+    for i in range(sim.shape[0]):
+        np.maximum.at(best[i], owner, sim[i])
+    order = np.argsort(-best, axis=1, kind="stable")[:, :k]
+    return [[int(j) for j in row] for row in order]
+
+
 def support_score(claim: str, chunks: list[str], support: SupportFn) -> float:
     """Max support probability over chunks; 0.0 when there is nothing to check against."""
     if not chunks:
@@ -122,4 +138,7 @@ class MiniCheckT5(GpuResident):
                 logits = model(**enc, decoder_input_ids=start).logits[:, 0]
                 probs = torch.softmax(logits[:, LABEL_TOKENS].float(), dim=-1)[:, 1]
                 out.append(probs.cpu().numpy())
+        # Every call pads to a new shape; without this the cached reserve grew past the
+        # 8 GB card (2.9 -> 6.5 GB in 8 claims) and spilled into RAM, ~10x slower.
+        self.trim()
         return np.concatenate(out).astype(np.float32)

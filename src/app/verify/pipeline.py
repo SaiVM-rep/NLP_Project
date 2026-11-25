@@ -23,9 +23,9 @@ from app.core.schemas import ClaimResult, Document, SummaryNode
 from app.llm.client import LLMClient
 from app.summarize.common import SummaryResult
 from app.verify.decompose import Claim, decompose
-from app.verify.evidence import Embed, retrieve_evidence
+from app.verify.evidence import Embed, evidence_from, sentence_similarity
 from app.verify.labels import label
-from app.verify.minicheck import SupportFn, chunk_spans, support_score
+from app.verify.minicheck import SupportFn, chunk_spans, pick_chunks, support_score
 from app.verify.nli import LabelIdx, score_claim
 
 
@@ -89,8 +89,18 @@ def verify_claims(
         return []
     texts = [c.text for _, c in claims]
 
-    with openers.embedder() as embed:
-        evidence = retrieve_evidence(texts, doc, embed, cfg.top_n_evidence)
+    spans = chunk_spans(doc, cfg.minicheck.chunk_words)
+    k = cfg.minicheck.top_k_chunks
+    picks: list[list[int]] = [list(range(len(spans)))] * len(texts)
+    if doc.sentences:
+        with openers.embedder() as embed:
+            sim = sentence_similarity(texts, doc, embed)
+        evidence = evidence_from(sim, doc, cfg.top_n_evidence)
+        if k is not None:
+            picks = pick_chunks(sim, doc, spans, k)
+    else:
+        with openers.embedder():
+            evidence = [[] for _ in texts]
 
     with openers.nli() as nli:
         nli_scores = [
@@ -98,9 +108,12 @@ def verify_claims(
             for t, ev in zip(texts, evidence, strict=True)
         ]
 
-    chunks = [doc.text_of(s) for s in chunk_spans(doc, cfg.minicheck.chunk_words)]
+    chunks = [doc.text_of(s) for s in spans]
     with openers.minicheck() as mc:
-        support = [support_score(t, chunks, mc) for t in texts]
+        support = [
+            support_score(t, [chunks[j] for j in pick], mc)
+            for t, pick in zip(texts, picks, strict=True)
+        ]
 
     n, m = cfg.nli, cfg.minicheck
     out = []

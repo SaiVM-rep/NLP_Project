@@ -134,3 +134,14 @@ def test_loading_never_triggers_hub_safetensors_conversion(
     monkeypatch.setattr(transformers.AutoModelForSeq2SeqLM, "from_pretrained", fake_model)
     MiniCheckT5.from_pretrained("x", device="cpu", local_files_only=True)
     assert seen["env"] in ("1", "true")
+
+
+def test_gpu_cache_is_returned_after_every_call(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Padded batches differ in shape per claim; torch kept every block cached and the
+    reserve grew 2.9 -> 6.5 GB in 8 claims, spilling past the 8 GB card (2026-11-25)."""
+    mc = MiniCheckT5(tiny_model(), StubTokenizer(), device="cpu")
+    trims: list[int] = []
+    monkeypatch.setattr(mc, "trim", lambda: trims.append(1))
+    mc(CHUNKS, CLAIMS)
+    mc(CHUNKS[:1], CLAIMS[:1])
+    assert trims == [1, 1]

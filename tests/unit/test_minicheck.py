@@ -11,7 +11,7 @@ import pytest
 from numpy.typing import NDArray
 
 from app.core.schemas import Document, Span
-from app.verify.minicheck import chunk_spans, support_score
+from app.verify.minicheck import chunk_spans, pick_chunks, support_score
 
 
 def doc_of(sentences: list[str]) -> Document:
@@ -89,3 +89,31 @@ def test_support_score_python_float_clipped() -> None:
 
     s = support_score("c", ["x"], probs)
     assert type(s) is float and s == 1.0
+
+
+# ---------------------------------------------------- top-k chunk selection ---
+# Uploads score each claim against its k best chunks only (2026-11-25 experiment:
+# k=5 kept 253/254 labels on 7 papers at 43% of the MiniCheck pairs).
+
+FOUR = ["s0 a b.", "s1 c d.", "s2 e f.", "s3 g h."]
+
+
+def test_pick_chunks_ranks_chunks_by_their_best_sentence() -> None:
+    d = doc_of(FOUR)
+    chunks = chunk_spans(d, 6)  # two sentences per chunk -> chunks [s0 s1], [s2 s3]
+    sim = np.array([[0.1, 0.2, 0.9, 0.0], [0.8, 0.0, 0.3, 0.3]], dtype=np.float32)
+    assert pick_chunks(sim, d, chunks, 1) == [[1], [0]]
+
+
+def test_pick_chunks_ties_keep_document_order() -> None:
+    d = doc_of(FOUR)
+    chunks = chunk_spans(d, 3)  # one sentence per chunk
+    sim = np.array([[0.5, 0.5, 0.5, 0.5]], dtype=np.float32)
+    assert pick_chunks(sim, d, chunks, 2) == [[0, 1]]
+
+
+def test_pick_chunks_k_at_least_chunk_count_keeps_all() -> None:
+    d = doc_of(FOUR)
+    chunks = chunk_spans(d, 3)
+    sim = np.array([[0.1, 0.4, 0.3, 0.2]], dtype=np.float32)
+    assert pick_chunks(sim, d, chunks, 9) == [[1, 2, 3, 0]]

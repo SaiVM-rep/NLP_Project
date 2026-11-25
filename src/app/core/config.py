@@ -107,6 +107,8 @@ class MiniCheckCfg(ModelRef):
     batch_size: int = Field(gt=0)
     chunk_words: int = Field(gt=0)
     theta_e: float = Field(ge=0.0, le=1.0)  # single support score: no contradiction threshold
+    # Score each claim against its k most similar chunks only; None = every chunk (upstream).
+    top_k_chunks: int | None = Field(default=None, gt=0)
 
 
 class VerifyCfg(_Strict):

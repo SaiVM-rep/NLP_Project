@@ -41,6 +41,8 @@ class JobOptions(BaseModel):
     # cap its length; `"all"` / null restore the experiment behaviour (per level, PRD 10%).
     verify_scope: Literal["final", "all"] = "final"
     max_summary_words: int | None = Field(default=500, gt=0)
+    # DECISION-39, uploads: MiniCheck reads each claim's 5 most similar chunks; null = all.
+    minicheck_top_k: int | None = Field(default=5, gt=0)
 
 
 class Stages(Protocol):
@@ -79,7 +81,10 @@ def make_pipeline(
 ) -> Pipeline:
     async def run(job: Job, ctx: JobContext) -> JobOutput:
         opts = JobOptions(**job.config)
-        overrides: dict[str, Any] = {"summary": {"max_words": opts.max_summary_words}}
+        overrides: dict[str, Any] = {
+            "summary": {"max_words": opts.max_summary_words},
+            "verify": {"minicheck": {"top_k_chunks": opts.minicheck_top_k}},
+        }
         if opts.profile:
             overrides["profile"] = opts.profile
         cfg = load_cfg(overrides)

@@ -396,3 +396,18 @@ async def test_verify_summary_final_only_checks_just_the_root(tmp_path: Path) ->
     assert [c.summary_node_id for c in v.claims] == ["n1-0"]
     assert v.nodes == tree  # the tree is still stored and shown
     assert p.replies == []  # one scripted reply: a second decomposition would raise
+
+
+def test_minicheck_top_k_scores_only_the_most_similar_chunks() -> None:
+    rig = Rig()
+    cfg = _cfg()
+    cfg.minicheck.top_k_chunks = 1
+    out = verify_claims(_doc(), CLAIMS[:2], rig.openers, cfg)
+    assert rig.mc.chunks_seen == [["Cats purr softly."], ["Dogs bark loudly."]]
+    assert out[0].minicheck_support == pytest.approx(0.95)
+    # one embedder pass serves evidence and chunk picking
+    assert rig.events.count("open embedder") == 1
+
+
+def test_minicheck_default_is_every_chunk() -> None:
+    assert _cfg().minicheck.top_k_chunks is None
