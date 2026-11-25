@@ -202,3 +202,29 @@ def test_tables_skipped_for_web_pages_and_when_switched_off() -> None:
     _run({}, log)
     _run({"tables": False}, log, input={"path": "p.pdf"})
     assert not any(e[0] == "objects" for e in log)
+
+
+def test_live_stages_trim_ram_before_docling_and_after_the_job(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import asyncio
+
+    import app.ingest.objects as objects_mod
+    import app.worker.pipeline as wp
+
+    events: list[str] = []
+    monkeypatch.setattr(wp, "trim_working_set", lambda: events.append("trim") or True)
+    monkeypatch.setattr(
+        objects_mod, "extract_objects", lambda *a, **k: events.append("docling") or []
+    )
+
+    class P:
+        async def aclose(self) -> None:
+            events.append("aclose")
+
+    st = wp.LiveStages.__new__(wp.LiveStages)
+    st.cfg = load_config(ROOT / "configs")
+    st.provider = P()  # type: ignore[assignment]
+    st.objects({"path": "p.pdf"})
+    asyncio.run(st.aclose())
+    assert events[:2] == ["trim", "docling"] and events[-1] == "trim"

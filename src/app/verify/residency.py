@@ -9,6 +9,8 @@ import gc
 from types import TracebackType
 from typing import Any, Self
 
+from app.core.memory import trim_working_set
+
 
 class GpuResident:
     def __init__(self, model: Any, *, device: str) -> None:
@@ -34,6 +36,7 @@ class GpuResident:
         self._model = None
         gc.collect()
         self.trim()
+        trim_working_set()  # the freed weights would otherwise stay counted against RAM
 
     def __enter__(self) -> Self:
         return self

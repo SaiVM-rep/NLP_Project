@@ -45,3 +45,13 @@ def test_pdf_verdict_boundary_is_route_a() -> None:
 def test_pdf_verdict_empty_text_is_not_ok() -> None:
     v = pdf_verdict(tokens=0, tau=13107)
     assert not v.ok and "no text" in v.message.lower()
+
+
+def test_display_leak_is_flagged_with_what_to_do() -> None:
+    # 2026-11-25: dwm held 4.4 GB of RAM as shared GPU memory after 1 day of uptime and a
+    # long-paper upload stopped at 0.32 GB free; normal is a few hundred MB.
+    from scripts.showcase import display_leak_verdict
+
+    assert display_leak_verdict(0.4) is None
+    msg = display_leak_verdict(4.4)
+    assert msg is not None and "4.4 GB" in msg and "restart" in msg.lower()

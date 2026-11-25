@@ -75,6 +75,35 @@ def ram_verdict(avail_gb: float) -> tuple[bool, str]:
     )
 
 
+DWM_LEAK_GB = 1.5  # Desktop Window Manager normally holds a few hundred MB
+
+
+def display_leak_verdict(dwm_gb: float) -> str | None:
+    """Warn when Windows' display manager holds RAM as shared GPU memory (DECISION-41):
+    it cannot be paged out, so it shrinks what an upload can use."""
+    if dwm_gb < DWM_LEAK_GB:
+        return None
+    return (
+        f"Windows' display manager (dwm) is holding {dwm_gb:.1f} GB of RAM (normal: < 0.5). "
+        "Restart the laptop (or sign out and in) before the demo to get it back."
+    )
+
+
+def dwm_shared_gb() -> float:
+    """dwm's shared GPU memory (system RAM) from the Windows GPU counters; 0 if unreadable."""
+    ps = (
+        "(Get-Counter '\\GPU Process Memory(*)\\Shared Usage').CounterSamples | "
+        "Where-Object { $_.InstanceName -match 'pid_(\\d+)' -and "
+        "(Get-Process -Id $Matches[1] -EA SilentlyContinue).ProcessName -eq 'dwm' } | "
+        "Measure-Object CookedValue -Sum | ForEach-Object { $_.Sum }"
+    )
+    out = run(["powershell", "-NoProfile", "-Command", ps]).stdout.strip()
+    try:
+        return float(out or 0) / 2**30
+    except ValueError:
+        return 0.0
+
+
 class MemoryGuard:
     """Trips when free RAM stays under `floor_mb` for `samples` readings in a row."""
 
@@ -265,6 +294,9 @@ class Services:
 
 def cmd_start(a: argparse.Namespace) -> int:
     say(f"free RAM at start: {avail_mb() / 1024:.1f} GB")
+    leak = display_leak_verdict(dwm_shared_gb())
+    if leak:
+        say("WARN " + leak)
     ensure_ollama()
     ensure_docker()
     r = run([PY, "-m", "app.db.migrate"])

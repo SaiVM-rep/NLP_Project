@@ -16,6 +16,7 @@ from typing import Any
 
 SCALE = 2.0  # render at 144 dpi: readable crops of small table text
 PAD = 4.0  # points around each region
+FORMULA_BUDGET_S = 60.0  # LaTeX reading per paper; the rest keep their crop
 
 
 def _options() -> Any:
@@ -34,12 +35,40 @@ def _options() -> Any:
     return opts
 
 
+def _budget_formulas(budget_s: float) -> set[int]:
+    """Stop reading formulas as LaTeX after `budget_s` (DECISION-41). The model writes each
+    formula token by token: math-heavy BigBird ran past the 300 s limit and lost all its
+    tables; without formulas it takes 71 s. Later formulas keep their page crop, marked unread.
+    Returns the ids of the formula items that were read."""
+    import time
+
+    from docling.models.stages.code_formula.code_formula_vlm_model import CodeFormulaVlmModel
+
+    orig = CodeFormulaVlmModel.__call__
+    read: set[int] = set()
+    start: list[float] = []
+
+    def call(self: Any, doc: Any, element_batch: Any) -> Any:
+        start or start.append(time.monotonic())
+        if time.monotonic() - start[0] > budget_s:
+            for el in element_batch:
+                yield el.item
+            return
+        for item in orig(self, doc, element_batch):
+            read.add(id(item))
+            yield item
+
+    CodeFormulaVlmModel.__call__ = call  # type: ignore[method-assign]
+    return read
+
+
 def extract(pdf: Path) -> list[dict[str, Any]]:
     import pypdfium2 as pdfium
     from docling.datamodel.base_models import InputFormat
     from docling.document_converter import DocumentConverter, PdfFormatOption
     from docling_core.types.doc import DocItemLabel, TableItem, TextItem
 
+    read = _budget_formulas(FORMULA_BUDGET_S)
     conv = DocumentConverter(
         format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=_options())}
     )
@@ -77,7 +106,9 @@ def extract(pdf: Path) -> list[dict[str, Any]]:
                 content = content[len(caption) :].lstrip()
             kind = "table"
         elif isinstance(item, TextItem) and item.label == DocItemLabel.FORMULA:
-            kind, caption, content = "formula", None, item.text.strip()
+            # unread formulas carry the PDF text layer (garbled math): show the crop only
+            text = item.text.strip() if id(item) in read else ""
+            kind, caption, content = "formula", None, text
         else:
             continue
         png = crop(item)
@@ -95,7 +126,29 @@ def extract(pdf: Path) -> list[dict[str, Any]]:
     return out
 
 
+def _trim_every(seconds: float) -> None:
+    """Hand unused pages back to Windows while Docling runs (DECISION-41): peak working set
+    2.37 -> 0.95 GB on BERT, same speed. Standalone copy of app.core.memory (other env)."""
+    import ctypes
+    import threading
+    import time
+
+    if sys.platform != "win32":
+        return
+    k = ctypes.windll.kernel32  # type: ignore[attr-defined]
+    k.GetCurrentProcess.restype = ctypes.c_void_p
+    minus_one = ctypes.c_size_t(-1)
+
+    def loop() -> None:
+        while True:
+            k.SetProcessWorkingSetSize(ctypes.c_void_p(k.GetCurrentProcess()), minus_one, minus_one)
+            time.sleep(seconds)
+
+    threading.Thread(target=loop, daemon=True).start()
+
+
 def main() -> None:
+    _trim_every(1.0)
     pdf, dest = Path(sys.argv[1]), Path(sys.argv[2])
     dest.write_text(json.dumps(extract(pdf)), encoding="utf-8")
 

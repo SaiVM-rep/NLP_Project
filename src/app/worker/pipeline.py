@@ -18,6 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.config import AppConfig
 from app.core.logging import doc_context
+from app.core.memory import trim_working_set
 from app.core.schemas import ClaimLabel, Document, KeyPoint
 from app.db.store import Job, JobOutput
 from app.ingest.objects import PaperObject
@@ -173,6 +174,7 @@ class LiveStages:
     def objects(self, input: dict[str, Any]) -> list[PaperObject]:
         from app.ingest.objects import extract_objects
 
+        trim_working_set()  # Docling needs ~2 GB; free what ingest left behind first
         return extract_objects(Path(input["path"]), cache_dir=ROOT / ".cache" / "objects")
 
     async def summarize(self, doc: Document, tau: int | None) -> SummaryResult:
@@ -221,3 +223,4 @@ class LiveStages:
                 await self._release()
         finally:
             await self.provider.aclose()
+            trim_working_set()  # an idle worker between uploads holds almost no RAM

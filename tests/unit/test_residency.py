@@ -34,3 +34,13 @@ def test_trim_is_a_no_op_on_cpu(monkeypatch: pytest.MonkeyPatch) -> None:
     calls = _spy(monkeypatch)
     GpuResident(FakeModel(), device="cpu").trim()
     assert calls == []
+
+
+def test_close_hands_freed_memory_back_to_windows(monkeypatch: pytest.MonkeyPatch) -> None:
+    import app.verify.residency as residency
+
+    _spy(monkeypatch)
+    trims: list[int] = []
+    monkeypatch.setattr(residency, "trim_working_set", lambda: trims.append(1) or True)
+    GpuResident(FakeModel(), device="cuda").close()
+    assert trims == [1]
