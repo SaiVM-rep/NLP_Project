@@ -20,6 +20,7 @@ from app.core.config import AppConfig
 from app.core.logging import doc_context
 from app.core.schemas import ClaimLabel, Document, KeyPoint
 from app.db.store import Job, JobOutput
+from app.ingest.objects import PaperObject
 from app.route.tokens import estimate_tokens
 from app.summarize.common import SummaryResult
 from app.verify.pipeline import VerifiedSummary, summary_nodes
@@ -43,10 +44,13 @@ class JobOptions(BaseModel):
     max_summary_words: int | None = Field(default=500, gt=0)
     # DECISION-39, uploads: MiniCheck reads each claim's 5 most similar chunks; null = all.
     minicheck_top_k: int | None = Field(default=5, gt=0)
+    # DECISION-40: PDF tables & formulas, shown beside page crops; never fed to the summary.
+    tables: bool = True
 
 
 class Stages(Protocol):
     def ingest(self, input: dict[str, Any]) -> Document: ...
+    def objects(self, input: dict[str, Any]) -> list[PaperObject]: ...
     async def summarize(self, doc: Document, tau: int | None) -> SummaryResult: ...
     async def keypoints(self, doc: Document) -> list[KeyPoint]: ...
     async def verify(
@@ -94,6 +98,10 @@ def make_pipeline(
             ctx.progress("ingest", 0.05, "")
             doc = st.ingest(job.input)
             ctx.attach_document(doc)
+            objects: list[PaperObject] = []
+            if opts.tables and "path" in job.input:
+                ctx.progress("tables", 0.1, "tables and formulas")
+                objects = st.objects(job.input)
             with doc_context(doc.doc_id):
                 ctx.progress("summarize", 0.15, f"{len(doc.full_text)} chars")
                 result = await st.summarize(doc, opts.tau)
@@ -117,6 +125,7 @@ def make_pipeline(
             claims=verified.claims if verified else [],
             key_points=kps,
             metrics=metrics(doc, result, verified),
+            objects=objects,
         )
 
     return run
@@ -160,6 +169,11 @@ class LiveStages:
         with httpx.Client(timeout=300) as http:  # owned, so its socket is closed
             grobid = GrobidClient(os.getenv("GROBID_URL", "http://localhost:8070"), client=http)
             return ingest_pdf(Path(input["path"]), grobid)
+
+    def objects(self, input: dict[str, Any]) -> list[PaperObject]:
+        from app.ingest.objects import extract_objects
+
+        return extract_objects(Path(input["path"]), cache_dir=ROOT / ".cache" / "objects")
 
     async def summarize(self, doc: Document, tau: int | None) -> SummaryResult:
         from app.summarize.single_pass import summarize

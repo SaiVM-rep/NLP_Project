@@ -10,11 +10,12 @@ import pytest
 from app.core.config import AppConfig, load_config
 from app.core.schemas import Document, KeyPoint
 from app.db.memory import MemoryStore
+from app.ingest.objects import PaperObject
 from app.summarize.common import SummaryResult
 from app.verify.pipeline import VerifiedSummary, summary_nodes
 from app.worker.pipeline import make_pipeline
 from app.worker.runner import run_once
-from tests.store_contract import make_doc, make_output
+from tests.store_contract import PAPER_OBJECT, make_doc, make_output
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -35,6 +36,10 @@ class FakeStages:
         self.log.append(("ingest", input))
         return make_doc()
 
+    def objects(self, input: dict[str, Any]) -> list[PaperObject]:
+        self.log.append(("objects", input["path"]))
+        return [PAPER_OBJECT]
+
     async def summarize(self, doc: Document, tau: int | None) -> SummaryResult:
         self.log.append(("summarize", tau))
         return self.out.summary
@@ -53,11 +58,16 @@ class FakeStages:
         self.log.append(("close",))
 
 
-def _run(options: dict[str, Any], log: list[Any], stages: Any = FakeStages) -> MemoryStore:
+def _run(
+    options: dict[str, Any],
+    log: list[Any],
+    stages: Any = FakeStages,
+    input: dict[str, Any] | None = None,
+) -> MemoryStore:
     import asyncio
 
     store = MemoryStore()
-    store.create_job({"url": "https://x"}, options)
+    store.create_job(input or {"url": "https://x"}, options)
     pipe = make_pipeline(lambda o: load_config(ROOT / "configs", o), lambda cfg: stages(cfg, log))
     asyncio.run(run_once(store, "w", pipe, lease_s=60, max_attempts=3))
     return store
@@ -174,3 +184,21 @@ def test_uploads_check_each_claim_against_its_top_5_chunks() -> None:
     _run({"minicheck_top_k": None}, [])
     _run({"minicheck_top_k": 2}, [])
     assert TOP_K == [5, None, 2]
+
+
+def test_pdf_jobs_extract_tables_and_formulas_right_after_ingest() -> None:
+    log: list[Any] = []
+    store = _run({}, log, input={"path": "p.pdf"})
+    names = [e[0] for e in log]
+    assert names[names.index("ingest") + 1] == "objects" and ("objects", "p.pdf") in log
+    jid = _only_job(store)
+    assert "tables" in [e.stage for e in store.events(jid, 0)]
+    r = store.result(jid)
+    assert r is not None and r["objects"] == [PAPER_OBJECT.model_dump()]
+
+
+def test_tables_skipped_for_web_pages_and_when_switched_off() -> None:
+    log: list[Any] = []
+    _run({}, log)
+    _run({"tables": False}, log, input={"path": "p.pdf"})
+    assert not any(e[0] == "objects" for e in log)

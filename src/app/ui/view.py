@@ -15,7 +15,7 @@ import httpx
 from pydantic import BaseModel
 
 from app.core.schemas import ClaimLabel
-from app.ui.render import claim_choice
+from app.ui.render import claim_choice, render_objects
 
 
 class Bundle(BaseModel):
@@ -38,6 +38,7 @@ class View:
     full_text: str
     key_points: list[Item]
     claims: list[Item]
+    objects: str  # markdown of the "Tables & formulas" tab
 
 
 def _spans(raw: Any) -> list[tuple[int, int]]:
@@ -87,6 +88,7 @@ def make_view(b: Bundle) -> View:
         full_text=b.document["full_text"],
         key_points=kps,
         claims=claims,
+        objects=render_objects(r.get("objects", [])),
     )
 
 
@@ -114,13 +116,14 @@ def bundle_from_api(client: httpx.Client, job_id: str) -> Bundle:
     return Bundle(title=document["title"], document=document, result=result)
 
 
-def submit_job(client: httpx.Client, path: str, *, verify: bool) -> str:
-    """POST /v1/jobs with the PDF; `verify=False` skips claim checking (low-RAM live demo)."""
+def submit_job(client: httpx.Client, path: str, *, verify: bool, tables: bool = True) -> str:
+    """POST /v1/jobs with the PDF; `verify=False` skips claim checking (low-RAM live demo),
+    `tables=False` skips table/formula extraction."""
     with open(path, "rb") as f:
         r = client.post(
             "/v1/jobs",
             files={"file": (Path(path).name, f, "application/pdf")},
-            data={"options": json.dumps({"verify": verify})},
+            data={"options": json.dumps({"verify": verify, "tables": tables})},
         )
     if r.status_code != 202:
         body = r.json()

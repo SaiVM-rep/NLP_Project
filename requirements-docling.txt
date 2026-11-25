@@ -1,0 +1,8 @@
+# Separate env for table/formula extraction (DECISION-40): `make docling-env`.
+# Kept out of the main .venv so Docling's dependency pins cannot touch the verified pipeline.
+--extra-index-url https://download.pytorch.org/whl/cu128
+torch==2.11.0+cu128
+docling==2.152.0
+docling-core==2.108.0
+docling-ibm-models==4.0.4
+pypdfium2==5.15.2

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import html
 from collections.abc import Sequence
+from typing import Any
 
 from app.core.schemas import ClaimLabel
 
@@ -50,3 +51,40 @@ def render_source(full_text: str, spans: Sequence[tuple[int, int]]) -> str:
         pos = e
     parts.append(html.escape(full_text[pos:]))
     return f'<div class="src">{"".join(parts)}</div>'
+
+
+def _plural(n: int, word: str) -> str:
+    return f"{n} {word}{'' if n == 1 else 's'}"
+
+
+def render_objects(objects: Sequence[dict[str, Any]]) -> str:
+    """Markdown for the "Tables & formulas" tab (DECISION-40): each item shows a crop of the
+    printed page (always correct) beside Docling's extraction (may contain errors)."""
+    if not objects:
+        return "No tables or formulas were extracted for this document."
+    tables = sum(o["kind"] == "table" for o in objects)
+    head = (
+        f"**{_plural(tables, 'table')} · {_plural(len(objects) - tables, 'formula')}** — "
+        "left: the original page (exact); right: extracted by Docling "
+        "(dense tables can come out scrambled; trust the left side)."
+    )
+    parts = [head]
+    for o in objects:
+        name = "Table" if o["kind"] == "table" else "Formula"
+        title = f"{name} · page {o['page']}"
+        if o.get("caption"):
+            title += f" · {html.escape(o['caption'])}"
+        body = o["content"].strip()
+        if o["kind"] == "formula":
+            body = f"$${body}$$" if body else "_Docling could not read this formula._"
+        elif not body:
+            body = "_Docling could not read this table._"
+        parts.append(
+            f'<div class="obj obj-{o["kind"]}"><div class="obj-title">{title}</div>'
+            '<div class="obj-row">'
+            f'<div class="obj-crop"><div class="obj-tag">Original</div>'
+            f'<img src="data:image/png;base64,{o["image_png"]}" alt="{name} as printed"></div>'
+            f'<div class="obj-ext"><div class="obj-tag">Extracted</div>\n\n{body}\n\n</div>'
+            "</div></div>"
+        )
+    return "\n\n".join(parts)

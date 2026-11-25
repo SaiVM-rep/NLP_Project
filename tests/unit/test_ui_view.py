@@ -143,7 +143,10 @@ def test_bundle_round_trips_through_json() -> None:
 
 
 @pytest.mark.parametrize("verify", [True, False])
-def test_submit_job_posts_the_pdf_with_the_verify_option(tmp_path: Path, verify: bool) -> None:
+@pytest.mark.parametrize("tables", [True, False])
+def test_submit_job_posts_the_pdf_with_the_verify_and_tables_options(
+    tmp_path: Path, verify: bool, tables: bool
+) -> None:
     # verify=False is the low-RAM live-demo path: no MiniCheck/DeBERTa load in the worker.
     from app.ui.view import submit_job
 
@@ -156,10 +159,10 @@ def test_submit_job_posts_the_pdf_with_the_verify_option(tmp_path: Path, verify:
         return httpx.Response(202, json={"job_id": "j9"})
 
     with httpx.Client(base_url="http://api", transport=httpx.MockTransport(handler)) as c:
-        assert submit_job(c, str(pdf), verify=verify) == "j9"
+        assert submit_job(c, str(pdf), verify=verify, tables=tables) == "j9"
     body = seen["body"]
     assert b'filename="paper.pdf"' in body and b"%PDF-1.4 x" in body
-    assert json.dumps({"verify": verify}).encode() in body
+    assert json.dumps({"verify": verify, "tables": tables}).encode() in body
 
 
 def test_submit_job_raises_the_problem_detail_on_rejection(tmp_path: Path) -> None:
@@ -176,3 +179,14 @@ def test_submit_job_raises_the_problem_detail_on_rejection(tmp_path: Path) -> No
         pytest.raises(RuntimeError, match="Too large: over 20 MB"),
     ):
         submit_job(c, str(pdf), verify=True)
+
+
+def test_view_carries_the_tables_and_formulas_tab() -> None:
+    obj = {"kind": "table", "page": 2, "caption": "Table 1", "content": "| a |", "image_png": "AA"}
+    v = make_view(Bundle(title="SBERT", document=DOC, result={**RESULT, "objects": [obj]}))
+    assert "data:image/png;base64,AA" in v.objects
+    assert "No tables or formulas" in _bundle_view_without_objects().objects
+
+
+def _bundle_view_without_objects():  # type: ignore[no-untyped-def]
+    return make_view(_bundle())  # bundles made before DECISION-40 have no "objects"

@@ -20,6 +20,7 @@ from uuid import UUID, uuid5
 from pydantic import BaseModel
 
 from app.core.schemas import ClaimResult, Document, KeyPoint, SummaryNode
+from app.ingest.objects import PaperObject
 from app.summarize.common import SummaryResult
 
 Status = Literal["queued", "running", "done", "failed"]
@@ -54,6 +55,7 @@ class JobOutput(BaseModel):
     claims: list[ClaimResult]
     key_points: list[KeyPoint]
     metrics: dict[str, float]
+    objects: list[PaperObject] = []  # tables & formulas, display only (DECISION-40)
 
 
 class Store(Protocol):
@@ -89,6 +91,7 @@ def stats(out: JobOutput) -> dict[str, Any]:
         "model": s.model,
         "prompt_hashes": s.prompt_hashes,
         "metrics": out.metrics,
+        "objects": [o.model_dump() for o in out.objects],
     }
 
 
@@ -112,6 +115,7 @@ def render_result(
         "key_points": key_points,
         "claims": claims,
         "metrics": stats["metrics"],
+        "objects": stats.get("objects", []),  # jobs finished before DECISION-40 have none
     }
 
 

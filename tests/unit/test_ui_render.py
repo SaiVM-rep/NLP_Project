@@ -68,3 +68,58 @@ def test_claim_choice_shows_both_verifiers_and_the_claim() -> None:
     assert label_icon(ClaimLabel.SUPPORTED) in text
     assert label_icon(ClaimLabel.CONTRADICTED) in text
     assert text.endswith("SBERT uses triplet loss.")
+
+
+# ------------------------------------------------- tables & formulas (DECISION-40) ---
+
+from app.ui.render import render_objects  # noqa: E402
+
+TABLE = {
+    "kind": "table",
+    "page": 5,
+    "caption": "Table 2: <b>STS</b> results.",
+    "content": "| Model | Spearman |\n|---|---|\n| SBERT | 85.35 |",
+    "image_png": "QUJD",
+}
+FORMULA = {
+    "kind": "formula",
+    "page": 3,
+    "caption": None,
+    "content": "o = W_t u",
+    "image_png": "REVG",
+}
+UNREAD = {"kind": "formula", "page": 4, "caption": None, "content": "", "image_png": "R0hJ"}
+
+
+def test_each_object_shows_the_page_crop_beside_the_extraction() -> None:
+    out = render_objects([TABLE])
+    crop, extracted = out.index('src="data:image/png;base64,QUJD"'), out.index("| SBERT | 85.35 |")
+    assert crop < extracted  # crop left, extraction right
+    assert "page 5" in out and "Original" in out and "Extracted" in out
+
+
+def test_captions_are_escaped() -> None:
+    out = render_objects([TABLE])
+    assert "<b>STS</b>" not in out and "&lt;b&gt;STS&lt;/b&gt;" in out
+
+
+def test_formulas_render_as_display_math_and_unread_ones_say_so() -> None:
+    out = render_objects([FORMULA, UNREAD])
+    assert "$$o = W_t u$$" in out
+    assert "could not read" in out and 'src="data:image/png;base64,R0hJ"' in out
+
+
+def test_markdown_inside_the_side_by_side_block_is_separated_by_blank_lines() -> None:
+    # CommonMark: markdown inside an HTML block is parsed only after a blank line
+    out = render_objects([TABLE])
+    assert "\n\n| Model | Spearman |" in out and "| SBERT | 85.35 |\n\n</div>" in out
+
+
+def test_counts_in_the_heading_and_an_empty_paper() -> None:
+    assert "1 table · 2 formulas" in render_objects([TABLE, FORMULA, UNREAD])
+    assert "No tables or formulas" in render_objects([])
+
+
+def test_each_object_is_tagged_with_its_kind_for_layout() -> None:
+    out = render_objects([TABLE, FORMULA])
+    assert 'class="obj obj-table"' in out and 'class="obj obj-formula"' in out

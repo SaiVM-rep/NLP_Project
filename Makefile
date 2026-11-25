@@ -74,6 +74,15 @@ doctor:
 models:
 	$(PY) -m app.verify.models --fetch
 
+# DECISION-40: separate env for table/formula extraction (Docling), outside the main .venv.
+docling-env:
+	uv venv .venv-docling --python 3.11
+	uv pip install --python .venv-docling/Scripts/python.exe -r requirements-docling.txt --index-strategy unsafe-best-match
+
+# Add tables & formulas to demo/*.json bundles (needs docling-env + GPU)
+demo-objects:
+	$(PY) scripts/add_objects.py $(ARGS)
+
 lint:
 	$(PY) -m ruff check .
 

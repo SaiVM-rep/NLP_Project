@@ -37,3 +37,6 @@ desktop.ini
 # --- not ours ---
 # ad-hoc input papers belong in data/ (ignored); fixtures live in tests/fixtures/pdfs
 /*.pdf
+
+# Docling env for table/formula extraction (make docling-env)
+.venv-docling/

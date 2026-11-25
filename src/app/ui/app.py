@@ -23,6 +23,17 @@ CSS = """
        overflow-y: auto; padding: 12px; border: 1px solid var(--border-color-primary); }
 .src mark { background: #ffe066; color: #111; padding: 0 1px; }
 .pick label { align-items: flex-start; }
+.obj { border: 1px solid var(--border-color-primary); border-radius: 6px; padding: 8px;
+       margin: 10px 0; }
+.obj-title { font-weight: 600; margin-bottom: 6px; }
+.obj-row { display: flex; gap: 14px; align-items: flex-start; }
+.obj-crop, .obj-ext { flex: 1 1 0; min-width: 0; overflow-x: auto; overflow-y: hidden; }
+.obj-table .obj-row { flex-direction: column; }  /* wide tables: original above extraction */
+.obj-table .obj-crop, .obj-table .obj-ext { flex: none; width: 100%; }
+.obj-ext table { font-size: 12px; }
+.obj-ext th, .obj-ext td { white-space: nowrap; padding: 2px 6px; }
+.obj-crop img { max-width: 100%; background: #fff; }
+.obj-tag { font-size: 12px; opacity: 0.7; text-transform: uppercase; }
 """
 SCROLL_JS = """() => { setTimeout(() => {
   const el = document.getElementById('active-hl');
@@ -44,6 +55,7 @@ def _show(v: View) -> tuple[Any, ...]:
         render_source(v.full_text, []),
         gr.update(choices=kp, value=None),
         gr.update(choices=cl, value=None),
+        v.objects,
     )
 
 
@@ -63,13 +75,13 @@ def build_app(demo_dir: Path, api_url: str) -> gr.Blocks:
             raise gr.Error("Pick an example first.")
         return _show(make_view(bundles[title]))
 
-    def upload(path: str | None, verify: bool) -> Iterator[tuple[Any, ...]]:
+    def upload(path: str | None, verify: bool, tables: bool) -> Iterator[tuple[Any, ...]]:
         if not path:
             raise gr.Error("Choose a PDF first.")
-        blank = (gr.update(),) * 6
+        blank = (gr.update(),) * 7
         with httpx.Client(base_url=api_url, timeout=30) as c:
             try:
-                jid = submit_job(c, path, verify=verify)
+                jid = submit_job(c, path, verify=verify, tables=tables)
             except httpx.ConnectError as e:
                 raise gr.Error(f"API not reachable at {api_url}: run `make api`.") from e
             except RuntimeError as e:
@@ -98,20 +110,28 @@ def build_app(demo_dir: Path, api_url: str) -> gr.Blocks:
                 verify_box = gr.Checkbox(
                     value=True, label="Check claims (DeBERTa + MiniCheck, needs ~2.5 GB more RAM)"
                 )
+                tables_box = gr.Checkbox(
+                    value=True, label="Extract tables & formulas (Docling, ~30-90 s more)"
+                )
                 run_btn = gr.Button("Summarize", variant="primary")
         head = gr.Markdown()
         with gr.Row():
             with gr.Column(scale=3):
                 source = gr.HTML(label="Source")
-            with gr.Column(scale=2):
-                summary = gr.Textbox(label="Summary", lines=6, interactive=False)
-                kps = gr.Radio([], label="Key points (click to locate)", elem_classes="pick")
-                gr.Markdown(LEGEND)
-                claims = gr.Radio([], label="Claims (click to locate)", elem_classes="pick")
+            with gr.Column(scale=2), gr.Tabs():
+                with gr.Tab("Summary & claims"):
+                    summary = gr.Textbox(label="Summary", lines=6, interactive=False)
+                    kps = gr.Radio([], label="Key points (click to locate)", elem_classes="pick")
+                    gr.Markdown(LEGEND)
+                    claims = gr.Radio([], label="Claims (click to locate)", elem_classes="pick")
+                with gr.Tab("Tables & formulas"):
+                    objects = gr.Markdown(
+                        latex_delimiters=[{"left": "$$", "right": "$$", "display": True}]
+                    )
 
-        outs = [state, head, summary, source, kps, claims]
+        outs = [state, head, summary, source, kps, claims, objects]
         open_btn.click(open_demo, pick, outs)
-        run_btn.click(upload, [pdf, verify_box], outs)
+        run_btn.click(upload, [pdf, verify_box, tables_box], outs)
         kps.input(lambda v, p: _highlight(v, "kp", p), [state, kps], source).then(
             None, js=SCROLL_JS
         )

@@ -21,6 +21,7 @@ from app.core.schemas import (
     SummaryNode,
 )
 from app.db.store import JobOutput, Store
+from app.ingest.objects import PaperObject
 from app.summarize.common import SummaryResult
 
 TEXT = "Cats purr. Dogs bark loudly."
@@ -44,6 +45,11 @@ def make_doc(doc_id: str = "ignored") -> Document:
         sentences=[Span(start=0, end=10), Span(start=11, end=28)],
         token_count=7,
     )
+
+
+PAPER_OBJECT = PaperObject(
+    kind="table", page=2, caption="Table 1: Pets.", content="| a |\n|---|\n| 1 |", image_png="AA=="
+)
 
 
 def make_output() -> JobOutput:
@@ -92,6 +98,7 @@ def make_output() -> JobOutput:
         claims=[claim],
         key_points=kps,
         metrics={"faithfulness_minicheck": 1.0, "compression_ratio": 0.8},
+        objects=[PAPER_OBJECT],
     )
 
 
@@ -234,6 +241,7 @@ class StoreContract:
         assert (c["label_deberta"], c["label_minicheck"]) == ("supported", "supported")
         assert c["minicheck_support"] == pytest.approx(0.95)
         assert r["metrics"] == {"faithfulness_minicheck": 1.0, "compression_ratio": 0.8}
+        assert r["objects"] == [PAPER_OBJECT.model_dump()]
 
     def test_result_is_none_until_done(self, store: Store) -> None:
         jid = store.create_job({}, {})

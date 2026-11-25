@@ -57,6 +57,7 @@ def test_create_from_url_queues_a_job(client: TestClient, store: MemoryStore) ->
         "verify_scope": "final",
         "max_summary_words": 500,
         "minicheck_top_k": 5,
+        "tables": True,
     }
 
 
